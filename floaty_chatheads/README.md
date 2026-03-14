@@ -9,6 +9,12 @@ On iOS, chatheads use an app-level `UIWindow` overlay at the `.alert + 1` window
 Both platforms can host **any Flutter widget** as an expandable content panel -- think
 Facebook Messenger-style bubbles, mini players, quick-action FABs, or full-screen dashboards.
 
+> **Successor to [`floaty_chathead`](https://pub.dev/packages/floaty_chathead).**
+> This is a complete rewrite of the original plugin with a federated architecture,
+> Pigeon-generated type-safe platform channels, iOS support, theming, accessibility,
+> debug tooling, and many more features. If you are migrating from `floaty_chathead`,
+> see the [Migration](#migration-from-floaty_chathead) section below.
+
 ---
 
 ## Platform Comparison
@@ -72,8 +78,7 @@ implementations differ due to OS-level constraints:
 
 ```yaml
 dependencies:
-  floaty_chatheads:
-    path: ../floaty_chatheads  # or publish to pub.dev
+  floaty_chatheads: ^1.0.0
 ```
 
 ### 2. Android setup
@@ -421,6 +426,40 @@ overlay isolates.
 
 ---
 
+## Migration from `floaty_chathead`
+
+This package (`floaty_chatheads`) is the successor to the original
+[`floaty_chathead`](https://pub.dev/packages/floaty_chathead) plugin.
+It is a **complete rewrite** -- not a drop-in upgrade.
+
+### What changed
+
+| Area | `floaty_chathead` (old) | `floaty_chatheads` (new) |
+|---|---|---|
+| **Architecture** | Single package | Federated (main + platform_interface + android + ios) |
+| **Platform channels** | Method channel | Pigeon-generated type-safe APIs |
+| **iOS support** | None | `UIWindow`-based PiP overlay |
+| **Theming** | None | Badge, border, shadow, close tint, overlay palette |
+| **Size presets** | None | `compact`, `card`, `halfScreen`, `fullScreen` |
+| **Debug tooling** | None | FPS counter, spring HUD, bounds, message log |
+| **Accessibility** | None | Full TalkBack support with actions and focus management |
+| **Multi-bubble** | None | Messenger-style row with add/remove by ID |
+| **Badge counter** | None | Native badge, updatable from main app or overlay |
+| **Expand / Collapse** | None | Programmatic + accessibility actions |
+| **Snap behavior** | Basic | Spring-based with configurable edge, margin, persistence |
+| **Entrance animations** | None | Pop, slide-in, fade-in |
+| **Overlay messaging** | Basic | Bidirectional streams + palette delivery |
+
+### How to migrate
+
+1. Replace `floaty_chathead` with `floaty_chatheads: ^1.0.0` in your `pubspec.yaml`.
+2. Update imports from `package:floaty_chathead/...` to `package:floaty_chatheads/floaty_chatheads.dart`.
+3. Replace method calls with the new static API on `FloatyChatheads` and `FloatyOverlay`.
+4. Add Android manifest permissions if not already present (see [Getting Started](#2-android-setup)).
+5. Review the [Configuration Options](#configuration-options) for new parameters.
+
+---
+
 ## Acknowledgements
 
 - **[flutter_overlay_window](https://pub.dev/packages/flutter_overlay_window)** by Saad Farhan
@@ -441,7 +480,7 @@ overlay isolates.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License. See [LICENSE](../LICENSE) for details.
 
 [license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license_link]: https://opensource.org/licenses/MIT
