@@ -1,0 +1,38 @@
+name: floaty_chatheads_android
+description: >
+  Android implementation of floaty_chatheads. Uses SYSTEM_ALERT_WINDOW with
+  a foreground service, Facebook Rebound spring physics, Pigeon-generated
+  APIs, theming, debug inspector, and full TalkBack accessibility.
+version: 1.0.0
+repository: https://github.com/crdzbird/floaty_chatheads/tree/main/floaty_chatheads_android
+issue_tracker: https://github.com/crdzbird/floaty_chatheads/issues
+topics:
+  - overlay
+  - chathead
+  - floating-window
+  - android
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.29.0"
+
+flutter:
+  plugin:
+    implements: floaty_chatheads
+    platforms:
+      android:
+        package: ni.devotion.floaty_chatheads
+        pluginClass: FloatyChatheadsPlugin
+        dartPluginClass: FloatyChatheadsAndroid
+
+dependencies:
+  floaty_chatheads_platform_interface: ^1.0.0
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  pigeon: ^22.7.2
+  plugin_platform_interface: ^2.1.8
+  very_good_analysis: ^10.2.0

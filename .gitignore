@@ -1,0 +1,57 @@
+# Dart/Flutter
+.dart_tool/
+.packages
+.pub/
+pubspec.lock
+pubspec_overrides.yaml
+coverage/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE
+.atom/
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings
+
+# macOS
+.DS_Store
+
+# Android
+local.properties
+keystore.properties
+.gradle/
+gradlew
+gradlew.bat
+gradle-wrapper.jar
+
+# iOS
+Podfile.lock
+Pods/
+.symlinks/
+**/Flutter/App.framework/
+**/Flutter/ephemeral/
+**/Flutter/Flutter.podspec
+**/Flutter/Flutter.framework/
+**/Flutter/Generated.xcconfig
+**/Flutter/flutter_assets/
+ServiceDefinitions.json
+xcuserdata/
+**/DerivedData/
+flutter_export_environment.sh
+
+# Generated plugin registrants
+generated_plugin_registrant.cc
+generated_plugin_registrant.h
+generated_plugin_registrant.dart
+GeneratedPluginRegistrant.java
+GeneratedPluginRegistrant.h
+GeneratedPluginRegistrant.m
+GeneratedPluginRegistrant.swift
+
+# Claude
+.claude/

@@ -1,0 +1,27 @@
+name: floaty_chatheads_platform_interface
+description: >
+  Platform interface for floaty_chatheads. Defines the abstract contract,
+  configuration models, and method-channel fallback shared by Android and
+  iOS implementations.
+version: 1.0.0
+repository: https://github.com/crdzbird/floaty_chatheads/tree/main/floaty_chatheads_platform_interface
+issue_tracker: https://github.com/crdzbird/floaty_chatheads/issues
+topics:
+  - overlay
+  - chathead
+  - floating-window
+  - platform-interface
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.29.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^10.2.0

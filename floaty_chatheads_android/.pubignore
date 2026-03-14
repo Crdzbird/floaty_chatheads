@@ -1,0 +1,21 @@
+# Development & CI
+.github/
+.gitignore
+.metadata
+coverage/
+dart_test.yaml
+pubspec_overrides.yaml
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Pigeon source schemas (generated code is committed)
+pigeons/
+
+# macOS
+.DS_Store
+
+# Claude
+.claude/

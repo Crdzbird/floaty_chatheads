@@ -1,0 +1,94 @@
+import 'package:floaty_chatheads_ios/src/generated/floaty_chatheads_api.g.dart'
+    as pigeon;
+import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
+
+/// {@template floaty_chatheads_ios}
+/// The iOS implementation of [FloatyChatheadsPlatform].
+///
+/// Uses a `UIWindow`-based PiP overlay at `windowLevel = .alert + 1`
+/// instead of system-level overlays. No special permissions are required.
+/// {@endtemplate}
+class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
+  /// Pigeon host API for main-app operations.
+  final pigeon.FloatyHostApi _hostApi = pigeon.FloatyHostApi();
+
+  /// Pigeon host API for overlay-side operations.
+  final pigeon.FloatyOverlayHostApi _overlayHostApi =
+      pigeon.FloatyOverlayHostApi();
+
+  /// Registers this class as the default instance of
+  /// [FloatyChatheadsPlatform].
+  static void registerWith() {
+    FloatyChatheadsPlatform.instance = FloatyChatheadsIOS();
+  }
+
+  /// {@macro floaty_chatheads_platform.check_permission}
+  @override
+  Future<bool> checkPermission() => _hostApi.checkPermission();
+
+  /// {@macro floaty_chatheads_platform.request_permission}
+  @override
+  Future<bool> requestPermission() => _hostApi.requestPermission();
+
+  /// {@macro floaty_chatheads_platform.show_chat_head}
+  @override
+  Future<void> showChatHead(ChatHeadConfig config) {
+    return _hostApi.showChatHead(
+      pigeon.ChatHeadConfig(
+        entryPoint: config.entryPoint,
+        contentWidth: config.contentWidth,
+        contentHeight: config.contentHeight,
+        chatheadIconAsset: config.chatheadIconAsset,
+        closeIconAsset: config.closeIconAsset,
+        closeBackgroundAsset: config.closeBackgroundAsset,
+        notificationTitle: config.notificationTitle,
+        notificationIconAsset: config.notificationIconAsset,
+        flag: pigeon.OverlayFlagMessage.values[config.flag.index],
+        enableDrag: config.enableDrag,
+        notificationVisibility: pigeon.NotificationVisibilityMessage
+            .values[config.notificationVisibility.index],
+      ),
+    );
+  }
+
+  /// {@macro floaty_chatheads_platform.close_chat_head}
+  @override
+  Future<void> closeChatHead() => _hostApi.closeChatHead();
+
+  /// {@macro floaty_chatheads_platform.is_active}
+  @override
+  Future<bool> isActive() => _hostApi.isChatHeadActive();
+
+  /// {@macro floaty_chatheads_platform.add_chat_head}
+  @override
+  Future<void> addChatHead(AddChatHeadConfig config) {
+    return _hostApi.addChatHead(
+      pigeon.AddChatHeadConfig(id: config.id, iconAsset: config.iconAsset),
+    );
+  }
+
+  /// {@macro floaty_chatheads_platform.remove_chat_head}
+  @override
+  Future<void> removeChatHead(String id) => _hostApi.removeChatHead(id);
+
+  /// {@macro floaty_chatheads_platform.resize_content}
+  @override
+  Future<void> resizeContent(int width, int height) =>
+      _overlayHostApi.resizeContent(width, height);
+
+  /// {@macro floaty_chatheads_platform.update_flag}
+  @override
+  Future<void> updateFlag(OverlayFlag flag) =>
+      _overlayHostApi.updateFlag(pigeon.OverlayFlagMessage.values[flag.index]);
+
+  /// {@macro floaty_chatheads_platform.close_overlay}
+  @override
+  Future<void> closeOverlay() => _overlayHostApi.closeOverlay();
+
+  /// {@macro floaty_chatheads_platform.get_overlay_position}
+  @override
+  Future<OverlayPosition> getOverlayPosition() async {
+    final pos = await _overlayHostApi.getOverlayPosition();
+    return OverlayPosition(x: pos.x, y: pos.y);
+  }
+}

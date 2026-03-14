@@ -1,0 +1,25 @@
+name: floaty_chatheads_platform_interface
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/floaty_chatheads_platform_interface.yaml"
+      - "floaty_chatheads_platform_interface/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/floaty_chatheads_platform_interface.yaml"
+      - "floaty_chatheads_platform_interface/**"
+
+jobs:
+  build:
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/flutter_package.yml@v1
+    with:
+      flutter_version: 3.41.1
+      working_directory: floaty_chatheads_platform_interface
+

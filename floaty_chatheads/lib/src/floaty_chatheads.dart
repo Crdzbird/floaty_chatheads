@@ -1,0 +1,162 @@
+import 'dart:async';
+
+import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
+import 'package:flutter/services.dart';
+
+/// {@template floaty_chatheads}
+/// Main app API for controlling the floating chathead.
+///
+/// Use this from the main app isolate to show/close the chathead
+/// and exchange data with the overlay. All methods are static.
+///
+/// ```dart
+/// await FloatyChatheads.showChatHead(
+///   entryPoint: 'overlayMain',
+///   chatheadIconAsset: 'assets/chatheadIcon.png',
+/// );
+/// ```
+/// {@endtemplate}
+final class FloatyChatheads {
+  FloatyChatheads._();
+
+  static FloatyChatheadsPlatform get _platform =>
+      FloatyChatheadsPlatform.instance;
+
+  static const BasicMessageChannel<Object?> _messenger =
+      BasicMessageChannel<Object?>(
+        'ni.devotion.floaty_head/messenger',
+        JSONMessageCodec(),
+      );
+
+  static final StreamController<Object?> _dataController =
+      StreamController<Object?>.broadcast();
+
+  static bool _isListening = false;
+
+  /// {@template floaty_chatheads.on_data}
+  /// Stream of messages sent from the overlay isolate.
+  ///
+  /// Attaches the message handler lazily on first access.
+  /// {@endtemplate}
+  static Stream<Object?> get onData {
+    _ensureListening();
+    return _dataController.stream;
+  }
+
+  static void _ensureListening() {
+    if (!_isListening) {
+      _messenger.setMessageHandler((message) async {
+        _dataController.add(message);
+        return message;
+      });
+      _isListening = true;
+    }
+  }
+
+  /// {@macro floaty_chatheads_platform.check_permission}
+  static Future<bool> checkPermission() => _platform.checkPermission();
+
+  /// {@macro floaty_chatheads_platform.request_permission}
+  static Future<bool> requestPermission() => _platform.requestPermission();
+
+  /// {@macro floaty_chatheads_platform.show_chat_head}
+  ///
+  /// See [ChatHeadConfig] for the full list of configuration options.
+  ///
+  /// [theme] provides optional theming (badge colors, border, shadow, etc.).
+  ///
+  /// [sizePreset] overrides [contentWidth]/[contentHeight] with a named preset.
+  ///
+  /// [debugMode] enables the native debug overlay inspector (Android).
+  static Future<void> showChatHead({
+    String entryPoint = 'overlayMain',
+    int? contentWidth,
+    int? contentHeight,
+    String? chatheadIconAsset,
+    String? closeIconAsset,
+    String? closeBackgroundAsset,
+    String? notificationTitle,
+    String? notificationIconAsset,
+    OverlayFlag flag = OverlayFlag.defaultFlag,
+    bool enableDrag = true,
+    NotificationVisibility notificationVisibility =
+        NotificationVisibility.visibilityPublic,
+    SnapEdge snapEdge = SnapEdge.both,
+    double snapMargin = -10,
+    bool persistPosition = false,
+    EntranceAnimation entranceAnimation = EntranceAnimation.none,
+    ChatHeadTheme? theme,
+    ContentSizePreset? sizePreset,
+    bool debugMode = false,
+  }) {
+    return _platform.showChatHead(
+      ChatHeadConfig(
+        entryPoint: entryPoint,
+        contentWidth: contentWidth,
+        contentHeight: contentHeight,
+        chatheadIconAsset: chatheadIconAsset,
+        closeIconAsset: closeIconAsset,
+        closeBackgroundAsset: closeBackgroundAsset,
+        notificationTitle: notificationTitle,
+        notificationIconAsset: notificationIconAsset,
+        flag: flag,
+        enableDrag: enableDrag,
+        notificationVisibility: notificationVisibility,
+        snapEdge: snapEdge,
+        snapMargin: snapMargin,
+        persistPosition: persistPosition,
+        entranceAnimation: entranceAnimation,
+        theme: theme,
+        sizePreset: sizePreset,
+        debugMode: debugMode,
+      ),
+    );
+  }
+
+  /// {@macro floaty_chatheads_platform.close_chat_head}
+  static Future<void> closeChatHead() => _platform.closeChatHead();
+
+  /// {@macro floaty_chatheads_platform.is_active}
+  static Future<bool> isActive() => _platform.isActive();
+
+  /// {@macro floaty_chatheads_platform.add_chat_head}
+  ///
+  /// [id] uniquely identifies this bubble. [iconAsset] is an optional
+  /// Flutter asset path for the bubble's icon.
+  static Future<void> addChatHead({
+    required String id,
+    String? iconAsset,
+  }) => _platform.addChatHead(AddChatHeadConfig(id: id, iconAsset: iconAsset));
+
+  /// {@macro floaty_chatheads_platform.remove_chat_head}
+  static Future<void> removeChatHead(String id) =>
+      _platform.removeChatHead(id);
+
+  /// {@macro floaty_chatheads_platform.update_badge}
+  static Future<void> updateBadge(int count) => _platform.updateBadge(count);
+
+  /// {@macro floaty_chatheads_platform.expand_chat_head}
+  static Future<void> expandChatHead() => _platform.expandChatHead();
+
+  /// {@macro floaty_chatheads_platform.collapse_chat_head}
+  static Future<void> collapseChatHead() => _platform.collapseChatHead();
+
+  /// {@template floaty_chatheads.share_data}
+  /// Sends data from the main app to the overlay isolate.
+  ///
+  /// The data is serialized via [JSONMessageCodec] and forwarded
+  /// through a [BasicMessageChannel].
+  /// {@endtemplate}
+  static Future<void> shareData(Object? data) => _messenger.send(data);
+
+  /// {@template floaty_chatheads.dispose}
+  /// Detaches the message handler.
+  ///
+  /// Safe to call multiple times. After calling, [onData] will
+  /// re-attach the handler automatically on the next access.
+  /// {@endtemplate}
+  static void dispose() {
+    _messenger.setMessageHandler(null);
+    _isListening = false;
+  }
+}

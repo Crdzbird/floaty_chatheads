@@ -1,0 +1,27 @@
+version: 2
+enable-beta-ecosystems: true
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directory: "/floaty_chatheads"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directory: "/floaty_chatheads/example"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directory: "/floaty_chatheads_platform_interface"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directory: "/floaty_chatheads_android"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directory: "/floaty_chatheads_ios"
+    schedule:
+      interval: "daily"

@@ -1,0 +1,42 @@
+name: floaty_chatheads_example
+description: Demonstrates how to use the floaty_chatheads plugin.
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  floaty_chatheads:
+    # When depending on this package from a real application you should use:
+    #   floaty_chatheads: ^x.y.z
+    # See https://dart.dev/tools/pub/dependencies#version-constraints
+    # The example app is bundled with the plugin so we use a path dependency on
+    # the parent directory to use the current plugin's version.
+    path: ../
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  very_good_analysis: ^10.2.0
+
+dependency_overrides:
+  floaty_chatheads:
+    path: ../
+  floaty_chatheads_android:
+    path: ../../floaty_chatheads_android
+  floaty_chatheads_ios:
+    path: ../../floaty_chatheads_ios
+  floaty_chatheads_platform_interface:
+    path: ../../floaty_chatheads_platform_interface
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/

@@ -1,0 +1,21 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+linter:
+  rules:
+    public_member_api_docs: false
+    avoid_types_on_closure_parameters: false
+    lines_longer_than_80_chars: false
+    prefer_const_constructors: false
+    prefer_const_literals_to_create_immutables: false
+    use_key_in_widget_constructors: false
+    prefer_const_declarations: false
+    avoid_print: false
+    cascade_invocations: false
+    unnecessary_lambdas: false
+    use_decorated_box: false
+    sized_box_for_whitespace: false
+    avoid_redundant_argument_values: false
+    use_named_constants: false
+    discarded_futures: false
+    always_use_package_imports: false
+    specify_nonobvious_property_types: false
