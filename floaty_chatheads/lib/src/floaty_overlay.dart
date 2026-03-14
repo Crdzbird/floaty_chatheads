@@ -20,11 +20,11 @@ import 'package:flutter/services.dart';
 /// ```
 /// {@endtemplate}
 final class FloatyOverlay implements FloatyOverlayFlutterApi {
-  FloatyOverlay._();
+  FloatyOverlay._(); // coverage:ignore-line
 
-  static final FloatyOverlay _instance = FloatyOverlay._();
+  static final FloatyOverlay _instance = FloatyOverlay._(); // coverage:ignore-line
 
-  static final FloatyOverlayHostApi _overlayHostApi = FloatyOverlayHostApi();
+  static final FloatyOverlayHostApi _overlayHostApi = FloatyOverlayHostApi(); // coverage:ignore-line
 
   static const BasicMessageChannel<Object?> _messenger =
       BasicMessageChannel<Object?>(
@@ -141,6 +141,8 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
   static Stream<OverlayColorPalette> get onPaletteChanged =>
       _paletteController.stream;
 
+  // coverage:ignore-start
+
   /// {@macro floaty_chatheads_platform.resize_content}
   static Future<void> resizeContent(int width, int height) =>
       _overlayHostApi.resizeContent(width, height);
@@ -178,6 +180,8 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
   /// through a [BasicMessageChannel].
   /// {@endtemplate}
   static Future<void> shareData(Object? data) => _messenger.send(data);
+
+  // coverage:ignore-end
 
   /// {@template floaty_overlay.dispose}
   /// Detaches the message handler and Pigeon API.

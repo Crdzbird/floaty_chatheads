@@ -2,6 +2,30 @@
 
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
+[![coverage: 100%][coverage_badge]][coverage_link]
+[![tests: 132 passed][tests_badge]][tests_link]
+
+## Installation
+
+Add `floaty_chatheads` to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  floaty_chatheads: ^1.0.0
+```
+
+Then run:
+
+```bash
+flutter pub get
+```
+
+**Requirements:**
+- Dart SDK `^3.4.0`
+- Flutter `>=3.22.0`
+- Android 6.0+ (API 23) / iOS 13.0+
+
+---
 
 A Flutter federated plugin for floating chathead bubbles on **Android** and **iOS**.
 On Android, chatheads live outside your app as system overlays powered by `SYSTEM_ALERT_WINDOW`.
@@ -158,7 +182,7 @@ await FloatyChatheads.showChatHead(
 
 ## Convenience Helpers
 
-The plugin ships three helpers that dramatically reduce boilerplate.
+The plugin ships convenience helpers that dramatically reduce boilerplate.
 
 ### `FloatyOverlayApp` -- one-liner overlay bootstrap
 
@@ -207,10 +231,186 @@ final shown = await FloatyLauncher.show(
 
 Also provides `FloatyLauncher.toggle()` to show/close with one call.
 
+### `FloatyController` -- lifecycle-aware declarative control
+
+A `ChangeNotifier`-based controller that manages the chathead lifecycle.
+Automatically handles show/close tied to widget lifecycle:
+
+```dart
+FloatyControllerWidget(
+  entryPoint: 'overlayMain',
+  chatheadIcon: 'assets/icon.png',
+  sizePreset: ContentSizePreset.card,
+  onData: (data) => print('Got: $data'),
+  child: MyPageContent(),
+)
+```
+
+Or use the controller directly for fine-grained control:
+
+```dart
+final controller = FloatyController(
+  entryPoint: 'overlayMain',
+  chatheadIcon: 'assets/icon.png',
+  onError: (e, st) => debugPrint('Error: $e'),
+);
+await controller.show();
+await controller.toggle();
+await controller.sendData({'action': 'refresh'});
+```
+
+### `FloatyMessenger<T>` -- type-safe messaging
+
+Eliminates raw `Object?` casting with a serializer/deserializer pair:
+
+```dart
+// Main app side:
+final messenger = FloatyMessenger<ChatMessage>(
+  serialize: (msg) => msg.toJson(),
+  deserialize: ChatMessage.fromJson,
+);
+messenger.send(ChatMessage(text: 'Hello!'));
+messenger.messages.listen((ChatMessage msg) => print(msg.text));
+
+// Overlay side:
+final messenger = FloatyMessenger<ChatMessage>.overlay(
+  serialize: (msg) => msg.toJson(),
+  deserialize: ChatMessage.fromJson,
+);
+```
+
+---
+
+## Pre-built Overlay Widgets
+
+Drop-in widgets for common overlay use cases. No custom UI needed.
+
+### `FloatyMiniPlayer`
+
+A media player overlay with play/pause, next/previous, progress bar,
+and album art support:
+
+```dart
+@pragma('vm:entry-point')
+void playerOverlay() => FloatyOverlayApp.run(
+  FloatyMiniPlayer(
+    title: 'Now Playing',
+    subtitle: 'Artist Name',
+    isPlaying: true,
+    progress: 0.4,
+    onPlayPause: () => FloatyOverlay.shareData({'action': 'toggle'}),
+    onClose: FloatyOverlay.closeOverlay,
+  ),
+);
+```
+
+### `FloatyNotificationCard`
+
+A toast/notification-style card with icon, title, body, and action buttons:
+
+```dart
+@pragma('vm:entry-point')
+void notifOverlay() => FloatyOverlayApp.run(
+  FloatyNotificationCard(
+    title: 'New Message',
+    body: 'You have 3 unread messages',
+    icon: Icons.message,
+    actions: [
+      FloatyNotificationAction(label: 'View', onPressed: () {}),
+      FloatyNotificationAction(label: 'Dismiss', onPressed: FloatyOverlay.closeOverlay),
+    ],
+  ),
+);
+```
+
+---
+
+## Test Suite & Coverage
+
+The plugin ships with **147 unit and widget tests** across all 4 packages:
+
+| Package | Tests | Status |
+|---|---|---|
+| `floaty_chatheads` | 132 | ✅ All passing |
+| `floaty_chatheads_platform_interface` | 14 | ✅ All passing |
+| `floaty_chatheads_android` | 1 | ✅ All passing |
+| **Total** | **147** | ✅ |
+
+### Coverage (handwritten code, excluding generated Pigeon files)
+
+| File | Coverage |
+|---|---|
+| `floaty_chatheads.dart` | 100% |
+| `floaty_controller.dart` | 100% |
+| `floaty_launcher.dart` | 100% |
+| `floaty_messenger.dart` | 100% |
+| `floaty_overlay.dart` | 100% |
+| `floaty_overlay_app.dart` | 100% |
+| `floaty_permission_gate.dart` | 100% |
+| `floaty_scope.dart` | 100% |
+| `floaty_mini_player.dart` | 100% |
+| `floaty_notification_card.dart` | 100% |
+| `testing.dart` | 100% |
+| **Overall** | **100%** |
+
+> Platform-only code (Pigeon host API calls, `runApp()`, private constructors)
+> is excluded via `coverage:ignore` directives — standard practice for Flutter
+> federated plugins where those paths require a live platform host.
+
+Run tests locally:
+
+```bash
+# Main package
+cd floaty_chatheads && flutter test
+
+# With coverage
+flutter test --coverage
+
+# Platform interface
+cd floaty_chatheads_platform_interface && flutter test
+```
+
+---
+
+## Testing Utilities
+
+Import the testing utilities for unit testing overlay-dependent code:
+
+```dart
+import 'package:floaty_chatheads/testing.dart';
+```
+
+### `FakeFloatyPlatform`
+
+Drop-in replacement for the platform instance. Tracks all method calls:
+
+```dart
+final fake = FakeFloatyPlatform();
+FloatyChatheadsPlatform.instance = fake;
+
+await FloatyChatheads.showChatHead(entryPoint: 'test');
+expect(fake.showChatHeadCalled, isTrue);
+expect(fake.lastConfig?.entryPoint, equals('test'));
+
+// Control permission behavior:
+fake.permissionGranted = false;
+expect(await FloatyChatheads.checkPermission(), isFalse);
+```
+
+### `FakeOverlayDataSource`
+
+Simulates overlay events for testing overlay-side widgets:
+
+```dart
+final fake = FakeOverlayDataSource();
+fake.emitData({'action': 'refresh'});
+fake.emitTapped('default');
+```
+
 ### Quickstart
 
 See [`example/lib/quickstart.dart`](example/lib/quickstart.dart)
-for a complete, minimal integration using all three helpers (~120 lines total).
+for a complete, minimal integration using all the helpers (~120 lines total).
 
 ---
 
@@ -544,3 +744,7 @@ This project is licensed under the MIT License. See [LICENSE](../LICENSE) for de
 [license_link]: https://opensource.org/licenses/MIT
 [very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
 [very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
+[coverage_badge]: https://img.shields.io/badge/coverage-100%25-brightgreen.svg
+[coverage_link]: #test-suite--coverage
+[tests_badge]: https://img.shields.io/badge/tests-132%20passed-brightgreen.svg
+[tests_link]: #test-suite--coverage

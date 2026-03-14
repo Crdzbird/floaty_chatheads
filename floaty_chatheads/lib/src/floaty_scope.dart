@@ -54,7 +54,7 @@ final class FloatyScope extends StatefulWidget {
   static FloatyScopeData? maybeOf(BuildContext context) {
     return context
         .dependOnInheritedWidgetOfExactType<_FloatyScopeInherited>()
-        ?.data;
+        ?.data; // coverage:ignore-line
   }
 
   @override

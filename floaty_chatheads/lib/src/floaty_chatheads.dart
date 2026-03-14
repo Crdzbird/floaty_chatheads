@@ -17,7 +17,7 @@ import 'package:flutter/services.dart';
 /// ```
 /// {@endtemplate}
 final class FloatyChatheads {
-  FloatyChatheads._();
+  FloatyChatheads._(); // coverage:ignore-line
 
   static FloatyChatheadsPlatform get _platform =>
       FloatyChatheadsPlatform.instance;

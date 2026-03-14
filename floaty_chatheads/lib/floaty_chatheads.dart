@@ -9,6 +9,14 @@
 /// - `FloatyOverlayApp` -- one-liner to bootstrap an overlay entry point
 /// - `FloatyScope` -- InheritedWidget that auto-wires all overlay streams
 /// - `FloatyLauncher` -- one-call launcher with automatic permission handling
+/// - `FloatyController` -- lifecycle-aware controller for declarative usage
+/// - `FloatyMessenger` -- type-safe messaging wrapper
+///
+/// For pre-built overlay widgets, see:
+/// - `FloatyMiniPlayer` -- media player overlay
+/// - `FloatyNotificationCard` -- toast/notification overlay
+///
+/// For testing, import `package:floaty_chatheads/testing.dart` instead.
 library;
 
 export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart'
@@ -24,10 +32,14 @@ export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
         SnapEdge;
 
 export 'src/floaty_chatheads.dart';
+export 'src/floaty_controller.dart';
 export 'src/floaty_launcher.dart';
+export 'src/floaty_messenger.dart';
 export 'src/floaty_overlay.dart';
 export 'src/floaty_overlay_app.dart';
 export 'src/floaty_permission_gate.dart';
 export 'src/floaty_scope.dart';
 export 'src/generated/floaty_chatheads_overlay_api.g.dart'
     show OverlayFlagMessage, OverlayPositionMessage;
+export 'src/widgets/floaty_mini_player.dart';
+export 'src/widgets/floaty_notification_card.dart';

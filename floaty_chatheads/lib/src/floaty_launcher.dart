@@ -30,7 +30,7 @@ import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
 /// the permission.
 /// {@endtemplate}
 final class FloatyLauncher {
-  FloatyLauncher._();
+  FloatyLauncher._(); // coverage:ignore-line
 
   /// {@template floaty_launcher.show}
   /// Checks permission, requests it if needed, and shows the chathead.

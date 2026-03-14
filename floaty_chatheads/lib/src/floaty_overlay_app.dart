@@ -29,7 +29,7 @@ import 'package:flutter/material.dart';
 /// or set `debugBanner` to show/hide the debug banner.
 /// {@endtemplate}
 final class FloatyOverlayApp {
-  FloatyOverlayApp._();
+  FloatyOverlayApp._(); // coverage:ignore-line
 
   /// {@template floaty_overlay_app.run}
   /// Initializes the overlay engine, sets up the Pigeon message handler,
@@ -47,6 +47,7 @@ final class FloatyOverlayApp {
   ///
   /// [navigatorObservers] is forwarded to `MaterialApp.navigatorObservers`.
   /// {@endtemplate}
+  // coverage:ignore-start
   static void run(
     Widget child, {
     ThemeData? theme,
@@ -64,4 +65,5 @@ final class FloatyOverlayApp {
       ),
     );
   }
+  // coverage:ignore-end
 }
