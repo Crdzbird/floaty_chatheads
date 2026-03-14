@@ -4,6 +4,7 @@ description: >
   configuration models, and method-channel fallback shared by Android and
   iOS implementations.
 version: 1.0.0
+homepage: https://github.com/crdzbird/floaty_chatheads
 repository: https://github.com/crdzbird/floaty_chatheads/tree/main/floaty_chatheads_platform_interface
 issue_tracker: https://github.com/crdzbird/floaty_chatheads/issues
 topics:

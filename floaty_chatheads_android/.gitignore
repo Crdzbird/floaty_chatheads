@@ -1,0 +1,33 @@
+# Dart/Flutter
+.dart_tool/
+.packages
+.pub/
+pubspec.lock
+pubspec_overrides.yaml
+coverage/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Android
+local.properties
+keystore.properties
+.gradle/
+gradlew
+gradlew.bat
+gradle-wrapper.jar
+
+# IDE
+.atom/
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings
+
+# macOS
+.DS_Store
+
+# Claude
+.claude/

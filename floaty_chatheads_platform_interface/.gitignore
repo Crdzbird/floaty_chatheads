@@ -1,0 +1,23 @@
+# Dart/Flutter
+.dart_tool/
+.packages
+.pub/
+pubspec.lock
+pubspec_overrides.yaml
+coverage/
+build/
+
+# IDE
+.atom/
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings
+
+# macOS
+.DS_Store
+
+# Claude
+.claude/

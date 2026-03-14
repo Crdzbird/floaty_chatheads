@@ -4,6 +4,7 @@ description: >
   a foreground service, Facebook Rebound spring physics, Pigeon-generated
   APIs, theming, debug inspector, and full TalkBack accessibility.
 version: 1.0.0
+homepage: https://github.com/crdzbird/floaty_chatheads
 repository: https://github.com/crdzbird/floaty_chatheads/tree/main/floaty_chatheads_android
 issue_tracker: https://github.com/crdzbird/floaty_chatheads/issues
 topics:

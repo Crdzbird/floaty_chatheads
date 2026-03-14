@@ -156,6 +156,64 @@ await FloatyChatheads.showChatHead(
 
 ---
 
+## Convenience Helpers
+
+The plugin ships three helpers that dramatically reduce boilerplate.
+
+### `FloatyOverlayApp` -- one-liner overlay bootstrap
+
+Replaces 5 lines of entry-point boilerplate with one call:
+
+```dart
+@pragma('vm:entry-point')
+void overlayMain() => FloatyOverlayApp.run(const MyOverlayWidget());
+```
+
+Handles `ensureInitialized()`, `FloatyOverlay.setUp()`, and wraps your
+widget in a `MaterialApp`. Accepts optional `theme` and `navigatorObservers`.
+
+### `FloatyScope` -- auto-wired overlay context
+
+An `InheritedWidget` that subscribes to **all** overlay streams and rebuilds
+when any event fires. No manual stream wiring needed:
+
+```dart
+@pragma('vm:entry-point')
+void overlayMain() => FloatyOverlayApp.run(
+  const FloatyScope(child: MyOverlay()),
+);
+
+// Inside MyOverlay:
+final scope = FloatyScope.of(context);
+Text('Last message: ${scope.lastMessage}');
+Text('Palette primary: ${scope.palette?.primary}');
+```
+
+Exposes: `lastMessage`, `messages`, `lastTappedId`, `lastClosedId`,
+`lastExpandedId`, `lastCollapsedId`, `lastDragStart`, `lastDragEnd`,
+and `palette`.
+
+### `FloatyLauncher` -- one-call launch with auto permissions
+
+Combines permission check + request + show into a single `Future<bool>`:
+
+```dart
+final shown = await FloatyLauncher.show(
+  entryPoint: 'overlayMain',
+  chatheadIcon: 'assets/icon.png',
+  sizePreset: ContentSizePreset.card,
+);
+```
+
+Also provides `FloatyLauncher.toggle()` to show/close with one call.
+
+### Quickstart
+
+See [`example/lib/quickstart.dart`](example/lib/quickstart.dart)
+for a complete, minimal integration using all three helpers (~120 lines total).
+
+---
+
 ## API Reference
 
 ### `FloatyChatheads` (main app side)

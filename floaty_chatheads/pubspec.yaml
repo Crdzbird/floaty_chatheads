@@ -5,6 +5,7 @@ description: >
   snap-to-edge physics, accessibility, and bidirectional messaging between
   the main app and overlay isolate.
 version: 1.0.0
+homepage: https://github.com/crdzbird/floaty_chatheads
 repository: https://github.com/crdzbird/floaty_chatheads
 issue_tracker: https://github.com/crdzbird/floaty_chatheads/issues
 topics:
