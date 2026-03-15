@@ -143,10 +143,14 @@ class FloatyChatheadsPlugin :
         val appContext = currentActivity.applicationContext
 
         // Tear down any existing overlay so the new entry point takes effect.
+        // Use closeWindow(false) to avoid stopping the service — we are about
+        // to restart it immediately and stopSelf() is asynchronous.  If the
+        // service's onDestroy fires after the new startForegroundService, it
+        // sets instance = null, orphaning the freshly-created window.
         if (isServiceRunning) {
-            FloatyContentJobService.instance?.closeWindow(true)
-            isServiceRunning = false
+            FloatyContentJobService.instance?.closeWindow(false)
         }
+        isServiceRunning = false
         destroyOverlayEngine()
 
         config.chatheadIconAsset?.let { loadAssetBitmap(appContext, it) }

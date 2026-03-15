@@ -69,6 +69,9 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("FloatyDebug", "onStartCommand() called. chatHeads=$chatHeads, instance=$instance")
+        // Re-post the foreground notification so Android doesn't kill the
+        // service when startForegroundService() was used without onCreate().
+        showNotification()
         if (chatHeads == null) {
             createWindow()
         } else {

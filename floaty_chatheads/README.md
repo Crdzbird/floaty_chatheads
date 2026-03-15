@@ -41,6 +41,12 @@ Facebook Messenger-style bubbles, mini players, quick-action FABs, or full-scree
 
 ---
 
+## Demo
+
+See the plugin in action on both platforms: [Android demo](https://github.com/Crdzbird/floaty_chatheads/blob/main/media/androidfloat.mov) | [iOS demo](https://github.com/Crdzbird/floaty_chatheads/blob/main/media/iosfloat.mov)
+
+---
+
 ## Platform Comparison
 
 The plugin exposes a **single Dart API** for both platforms, but the underlying

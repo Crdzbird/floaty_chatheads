@@ -41,6 +41,25 @@ Facebook Messenger-style bubbles, mini players, quick-action FABs, or full-scree
 
 ---
 
+## Demo
+
+<table>
+  <tr>
+    <th>Android</th>
+    <th>iOS</th>
+  </tr>
+  <tr>
+    <td>
+      <video src="media/androidfloat.mov" width="300" controls></video>
+    </td>
+    <td>
+      <video src="media/iosfloat.mov" width="300" controls></video>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## Platform Comparison
 
 The plugin exposes a **single Dart API** for both platforms, but the underlying
