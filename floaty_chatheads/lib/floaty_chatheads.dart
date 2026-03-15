@@ -16,6 +16,8 @@
 /// - `FloatyProxyHost` / `FloatyProxyClient` -- overlay-side plugin access
 /// - `FloatyHostKit` / `FloatyOverlayKit` -- all-in-one communication bundles
 /// - `FloatyOverlayScope` -- zero-boilerplate reactive scope for overlays
+/// - `FloatyDataBuilder` -- reactive builder for main-app data reception
+/// - `FloatyOverlayBuilder` -- zero-boilerplate builder for overlay widgets
 ///
 /// For pre-built overlay widgets, see:
 /// - `FloatyMiniPlayer` -- media player overlay
@@ -47,11 +49,13 @@ export 'src/floaty_action_router.dart';
 export 'src/floaty_chatheads.dart';
 export 'src/floaty_connection_state.dart';
 export 'src/floaty_controller.dart';
+export 'src/floaty_data_builder.dart';
 export 'src/floaty_kit.dart';
 export 'src/floaty_launcher.dart';
 export 'src/floaty_messenger.dart';
 export 'src/floaty_overlay.dart';
 export 'src/floaty_overlay_app.dart';
+export 'src/floaty_overlay_builder.dart';
 export 'src/floaty_overlay_scope.dart';
 export 'src/floaty_permission_gate.dart';
 export 'src/floaty_proxy.dart';

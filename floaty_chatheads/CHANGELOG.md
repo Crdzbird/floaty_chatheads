@@ -1,5 +1,58 @@
 # Changelog
 
+## 1.2.0
+
+### 🧩 Higher-Level Convenience Widgets
+
+- Added `FloatyDataBuilder<T>` — a reactive builder for the **main app side**
+  that subscribes to `FloatyChatheads.onData`, reduces incoming messages into
+  typed state via a `(T current, Object? raw) → T` reducer, and rebuilds
+  automatically. Eliminates manual `StreamSubscription`, `setState`, and
+  `dispose` boilerplate.
+
+- Added `FloatyOverlayBuilder<T>` — a zero-boilerplate builder for the
+  **overlay side** that handles `FloatyOverlay.setUp()`, stream subscriptions,
+  `mounted` guards, and `FloatyOverlay.dispose()` automatically. Supports
+  `onData` reducer, optional `onTapped` reducer, and `onInit` callback.
+  Turns overlay widgets into `StatelessWidget` declarations.
+
+- Added `FloatyOverlayApp.runScoped()` — a variant of `run()` that wraps the
+  child in `FloatyScope`, so `FloatyScope.of(context)` works everywhere
+  inside the overlay without manual wiring.
+
+- Added `builder` parameter to `FloatyControllerWidget` — accepts a
+  `Widget Function(BuildContext, FloatyController)` callback with reactive
+  re-rendering via `ListenableBuilder`. The `child` parameter is now optional
+  when `builder` is provided.
+
+### 📦 Grouped Configuration Objects
+
+- Added `ChatHeadAssets` — groups chathead icon, close icon, and close
+  background into a single object. Old flat parameters are deprecated.
+- Added `NotificationConfig` — groups notification title, icon, and
+  visibility into a single object. Old flat parameters are deprecated.
+- Added `SnapConfig` — groups snap edge, margin, and position persistence
+  into a single object. Old flat parameters are deprecated.
+- Added `IconSource` — polymorphic icon source with `IconSource.asset()`,
+  `IconSource.network()`, and `IconSource.bytes()` constructors for
+  flexible icon loading from assets, URLs, or raw byte data.
+
+### ✨ Simplified Examples
+
+- Simplified all **14 overlay entry points** from verbose 6-line blocks to
+  single-line `FloatyOverlayApp.run()` calls (84 → 14 lines total).
+- Rewrote `NotificationCounterOverlay` using `FloatyOverlayBuilder<int>` —
+  now a `StatelessWidget` with zero lifecycle code.
+- Rewrote `QuickActionOverlay` using `FloatyOverlayBuilder<bool>` —
+  now a `StatelessWidget` with tap-to-toggle expand/collapse.
+- Rewrote `QuickActionExample` using `FloatyDataBuilder<List<LogEntry>>` —
+  incoming actions accumulate into a log via reducer, no manual subscription.
+
+### 🧪 Tests
+
+- Added 10 new tests for `FloatyDataBuilder` (5) and `FloatyOverlayBuilder`
+  (5), bringing the total to **233 tests** across all packages.
+
 ## 1.1.0
 
 ### 🚀 iOS Feature Parity

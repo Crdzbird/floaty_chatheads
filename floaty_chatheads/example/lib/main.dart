@@ -38,159 +38,56 @@ void main() => runApp(const MaterialApp(home: GalleryPage()));
 // ---------------------------------------------------------------------------
 
 @pragma('vm:entry-point')
-void overlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: OverlayContent(),
-    ),
-  );
-}
+void overlayMain() => FloatyOverlayApp.run(const OverlayContent());
 
 @pragma('vm:entry-point')
-void messengerOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MessengerOverlay(),
-    ),
-  );
-}
+void messengerOverlayMain() =>
+    FloatyOverlayApp.run(const MessengerOverlay());
 
 @pragma('vm:entry-point')
-void miniPlayerOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MiniPlayerOverlay(),
-    ),
-  );
-}
+void miniPlayerOverlayMain() =>
+    FloatyOverlayApp.run(const MiniPlayerOverlay());
 
 @pragma('vm:entry-point')
-void quickActionOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: QuickActionOverlay(),
-    ),
-  );
-}
+void quickActionOverlayMain() =>
+    FloatyOverlayApp.run(const QuickActionOverlay());
 
 @pragma('vm:entry-point')
-void counterOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: NotificationCounterOverlay(),
-    ),
-  );
-}
+void counterOverlayMain() =>
+    FloatyOverlayApp.run(const NotificationCounterOverlay());
 
 @pragma('vm:entry-point')
-void timerOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: TimerOverlay(),
-    ),
-  );
-}
+void timerOverlayMain() => FloatyOverlayApp.run(const TimerOverlay());
 
 @pragma('vm:entry-point')
-void multiChatOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MultiChatOverlay(),
-    ),
-  );
-}
+void multiChatOverlayMain() =>
+    FloatyOverlayApp.run(const MultiChatOverlay());
 
 @pragma('vm:entry-point')
-void dashboardOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: DashboardOverlay(),
-    ),
-  );
-}
+void dashboardOverlayMain() =>
+    FloatyOverlayApp.run(const DashboardOverlay());
 
 @pragma('vm:entry-point')
-void messengerFullscreenOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MessengerFullscreenOverlay(),
-    ),
-  );
-}
+void messengerFullscreenOverlayMain() =>
+    FloatyOverlayApp.run(const MessengerFullscreenOverlay());
 
 @pragma('vm:entry-point')
-void featuresOverlayMain() {
-  debugPrint('featuresOverlayMain: entry point executing');
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: FeaturesShowcaseOverlay(),
-    ),
-  );
-}
+void featuresOverlayMain() =>
+    FloatyOverlayApp.run(const FeaturesShowcaseOverlay());
 
 @pragma('vm:entry-point')
-void themedOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: ThemedOverlay(),
-    ),
-  );
-}
+void themedOverlayMain() => FloatyOverlayApp.run(const ThemedOverlay());
 
 @pragma('vm:entry-point')
-void mapOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MapOverlay(),
-    ),
-  );
-}
+void mapOverlayMain() => FloatyOverlayApp.run(const MapOverlay());
 
 @pragma('vm:entry-point')
-void accessibilityOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: AccessibilityOverlay(),
-    ),
-  );
-}
+void accessibilityOverlayMain() =>
+    FloatyOverlayApp.run(const AccessibilityOverlay());
 
 @pragma('vm:entry-point')
-void survivalOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: SurvivalOverlay(),
-    ),
-  );
-}
+void survivalOverlayMain() =>
+    FloatyOverlayApp.run(const SurvivalOverlay());
 
 // ---------------------------------------------------------------------------
 // Gallery — lists all examples

@@ -326,7 +326,8 @@ final class FloatyController extends ChangeNotifier {
 final class FloatyControllerWidget extends StatefulWidget {
   /// {@macro floaty_controller_widget}
   const FloatyControllerWidget({
-    required this.child,
+    this.child,
+    this.builder,
     super.key,
     this.entryPoint = 'overlayMain',
     @Deprecated('Use assets instead') this.chatheadIcon,
@@ -340,10 +341,31 @@ final class FloatyControllerWidget extends StatefulWidget {
     this.assets,
     this.notification,
     this.snap,
-  });
+  }) : assert(
+          child != null || builder != null,
+          'Either child or builder must be provided.',
+        );
 
   /// The widget to render while the chathead is active.
-  final Widget child;
+  final Widget? child;
+
+  /// Builder that receives the [FloatyController] directly.
+  ///
+  /// Use this instead of [child] when you need access to the controller
+  /// without calling [FloatyControllerWidget.of]:
+  ///
+  /// ```dart
+  /// FloatyControllerWidget(
+  ///   assets: const ChatHeadAssets.defaults(),
+  ///   sizePreset: ContentSizePreset.card,
+  ///   builder: (context, controller) => ElevatedButton(
+  ///     onPressed: controller.toggle,
+  ///     child: Text(controller.isActive ? 'Close' : 'Show'),
+  ///   ),
+  /// )
+  /// ```
+  final Widget Function(BuildContext context, FloatyController controller)?
+      builder;
 
   /// Dart entry-point function name for the overlay.
   final String entryPoint;
@@ -440,5 +462,13 @@ final class _FloatyControllerWidgetState
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    if (widget.builder != null) {
+      return ListenableBuilder(
+        listenable: _controller,
+        builder: (context, _) => widget.builder!(context, _controller),
+      );
+    }
+    return widget.child!;
+  }
 }

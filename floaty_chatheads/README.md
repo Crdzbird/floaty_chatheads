@@ -3,7 +3,7 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
 [![coverage: 100%][coverage_badge]][coverage_link]
-[![tests: 198 passed][tests_badge]][tests_link]
+[![tests: 233 passed][tests_badge]][tests_link]
 
 ## Installation
 
@@ -11,7 +11,7 @@ Add `floaty_chatheads` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  floaty_chatheads: ^1.0.1
+  floaty_chatheads: ^1.2.0
 ```
 
 Then run:
@@ -107,11 +107,11 @@ implementations differ due to OS-level constraints:
 | **Chathead Bubbles** | Draggable bubble with spring-based edge snapping (Android), entrance animations (pop, slide, fade), and multi-bubble support (Messenger-style row) |
 | **Content Panel** | Any Flutter widget rendered in a separate engine isolate (`FlutterTextureView` on Android, `FlutterViewController` on iOS) |
 | **Bidirectional Messaging** | `shareData` / `onData` streams for real-time main-app <-> overlay communication on both platforms |
-| **Badge Counter** | Numeric badge on the bubble, updated from either side (Android) |
-| **Theming API** | Badge colors, bubble border ring, shadow color, close-target tint, and a full overlay color palette forwarded to the overlay isolate (Android) |
+| **Badge Counter** | Numeric badge on the bubble, updated from either side |
+| **Theming API** | Badge colors, bubble border ring, shadow color, close-target tint, and a full overlay color palette forwarded to the overlay isolate |
 | **Size Presets** | Named presets (`compact`, `card`, `halfScreen`, `fullScreen`) instead of raw pixel values |
 | **Debug Inspector** | Native overlay showing FPS counter, spring velocity HUD, view bounds, and Pigeon message log (Android) |
-| **TalkBack Accessibility** | Content descriptions, live-region state announcements, accessibility actions (click, dismiss), and focus management (Android) |
+| **Accessibility** | TalkBack (Android) and VoiceOver (iOS) with content descriptions, live-region announcements, accessibility actions, and focus management |
 | **Lifecycle Events** | Streams for `onTapped`, `onClosed`, `onExpanded`, `onCollapsed`, `onDragStart`, `onDragEnd` |
 | **Permission Gate** | `FloatyPermissionGate` widget that polls for `SYSTEM_ALERT_WINDOW` and shows a fallback until granted (Android; always passes on iOS) |
 | **Programmatic Control** | `expandChatHead()`, `collapseChatHead()`, `addChatHead()`, `removeChatHead()`, dynamic `resizeContent()`, flag updates |
@@ -129,7 +129,7 @@ implementations differ due to OS-level constraints:
 
 ```yaml
 dependencies:
-  floaty_chatheads: ^1.0.1
+  floaty_chatheads: ^1.2.0
 ```
 
 ### 2. Android setup
@@ -174,13 +174,15 @@ top-level and annotated with `@pragma('vm:entry-point')`:
 
 ```dart
 @pragma('vm:entry-point')
-void overlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: MyOverlayWidget(),
-  ));
-}
+void overlayMain() => FloatyOverlayApp.run(const MyOverlayWidget());
+```
+
+`FloatyOverlayApp.run()` handles `ensureInitialized()` and wraps your widget in
+a `MaterialApp`. Use `runScoped()` instead if you need `FloatyScope.of(context)`:
+
+```dart
+@pragma('vm:entry-point')
+void overlayMain() => FloatyOverlayApp.runScoped(const MyOverlayWidget());
 ```
 
 This works identically on both Android and iOS -- the plugin creates a dedicated
@@ -198,10 +200,12 @@ if (!granted) await FloatyChatheads.requestPermission();
 
 await FloatyChatheads.showChatHead(
   entryPoint: 'overlayMain',
-  chatheadIconAsset: 'assets/chatheadIcon.png',
-  closeIconAsset: 'assets/close.png',
-  closeBackgroundAsset: 'assets/closeBg.png',
-  notificationTitle: 'My Chathead',
+  assets: const ChatHeadAssets(
+    icon: IconSource.asset('assets/chatheadIcon.png'),
+    closeIcon: IconSource.asset('assets/close.png'),
+    closeBackground: IconSource.asset('assets/closeBg.png'),
+  ),
+  notification: const NotificationConfig(title: 'My Chathead'),
 );
 ```
 
@@ -210,6 +214,21 @@ await FloatyChatheads.showChatHead(
 ## Convenience Helpers
 
 The plugin ships convenience helpers that dramatically reduce boilerplate.
+Pick the right level of abstraction for your use case:
+
+| Need | Use |
+|---|---|
+| Bootstrap an overlay entry point | `FloatyOverlayApp.run()` / `.runScoped()` |
+| Display incoming overlay data reactively (main app) | `FloatyDataBuilder<T>` |
+| Build an overlay with zero lifecycle code | `FloatyOverlayBuilder<T>` |
+| Auto-wired overlay context with all streams | `FloatyScope` / `FloatyOverlayScope` |
+| Launch with auto permission handling | `FloatyLauncher` |
+| Lifecycle-aware show/close tied to a widget | `FloatyControllerWidget` |
+| Type-safe messaging with custom models | `FloatyMessenger<T>` |
+| Bidirectional state sync (JSON-based) | `FloatyStateChannel<T>` |
+| Typed action dispatch with offline queueing | `FloatyActionRouter` |
+| Overlay-to-app request/response RPC | `FloatyProxyHost` / `FloatyProxyClient` |
+| All-in-one communication bundle | `FloatyHostKit` / `FloatyOverlayKit` |
 
 ### `FloatyOverlayApp` -- one-liner overlay bootstrap
 
@@ -223,16 +242,23 @@ void overlayMain() => FloatyOverlayApp.run(const MyOverlayWidget());
 Handles `ensureInitialized()`, `FloatyOverlay.setUp()`, and wraps your
 widget in a `MaterialApp`. Accepts optional `theme` and `navigatorObservers`.
 
-### `FloatyScope` -- auto-wired overlay context
-
-An `InheritedWidget` that subscribes to **all** overlay streams and rebuilds
-when any event fires. No manual stream wiring needed:
+Use `runScoped()` to additionally wrap the child in a `FloatyScope`, so
+`FloatyScope.of(context)` works everywhere inside the overlay:
 
 ```dart
 @pragma('vm:entry-point')
-void overlayMain() => FloatyOverlayApp.run(
-  const FloatyScope(child: MyOverlay()),
-);
+void overlayMain() => FloatyOverlayApp.runScoped(const MyOverlayWidget());
+```
+
+### `FloatyScope` -- auto-wired overlay context
+
+An `InheritedWidget` that subscribes to **all** overlay streams and rebuilds
+when any event fires. No manual stream wiring needed. Use `runScoped()` to
+wire it automatically:
+
+```dart
+@pragma('vm:entry-point')
+void overlayMain() => FloatyOverlayApp.runScoped(const MyOverlay());
 
 // Inside MyOverlay:
 final scope = FloatyScope.of(context);
@@ -251,12 +277,58 @@ Combines permission check + request + show into a single `Future<bool>`:
 ```dart
 final shown = await FloatyLauncher.show(
   entryPoint: 'overlayMain',
-  chatheadIcon: 'assets/icon.png',
+  assets: const ChatHeadAssets(
+    icon: IconSource.asset('assets/icon.png'),
+  ),
   sizePreset: ContentSizePreset.card,
 );
 ```
 
 Also provides `FloatyLauncher.toggle()` to show/close with one call.
+
+### `FloatyDataBuilder<T>` -- main-app reactive builder
+
+Subscribes to `FloatyChatheads.onData` and reduces incoming messages into
+typed state. No manual `StreamSubscription`, `setState`, or `dispose`:
+
+```dart
+// Simple value replacement:
+FloatyDataBuilder<int>(
+  initialData: 0,
+  onData: (count, raw) => raw is Map ? raw['count'] as int : count,
+  builder: (context, count) => Text('$count'),
+)
+
+// Accumulating messages:
+FloatyDataBuilder<List<Msg>>(
+  initialData: const [],
+  onData: (msgs, raw) => raw is Map
+      ? [...msgs, Msg.fromMap(raw)]
+      : msgs,
+  builder: (context, messages) => ListView(...),
+)
+```
+
+### `FloatyOverlayBuilder<T>` -- overlay-side zero-boilerplate builder
+
+Handles `setUp()`, stream subscriptions, `mounted` guards, and `dispose()`
+automatically. Turns overlay widgets into stateless declarations:
+
+```dart
+class MyOverlay extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FloatyOverlayBuilder<int>(
+      initialState: 0,
+      onData: (count, data) =>
+          data is Map ? data['count'] as int : count,
+      onTapped: (count, id) => count + 1,
+      onInit: () => FloatyOverlay.shareData({'action': 'requestState'}),
+      builder: (context, count) => Text('$count'),
+    );
+  }
+}
+```
 
 ### `FloatyController` -- lifecycle-aware declarative control
 
@@ -266,10 +338,27 @@ Automatically handles show/close tied to widget lifecycle:
 ```dart
 FloatyControllerWidget(
   entryPoint: 'overlayMain',
-  chatheadIcon: 'assets/icon.png',
+  assets: const ChatHeadAssets(
+    icon: IconSource.asset('assets/icon.png'),
+  ),
   sizePreset: ContentSizePreset.card,
   onData: (data) => print('Got: $data'),
   child: MyPageContent(),
+)
+```
+
+Use the `builder` parameter for reactive re-rendering based on controller state:
+
+```dart
+FloatyControllerWidget(
+  entryPoint: 'overlayMain',
+  assets: const ChatHeadAssets(
+    icon: IconSource.asset('assets/icon.png'),
+  ),
+  builder: (context, controller) => ElevatedButton(
+    onPressed: controller.toggle,
+    child: Text(controller.isActive ? 'Close' : 'Show'),
+  ),
 )
 ```
 
@@ -278,7 +367,9 @@ Or use the controller directly for fine-grained control:
 ```dart
 final controller = FloatyController(
   entryPoint: 'overlayMain',
-  chatheadIcon: 'assets/icon.png',
+  assets: const ChatHeadAssets(
+    icon: IconSource.asset('assets/icon.png'),
+  ),
   onError: (e, st) => debugPrint('Error: $e'),
 );
 await controller.show();
@@ -369,6 +460,52 @@ final result = await client.call('time', 'now',
 );
 ```
 
+### `FloatyHostKit` / `FloatyOverlayKit` -- all-in-one communication bundle
+
+Bundles `FloatyStateChannel`, `FloatyActionRouter`, and `FloatyProxyHost/Client`
+into a single object. One `kit` instance replaces three separate setups:
+
+```dart
+// Main app side:
+final kit = FloatyHostKit<MyState>(
+  stateToJson: (s) => s.toJson(),
+  stateFromJson: MyState.fromJson,
+  initialState: MyState(),
+);
+kit.router.on<IncrementAction>('increment', ...);
+kit.proxy.register('time', ...);
+await kit.state.setState(MyState(counter: 42));
+
+// Overlay side:
+final kit = FloatyOverlayKit<MyState>(
+  stateToJson: (s) => s.toJson(),
+  stateFromJson: MyState.fromJson,
+  initialState: MyState(),
+);
+kit.router.dispatch(IncrementAction(amount: 1));
+final result = await kit.proxy.call('time', 'now');
+```
+
+### `FloatyOverlayScope<S>` -- zero-boilerplate typed overlay scope
+
+Combines `FloatyOverlayKit` with automatic stream management in a single
+widget. Handles `setUp()`, subscriptions, state sync, connection tracking,
+and `dispose()`. Access the kit from descendants via `FloatyOverlayScope.of`:
+
+```dart
+@pragma('vm:entry-point')
+void overlayMain() => FloatyOverlayApp.run(
+  FloatyOverlayScope<MyState>(
+    stateToJson: (s) => s.toJson(),
+    stateFromJson: MyState.fromJson,
+    initialState: MyState(),
+    builder: (context, kit, state, connected) {
+      return Text('Count: ${state.counter}');
+    },
+  ),
+);
+```
+
 ### `FloatyConnectionState` -- main app connection tracking
 
 Overlay-side utility that tracks whether the main app is connected.
@@ -435,14 +572,14 @@ void notifOverlay() => FloatyOverlayApp.run(
 
 ## Test Suite & Coverage
 
-The plugin ships with **213 unit and widget tests** across all 4 packages:
+The plugin ships with **233+ unit and widget tests** across all 4 packages:
 
 | Package | Tests | Status |
 |---|---|---|
-| `floaty_chatheads` | 198 | ✅ All passing |
+| `floaty_chatheads` | 233 | ✅ All passing |
 | `floaty_chatheads_platform_interface` | 14 | ✅ All passing |
 | `floaty_chatheads_android` | 1 | ✅ All passing |
-| **Total** | **213** | ✅ |
+| **Total** | **248** | ✅ |
 
 ### Coverage (handwritten code, excluding generated Pigeon files)
 
@@ -450,10 +587,12 @@ The plugin ships with **213 unit and widget tests** across all 4 packages:
 |---|---|
 | `floaty_chatheads.dart` | 100% |
 | `floaty_controller.dart` | 100% |
+| `floaty_data_builder.dart` | 100% |
 | `floaty_launcher.dart` | 100% |
 | `floaty_messenger.dart` | 100% |
 | `floaty_overlay.dart` | 100% |
 | `floaty_overlay_app.dart` | 100% |
+| `floaty_overlay_builder.dart` | 100% |
 | `floaty_permission_gate.dart` | 100% |
 | `floaty_scope.dart` | 100% |
 | `floaty_connection_state.dart` | 100% |
@@ -769,17 +908,11 @@ final result = await proxyClient.call('time', 'now',
 | `entryPoint` | `String` | `'overlayMain'` | Dart function annotated with `@pragma('vm:entry-point')` | Both |
 | `contentWidth` | `int?` | `null` | Content panel width (dp / pt) | Both |
 | `contentHeight` | `int?` | `null` | Content panel height (dp / pt) | Both |
-| `chatheadIconAsset` | `String?` | `null` | Asset path for bubble icon | Android |
-| `closeIconAsset` | `String?` | `null` | Asset path for close icon | Android |
-| `closeBackgroundAsset` | `String?` | `null` | Asset path for close background | Android |
-| `notificationTitle` | `String?` | `null` | Foreground-service notification title | Android |
-| `notificationIconAsset` | `String?` | `null` | Asset path for notification icon | Android |
+| `assets` | `ChatHeadAssets?` | `null` | Grouped icon configuration (icon, closeIcon, closeBackground) | Android |
+| `notification` | `NotificationConfig?` | `null` | Grouped notification configuration (title, icon, visibility) | Android |
+| `snap` | `SnapConfig?` | `null` | Grouped snap configuration (edge, margin, persistPosition) | Android |
 | `flag` | `OverlayFlag` | `.defaultFlag` | Window behavior flag | Both |
 | `enableDrag` | `bool` | `true` | Whether the bubble is draggable | Both |
-| `notificationVisibility` | `NotificationVisibility` | `.visibilityPublic` | Lock-screen visibility | Android |
-| `snapEdge` | `SnapEdge` | `.both` | Edge snapping mode | Android |
-| `snapMargin` | `double` | `-10` | Margin from screen edge when snapped | Android |
-| `persistPosition` | `bool` | `false` | Restore position across sessions | Android |
 | `entranceAnimation` | `EntranceAnimation` | `.none` | Entry animation (pop, slide, fade) | Android |
 | `theme` | `ChatHeadTheme?` | `null` | Theming configuration | Android |
 | `sizePreset` | `ContentSizePreset?` | `null` | Named size preset (overrides width/height) | Android |
@@ -845,6 +978,10 @@ floaty_chatheads/                    # Main package (public API, platform-agnost
   lib/src/
     floaty_chatheads.dart            # FloatyChatheads static class
     floaty_overlay.dart              # FloatyOverlay + OverlayColorPalette
+    floaty_data_builder.dart         # Main-app reactive builder (reducer pattern)
+    floaty_overlay_builder.dart      # Overlay zero-boilerplate builder
+    floaty_overlay_app.dart          # One-liner overlay bootstrap (run / runScoped)
+    floaty_controller.dart           # Lifecycle-aware controller (child / builder)
     floaty_permission_gate.dart      # Permission gate widget
     floaty_connection_state.dart     # Main-app connection tracking (overlay side)
     floaty_state_channel.dart        # Bidirectional type-safe state sync
@@ -908,7 +1045,7 @@ It is a **complete rewrite** -- not a drop-in upgrade.
 
 ### How to migrate
 
-1. Replace `floaty_chathead` with `floaty_chatheads: ^1.0.1` in your `pubspec.yaml`.
+1. Replace `floaty_chathead` with `floaty_chatheads: ^1.2.0` in your `pubspec.yaml`.
 2. Update imports from `package:floaty_chathead/...` to `package:floaty_chatheads/floaty_chatheads.dart`.
 3. Replace method calls with the new static API on `FloatyChatheads` and `FloatyOverlay`.
 4. Add Android manifest permissions if not already present (see [Getting Started](#2-android-setup)).
@@ -944,5 +1081,5 @@ This project is licensed under the MIT License. See [LICENSE](../LICENSE) for de
 [very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
 [coverage_badge]: https://img.shields.io/badge/coverage-100%25-brightgreen.svg
 [coverage_link]: #test-suite--coverage
-[tests_badge]: https://img.shields.io/badge/tests-198%20passed-brightgreen.svg
+[tests_badge]: https://img.shields.io/badge/tests-233%20passed-brightgreen.svg
 [tests_link]: #test-suite--coverage

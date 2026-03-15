@@ -1,4 +1,5 @@
 import 'package:floaty_chatheads/src/floaty_overlay.dart';
+import 'package:floaty_chatheads/src/floaty_scope.dart';
 import 'package:flutter/material.dart';
 
 /// {@template floaty_overlay_app}
@@ -63,6 +64,31 @@ final class FloatyOverlayApp {
         navigatorObservers: navigatorObservers,
         home: child,
       ),
+    );
+  }
+  // coverage:ignore-end
+
+  /// {@template floaty_overlay_app.run_scoped}
+  /// Like [run], but wraps [child] in a [FloatyScope] so that
+  /// `FloatyScope.of(context)` is available throughout the overlay tree.
+  ///
+  /// ```dart
+  /// @pragma('vm:entry-point')
+  /// void overlayMain() => FloatyOverlayApp.runScoped(const MyOverlay());
+  /// ```
+  /// {@endtemplate}
+  // coverage:ignore-start
+  static void runScoped(
+    Widget child, {
+    ThemeData? theme,
+    bool debugBanner = false,
+    List<NavigatorObserver> navigatorObservers = const [],
+  }) {
+    run(
+      FloatyScope(child: child),
+      theme: theme,
+      debugBanner: debugBanner,
+      navigatorObservers: navigatorObservers,
     );
   }
   // coverage:ignore-end
