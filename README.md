@@ -50,10 +50,10 @@ Facebook Messenger-style bubbles, mini players, quick-action FABs, or full-scree
   </tr>
   <tr>
     <td>
-      <video src="media/androidfloat.mov" width="300" controls></video>
+      <img src="media/android_demo.gif" width="300" alt="Android demo" />
     </td>
     <td>
-      <video src="media/iosfloat.mov" width="300" controls></video>
+      <img src="media/ios_demo.gif" width="300" alt="iOS demo" />
     </td>
   </tr>
 </table>

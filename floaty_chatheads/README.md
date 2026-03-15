@@ -43,7 +43,20 @@ Facebook Messenger-style bubbles, mini players, quick-action FABs, or full-scree
 
 ## Demo
 
-See the plugin in action on both platforms: [Android demo](https://github.com/Crdzbird/floaty_chatheads/blob/main/media/androidfloat.mov) | [iOS demo](https://github.com/Crdzbird/floaty_chatheads/blob/main/media/iosfloat.mov)
+<table>
+  <tr>
+    <th>Android</th>
+    <th>iOS</th>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://raw.githubusercontent.com/Crdzbird/floaty_chatheads/main/media/android_demo.gif" width="300" alt="Android demo" />
+    </td>
+    <td>
+      <img src="https://raw.githubusercontent.com/Crdzbird/floaty_chatheads/main/media/ios_demo.gif" width="300" alt="iOS demo" />
+    </td>
+  </tr>
+</table>
 
 ---
 
