@@ -62,6 +62,9 @@ final class FloatyChatheads {
     ChatHeadTheme? theme,
     ContentSizePreset? sizePreset,
     bool debugMode = false,
+    ChatHeadAssets? assets,
+    NotificationConfig? notification,
+    SnapConfig? snap,
   }) {
     return _platform.showChatHead(
       ChatHeadConfig(
@@ -83,6 +86,9 @@ final class FloatyChatheads {
         theme: theme,
         sizePreset: sizePreset,
         debugMode: debugMode,
+        assets: assets,
+        notification: notification,
+        snap: snap,
       ),
     );
   }

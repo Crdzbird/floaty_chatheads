@@ -1,12 +1,10 @@
-import 'dart:async';
-
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
 
 import '../models/survival_actions.dart';
 
 /// Overlay that demonstrates survival after app death using
-/// [FloatyOverlayKit] for simplified wiring:
+/// [FloatyOverlayScope] for zero-boilerplate wiring:
 ///
 /// - **Connection banner** — green when connected, red when the main
 ///   app is killed.
@@ -15,70 +13,73 @@ import '../models/survival_actions.dart';
 /// - **Server Time** — calls a proxy service. Returns a fallback
 ///   string when disconnected instead of timing out.
 /// - **State sync** — receives counter updates from the main app.
-class SurvivalOverlay extends StatefulWidget {
+///
+/// No manual subscriptions, no dispose calls — `FloatyOverlayScope`
+/// manages everything.
+class SurvivalOverlay extends StatelessWidget {
   const SurvivalOverlay({super.key});
 
   @override
-  State<SurvivalOverlay> createState() => _SurvivalOverlayState();
-}
-
-class _SurvivalOverlayState extends State<SurvivalOverlay> {
-  late final FloatyOverlayKit<SurvivalState> _kit;
-
-  StreamSubscription<SurvivalState>? _stateSub;
-  StreamSubscription<bool>? _connSub;
-
-  bool _connected = true;
-  int _counter = 0;
-  String _lastProxyResult = '';
-  String _stateLabel = 'Waiting...';
-
-  @override
-  void initState() {
-    super.initState();
-    FloatyOverlay.setUp();
-
-    _kit = FloatyOverlayKit<SurvivalState>(
+  Widget build(BuildContext context) {
+    return FloatyOverlayScope<SurvivalState>(
       stateToJson: (s) => s.toJson(),
       stateFromJson: SurvivalState.fromJson,
       initialState: SurvivalState(),
-    );
-
-    // Connection state.
-    _connected = _kit.isConnected;
-    _connSub = _kit.onConnectionChanged.listen(
-      (connected) {
-        if (mounted) setState(() => _connected = connected);
+      builder: (context, kit, state, connected) {
+        return _SurvivalOverlayContent(
+          kit: kit,
+          state: state,
+          connected: connected,
+        );
       },
     );
-
-    // State channel — receive counter sync from main app.
-    _stateSub = _kit.onStateChanged.listen((state) {
-      if (!mounted) return;
-      setState(() {
-        _counter = state.counter;
-        _stateLabel = state.label;
-      });
-    });
   }
+}
+
+/// Stateful content widget that manages local-only UI state
+/// (proxy result, optimistic counter) while receiving reactive
+/// state and connection updates from [FloatyOverlayScope].
+class _SurvivalOverlayContent extends StatefulWidget {
+  const _SurvivalOverlayContent({
+    required this.kit,
+    required this.state,
+    required this.connected,
+  });
+
+  final FloatyOverlayKit<SurvivalState> kit;
+  final SurvivalState state;
+  final bool connected;
+
+  @override
+  State<_SurvivalOverlayContent> createState() =>
+      _SurvivalOverlayContentState();
+}
+
+class _SurvivalOverlayContentState
+    extends State<_SurvivalOverlayContent> {
+  String _lastProxyResult = '';
+  int _optimisticDelta = 0;
+
+  int get _displayCounter =>
+      widget.state.counter + _optimisticDelta;
 
   void _increment(int amount) {
-    _kit.dispatch(IncrementAction(amount: amount));
+    widget.kit.dispatch(IncrementAction(amount: amount));
     // Optimistically update the local counter.
-    setState(() => _counter += amount);
+    setState(() => _optimisticDelta += amount);
   }
 
   void _sendMessage() {
-    _kit.dispatch(MessageAction(
+    widget.kit.dispatch(MessageAction(
       text: 'Hello from overlay! '
-          '(queued: ${_kit.queueLength})',
+          '(queued: ${widget.kit.queueLength})',
       timestamp: DateTime.now().millisecondsSinceEpoch,
     ));
   }
 
   Future<void> _getServerTime() async {
     try {
-      final result = await _kit.callService(
+      final result = await widget.kit.callService(
         'time',
         'now',
         fallback: () => {'iso': 'N/A (offline)', 'millis': 0},
@@ -96,8 +97,17 @@ class _SurvivalOverlayState extends State<SurvivalOverlay> {
   }
 
   @override
+  void didUpdateWidget(_SurvivalOverlayContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset optimistic delta when we receive a new state from host.
+    if (oldWidget.state.counter != widget.state.counter) {
+      _optimisticDelta = 0;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final queueCount = _kit.queueLength;
+    final queueCount = widget.kit.queueLength;
 
     return Material(
       color: Colors.transparent,
@@ -109,7 +119,7 @@ class _SurvivalOverlayState extends State<SurvivalOverlay> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // ── Connection banner ──
-              _ConnectionBanner(connected: _connected),
+              _ConnectionBanner(connected: widget.connected),
 
               // ── Counter display ──
               Padding(
@@ -119,17 +129,17 @@ class _SurvivalOverlayState extends State<SurvivalOverlay> {
                 child: Column(
                   children: [
                     Text(
-                      '$_counter',
+                      '$_displayCounter',
                       style: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
-                        color: _connected
+                        color: widget.connected
                             ? Colors.deepOrange
                             : Colors.grey,
                       ),
                     ),
                     Text(
-                      _stateLabel,
+                      widget.state.label,
                       style: const TextStyle(
                         fontSize: 10,
                         color: Colors.grey,
@@ -335,15 +345,6 @@ class _SurvivalOverlayState extends State<SurvivalOverlay> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _connSub?.cancel();
-    _stateSub?.cancel();
-    _kit.dispose();
-    FloatyOverlay.dispose();
-    super.dispose();
   }
 }
 

@@ -15,6 +15,7 @@
 /// - `FloatyActionRouter` -- typed bidirectional action routing
 /// - `FloatyProxyHost` / `FloatyProxyClient` -- overlay-side plugin access
 /// - `FloatyHostKit` / `FloatyOverlayKit` -- all-in-one communication bundles
+/// - `FloatyOverlayScope` -- zero-boilerplate reactive scope for overlays
 ///
 /// For pre-built overlay widgets, see:
 /// - `FloatyMiniPlayer` -- media player overlay
@@ -26,13 +27,16 @@ library;
 export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart'
     show
         AddChatHeadConfig,
+        ChatHeadAssets,
         ChatHeadConfig,
         ChatHeadTheme,
         ContentSizePreset,
         EntranceAnimation,
+        NotificationConfig,
         NotificationVisibility,
         OverlayFlag,
         OverlayPosition,
+        SnapConfig,
         SnapEdge;
 
 export 'src/floaty_action_router.dart';
@@ -44,6 +48,7 @@ export 'src/floaty_launcher.dart';
 export 'src/floaty_messenger.dart';
 export 'src/floaty_overlay.dart';
 export 'src/floaty_overlay_app.dart';
+export 'src/floaty_overlay_scope.dart';
 export 'src/floaty_permission_gate.dart';
 export 'src/floaty_proxy.dart';
 export 'src/floaty_scope.dart';

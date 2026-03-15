@@ -6,13 +6,16 @@ import 'package:floaty_chatheads_platform_interface/src/models/overlay_position.
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 export 'src/models/add_chat_head_config.dart';
+export 'src/models/chat_head_assets.dart';
 export 'src/models/chat_head_config.dart';
 export 'src/models/chat_head_theme.dart';
 export 'src/models/content_size_preset.dart';
 export 'src/models/entrance_animation.dart';
+export 'src/models/notification_config.dart';
 export 'src/models/notification_visibility.dart';
 export 'src/models/overlay_flag.dart';
 export 'src/models/overlay_position.dart';
+export 'src/models/snap_config.dart';
 export 'src/models/snap_edge.dart';
 
 /// {@template floaty_chatheads_platform}

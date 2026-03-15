@@ -100,14 +100,12 @@ class _SurvivalExampleState extends State<SurvivalExample> {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'survivalOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Survival Demo',
+      assets: const ChatHeadAssets.defaults(),
+      notification: const NotificationConfig(title: 'Survival Demo'),
+      snap: const SnapConfig(edge: SnapEdge.both),
       contentWidth: 240,
       contentHeight: 340,
       entranceAnimation: EntranceAnimation.pop,
-      snapEdge: SnapEdge.both,
     );
     setState(() => _chatheadActive = true);
 
