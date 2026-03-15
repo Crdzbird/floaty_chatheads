@@ -11,7 +11,7 @@ Add `floaty_chatheads` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  floaty_chatheads: ^1.0.0
+  floaty_chatheads: ^1.0.1
 ```
 
 Then run:
@@ -121,7 +121,7 @@ implementations differ due to OS-level constraints:
 
 ```yaml
 dependencies:
-  floaty_chatheads: ^1.0.0
+  floaty_chatheads: ^1.0.1
 ```
 
 ### 2. Android setup
@@ -729,7 +729,7 @@ It is a **complete rewrite** -- not a drop-in upgrade.
 
 ### How to migrate
 
-1. Replace `floaty_chathead` with `floaty_chatheads: ^1.0.0` in your `pubspec.yaml`.
+1. Replace `floaty_chathead` with `floaty_chatheads: ^1.0.1` in your `pubspec.yaml`.
 2. Update imports from `package:floaty_chathead/...` to `package:floaty_chatheads/floaty_chatheads.dart`.
 3. Replace method calls with the new static API on `FloatyChatheads` and `FloatyOverlay`.
 4. Add Android manifest permissions if not already present (see [Getting Started](#2-android-setup)).

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1
+
+- Added Android and iOS demo GIFs to README.
+- Fixed foreground notification on service reuse.
+- Documentation and metadata updates.
+
+
 ## 1.0.0
 
 ### 🎉 Initial Release — Complete Rewrite
