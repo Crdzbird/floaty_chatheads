@@ -59,6 +59,7 @@ class _SurvivalOverlayContentState
     extends State<_SurvivalOverlayContent> {
   String _lastProxyResult = '';
   int _optimisticDelta = 0;
+  int _messageCount = 0;
 
   int get _displayCounter =>
       widget.state.counter + _optimisticDelta;
@@ -70,11 +71,14 @@ class _SurvivalOverlayContentState
   }
 
   void _sendMessage() {
+    _messageCount++;
+    final queueCount = widget.kit.queueLength;
+    final suffix = queueCount > 0 ? ' (queued: $queueCount)' : '';
     widget.kit.dispatch(MessageAction(
-      text: 'Hello from overlay! '
-          '(queued: ${widget.kit.queueLength})',
+      text: 'Message #$_messageCount from overlay!$suffix',
       timestamp: DateTime.now().millisecondsSinceEpoch,
     ));
+    setState(() {});
   }
 
   Future<void> _getServerTime() async {
