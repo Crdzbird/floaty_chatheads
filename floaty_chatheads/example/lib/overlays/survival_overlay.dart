@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 
 import '../models/survival_actions.dart';
 
-/// Overlay that demonstrates survival after app death:
+/// Overlay that demonstrates survival after app death using
+/// [FloatyOverlayKit] for simplified wiring:
 ///
 /// - **Connection banner** — green when connected, red when the main
-///   app is killed (via `FloatyConnectionState`).
-/// - **Counter buttons** — dispatch `IncrementAction` via the router.
+///   app is killed.
+/// - **Counter buttons** — dispatch `IncrementAction` via the kit.
 ///   When disconnected, actions are queued (badge shows count).
 /// - **Server Time** — calls a proxy service. Returns a fallback
 ///   string when disconnected instead of timing out.
@@ -22,9 +23,7 @@ class SurvivalOverlay extends StatefulWidget {
 }
 
 class _SurvivalOverlayState extends State<SurvivalOverlay> {
-  late final FloatyActionRouter _router;
-  late final FloatyStateChannel<SurvivalState> _stateChannel;
-  late final FloatyProxyClient _proxyClient;
+  late final FloatyOverlayKit<SurvivalState> _kit;
 
   StreamSubscription<SurvivalState>? _stateSub;
   StreamSubscription<bool>? _connSub;
@@ -39,52 +38,47 @@ class _SurvivalOverlayState extends State<SurvivalOverlay> {
     super.initState();
     FloatyOverlay.setUp();
 
+    _kit = FloatyOverlayKit<SurvivalState>(
+      stateToJson: (s) => s.toJson(),
+      stateFromJson: SurvivalState.fromJson,
+      initialState: SurvivalState(),
+    );
+
     // Connection state.
-    _connected = FloatyConnectionState.isMainAppConnected;
-    _connSub = FloatyConnectionState.onConnectionChanged.listen(
+    _connected = _kit.isConnected;
+    _connSub = _kit.onConnectionChanged.listen(
       (connected) {
         if (mounted) setState(() => _connected = connected);
       },
     );
 
-    // Action router (overlay side — enables queueing).
-    _router = FloatyActionRouter.overlay();
-
     // State channel — receive counter sync from main app.
-    _stateChannel = FloatyStateChannel<SurvivalState>.overlay(
-      toJson: (s) => s.toJson(),
-      fromJson: SurvivalState.fromJson,
-      initialState: SurvivalState(),
-    );
-    _stateSub = _stateChannel.onStateChanged.listen((state) {
+    _stateSub = _kit.onStateChanged.listen((state) {
       if (!mounted) return;
       setState(() {
         _counter = state.counter;
         _stateLabel = state.label;
       });
     });
-
-    // Proxy client — call main app's "time" service.
-    _proxyClient = FloatyProxyClient();
   }
 
   void _increment(int amount) {
-    _router.dispatch(IncrementAction(amount: amount));
+    _kit.dispatch(IncrementAction(amount: amount));
     // Optimistically update the local counter.
     setState(() => _counter += amount);
   }
 
   void _sendMessage() {
-    _router.dispatch(MessageAction(
+    _kit.dispatch(MessageAction(
       text: 'Hello from overlay! '
-          '(queued: ${_router.queueLength})',
+          '(queued: ${_kit.queueLength})',
       timestamp: DateTime.now().millisecondsSinceEpoch,
     ));
   }
 
   Future<void> _getServerTime() async {
     try {
-      final result = await _proxyClient.call(
+      final result = await _kit.callService(
         'time',
         'now',
         fallback: () => {'iso': 'N/A (offline)', 'millis': 0},
@@ -103,7 +97,7 @@ class _SurvivalOverlayState extends State<SurvivalOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final queueCount = _router.queueLength;
+    final queueCount = _kit.queueLength;
 
     return Material(
       color: Colors.transparent,
@@ -347,9 +341,7 @@ class _SurvivalOverlayState extends State<SurvivalOverlay> {
   void dispose() {
     _connSub?.cancel();
     _stateSub?.cancel();
-    _router.dispose();
-    _stateChannel.dispose();
-    _proxyClient.dispose();
+    _kit.dispose();
     FloatyOverlay.dispose();
     super.dispose();
   }

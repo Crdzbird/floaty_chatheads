@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import '../models/survival_actions.dart';
 import '../utils.dart';
 
-/// Demonstrates overlay survival after app death:
+/// Demonstrates overlay survival after app death using [FloatyHostKit]
+/// for simplified wiring.
 ///
 /// 1. **Connection state** — the overlay shows a live connected /
 ///    disconnected banner via `FloatyConnectionState`.
@@ -37,19 +38,20 @@ class _SurvivalExampleState extends State<SurvivalExample> {
   int _counter = 0;
   final _log = <String>[];
 
-  // --- Feature instances ---
-  late final FloatyActionRouter _router;
-  late final FloatyStateChannel<SurvivalState> _stateChannel;
-  late final FloatyProxyHost _proxyHost;
+  late final FloatyHostKit<SurvivalState> _kit;
 
   @override
   void initState() {
     super.initState();
 
-    // 1. Action router — receive increment & message actions
-    //    from the overlay.
-    _router = FloatyActionRouter();
-    _router.on<IncrementAction>(
+    _kit = FloatyHostKit<SurvivalState>(
+      stateToJson: (s) => s.toJson(),
+      stateFromJson: SurvivalState.fromJson,
+      initialState: SurvivalState(),
+    );
+
+    // Handle increment actions from the overlay.
+    _kit.onAction<IncrementAction>(
       'increment',
       fromJson: IncrementAction.fromJson,
       handler: (action) {
@@ -61,14 +63,16 @@ class _SurvivalExampleState extends State<SurvivalExample> {
         });
         // Sync updated counter back to overlay.
         unawaited(
-          _stateChannel.setState(SurvivalState(
+          _kit.setState(SurvivalState(
             counter: _counter,
             label: 'Updated from main',
           )),
         );
       },
     );
-    _router.on<MessageAction>(
+
+    // Handle message actions from the overlay.
+    _kit.onAction<MessageAction>(
       'message',
       fromJson: MessageAction.fromJson,
       handler: (action) {
@@ -80,16 +84,8 @@ class _SurvivalExampleState extends State<SurvivalExample> {
       },
     );
 
-    // 2. State channel — sync counter state.
-    _stateChannel = FloatyStateChannel<SurvivalState>(
-      toJson: (s) => s.toJson(),
-      fromJson: SurvivalState.fromJson,
-      initialState: SurvivalState(),
-    );
-
-    // 3. Proxy host — expose a "time" service.
-    _proxyHost = FloatyProxyHost();
-    _proxyHost.register('time', (method, params) {
+    // Expose a "time" service to the overlay.
+    _kit.registerService('time', (method, params) {
       if (method == 'now') {
         return {
           'iso': DateTime.now().toIso8601String(),
@@ -116,7 +112,7 @@ class _SurvivalExampleState extends State<SurvivalExample> {
     setState(() => _chatheadActive = true);
 
     // Sync initial state.
-    await _stateChannel.setState(SurvivalState(
+    await _kit.setState(SurvivalState(
       counter: _counter,
       label: 'Connected',
     ));
@@ -134,7 +130,7 @@ class _SurvivalExampleState extends State<SurvivalExample> {
       if (_log.length > 50) _log.removeLast();
     });
     unawaited(
-      _stateChannel.setState(SurvivalState(
+      _kit.setState(SurvivalState(
         counter: _counter,
         label: 'Main increment',
       )),
@@ -273,9 +269,7 @@ class _SurvivalExampleState extends State<SurvivalExample> {
 
   @override
   void dispose() {
-    _router.dispose();
-    _stateChannel.dispose();
-    _proxyHost.dispose();
+    _kit.dispose();
     FloatyChatheads.dispose();
     super.dispose();
   }
