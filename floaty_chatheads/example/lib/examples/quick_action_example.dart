@@ -41,10 +41,8 @@ class _QuickActionExampleState extends State<QuickActionExample> {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'quickActionOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Quick Actions Active',
+      assets: const ChatHeadAssets.defaults(),
+      notification: const NotificationConfig(title: 'Quick Actions Active'),
       contentWidth: 200,
       contentHeight: 300,
     );

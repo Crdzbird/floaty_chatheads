@@ -43,10 +43,8 @@ class _MessengerFullscreenExampleState
     // giving the overlay the full screen from the start.
     await FloatyChatheads.showChatHead(
       entryPoint: 'messengerFullscreenOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Messenger Active',
+      assets: const ChatHeadAssets.defaults(),
+      notification: const NotificationConfig(title: 'Messenger Active'),
       contentWidth: -1,
       contentHeight: -1,
     );

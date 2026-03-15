@@ -37,27 +37,26 @@ final class FloatyChatheads {
   ///
   /// See [ChatHeadConfig] for the full list of configuration options.
   ///
-  /// [theme] provides optional theming (badge colors, border, shadow, etc.).
-  ///
-  /// [sizePreset] overrides [contentWidth]/[contentHeight] with a named preset.
-  ///
-  /// [debugMode] enables the native debug overlay inspector (Android).
+  /// Prefer [assets], [notification], and [snap] over their individual
+  /// counterparts — the flat parameters are deprecated and will be
+  /// removed in the next major version.
   static Future<void> showChatHead({
     String entryPoint = 'overlayMain',
     int? contentWidth,
     int? contentHeight,
-    String? chatheadIconAsset,
-    String? closeIconAsset,
-    String? closeBackgroundAsset,
-    String? notificationTitle,
-    String? notificationIconAsset,
+    @Deprecated('Use assets instead') String? chatheadIconAsset,
+    @Deprecated('Use assets instead') String? closeIconAsset,
+    @Deprecated('Use assets instead') String? closeBackgroundAsset,
+    @Deprecated('Use notification instead') String? notificationTitle,
+    @Deprecated('Use notification instead') String? notificationIconAsset,
     OverlayFlag flag = OverlayFlag.defaultFlag,
     bool enableDrag = true,
+    @Deprecated('Use notification instead')
     NotificationVisibility notificationVisibility =
         NotificationVisibility.visibilityPublic,
-    SnapEdge snapEdge = SnapEdge.both,
-    double snapMargin = -10,
-    bool persistPosition = false,
+    @Deprecated('Use snap instead') SnapEdge snapEdge = SnapEdge.both,
+    @Deprecated('Use snap instead') double snapMargin = -10,
+    @Deprecated('Use snap instead') bool persistPosition = false,
     EntranceAnimation entranceAnimation = EntranceAnimation.none,
     ChatHeadTheme? theme,
     ContentSizePreset? sizePreset,
@@ -101,12 +100,21 @@ final class FloatyChatheads {
 
   /// {@macro floaty_chatheads_platform.add_chat_head}
   ///
-  /// [id] uniquely identifies this bubble. [iconAsset] is an optional
-  /// Flutter asset path for the bubble's icon.
+  /// [id] uniquely identifies this bubble. [iconSource] provides the
+  /// bubble's icon from any supported source (asset, network, bytes).
+  /// The deprecated [iconAsset] is kept for backward compatibility.
   static Future<void> addChatHead({
     required String id,
-    String? iconAsset,
-  }) => _platform.addChatHead(AddChatHeadConfig(id: id, iconAsset: iconAsset));
+    @Deprecated('Use iconSource instead') String? iconAsset,
+    IconSource? iconSource,
+  }) =>
+      _platform.addChatHead(
+        AddChatHeadConfig(
+          id: id,
+          iconAsset: iconAsset,
+          iconSource: iconSource,
+        ),
+      );
 
   /// {@macro floaty_chatheads_platform.remove_chat_head}
   static Future<void> removeChatHead(String id) =>

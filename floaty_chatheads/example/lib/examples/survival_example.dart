@@ -37,8 +37,14 @@ class _SurvivalExampleState extends State<SurvivalExample> {
   bool _chatheadActive = false;
   int _counter = 0;
   final _log = <String>[];
+  static const _maxLogEntries = 50;
 
   late final FloatyHostKit<SurvivalState> _kit;
+
+  void _addLog(String entry) {
+    _log.insert(0, entry);
+    if (_log.length > _maxLogEntries) _log.removeLast();
+  }
 
   @override
   void initState() {
@@ -58,8 +64,7 @@ class _SurvivalExampleState extends State<SurvivalExample> {
         if (!mounted) return;
         setState(() {
           _counter += action.amount;
-          _log.insert(0, '[+${action.amount}] counter = $_counter');
-          if (_log.length > 50) _log.removeLast();
+          _addLog('[+${action.amount}] counter = $_counter');
         });
         // Sync updated counter back to overlay.
         unawaited(
@@ -77,19 +82,17 @@ class _SurvivalExampleState extends State<SurvivalExample> {
       fromJson: MessageAction.fromJson,
       handler: (action) {
         if (!mounted) return;
-        setState(() {
-          _log.insert(0, action.text);
-          if (_log.length > 50) _log.removeLast();
-        });
+        setState(() => _addLog(action.text));
       },
     );
 
     // Expose a "time" service to the overlay.
     _kit.registerService('time', (method, params) {
       if (method == 'now') {
+        final now = DateTime.now();
         return {
-          'iso': DateTime.now().toIso8601String(),
-          'millis': DateTime.now().millisecondsSinceEpoch,
+          'iso': now.toIso8601String(),
+          'millis': now.millisecondsSinceEpoch,
         };
       }
       return null;
@@ -123,10 +126,7 @@ class _SurvivalExampleState extends State<SurvivalExample> {
 
   void _incrementFromMain() {
     _counter++;
-    setState(() {
-      _log.insert(0, '[main +1] counter = $_counter');
-      if (_log.length > 50) _log.removeLast();
-    });
+    setState(() => _addLog('[main +1] counter = $_counter'));
     unawaited(
       _kit.setState(SurvivalState(
         counter: _counter,

@@ -30,13 +30,29 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
   /// {@macro floaty_chatheads_platform.show_chat_head}
   @override
   Future<void> showChatHead(ChatHeadConfig config) {
+    // Resolve size preset: if set, use preset dimensions;
+    // otherwise use raw values.
+    final effectiveWidth =
+        config.sizePreset?.width ?? config.contentWidth;
+    final effectiveHeight =
+        config.sizePreset?.height ?? config.contentHeight;
+
     return methodChannel.invokeMethod<void>('showChatHead', {
       'entryPoint': config.entryPoint,
-      'contentWidth': config.contentWidth,
-      'contentHeight': config.contentHeight,
+      'contentWidth': effectiveWidth,
+      'contentHeight': effectiveHeight,
       'chatheadIconAsset': config.effectiveChatheadIcon,
       'closeIconAsset': config.effectiveCloseIcon,
       'closeBackgroundAsset': config.effectiveCloseBackground,
+      if (config.effectiveChatheadIconSource != null)
+        'chatheadIconSource':
+            _serializeIconSource(config.effectiveChatheadIconSource!),
+      if (config.effectiveCloseIconSource != null)
+        'closeIconSource':
+            _serializeIconSource(config.effectiveCloseIconSource!),
+      if (config.effectiveCloseBackgroundSource != null)
+        'closeBackgroundSource':
+            _serializeIconSource(config.effectiveCloseBackgroundSource!),
       'notificationTitle': config.effectiveNotificationTitle,
       'notificationIconAsset': config.effectiveNotificationIcon,
       'flag': config.flag.index,
@@ -59,10 +75,6 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
           if (config.theme!.overlayPalette != null)
             'overlayPalette': config.theme!.overlayPalette,
         },
-      if (config.sizePreset != null) ...{
-        'contentWidth': config.sizePreset!.width,
-        'contentHeight': config.sizePreset!.height,
-      },
     });
   }
 
@@ -85,6 +97,8 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
     return methodChannel.invokeMethod<void>('addChatHead', {
       'id': config.id,
       'iconAsset': config.iconAsset,
+      if (config.iconSource != null)
+        'iconSource': _serializeIconSource(config.iconSource!),
     });
   }
 
@@ -144,5 +158,22 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
   @override
   Future<void> collapseChatHead() {
     return methodChannel.invokeMethod<void>('collapseChatHead');
+  }
+
+  static Map<String, Object?> _serializeIconSource(IconSource source) {
+    return switch (source) {
+      AssetIconSource(:final path) => {
+          'type': 'asset',
+          'path': path,
+        },
+      NetworkIconSource(:final url) => {
+          'type': 'network',
+          'path': url,
+        },
+      BytesIconSource(:final data) => {
+          'type': 'bytes',
+          'bytes': data,
+        },
+    };
   }
 }

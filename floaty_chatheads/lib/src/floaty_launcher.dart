@@ -16,13 +16,13 @@ import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
 /// }
 /// await FloatyChatheads.showChatHead(
 ///   entryPoint: 'overlayMain',
-///   chatheadIconAsset: 'assets/icon.png',
+///   assets: ChatHeadAssets.defaults(),
 /// );
 ///
 /// // After (1 call):
 /// await FloatyLauncher.show(
 ///   entryPoint: 'overlayMain',
-///   chatheadIcon: 'assets/icon.png',
+///   assets: ChatHeadAssets.defaults(),
 /// );
 /// ```
 ///
@@ -41,27 +41,35 @@ final class FloatyLauncher {
   /// All parameters map directly to [FloatyChatheads.showChatHead].
   /// The most common ones are promoted to short-named top-level parameters;
   /// Android-specific options are grouped under their original names.
+  ///
+  /// Prefer grouped config objects ([assets], [notification], [snap]) over
+  /// their individual counterparts — the flat parameters are deprecated and
+  /// will be removed in the next major version.
   /// {@endtemplate}
   static Future<bool> show({
     String entryPoint = 'overlayMain',
-    String? chatheadIcon,
-    String? closeIcon,
-    String? closeBackground,
-    String? notificationTitle,
-    String? notificationIcon,
+    @Deprecated('Use assets instead') String? chatheadIcon,
+    @Deprecated('Use assets instead') String? closeIcon,
+    @Deprecated('Use assets instead') String? closeBackground,
+    @Deprecated('Use notification instead') String? notificationTitle,
+    @Deprecated('Use notification instead') String? notificationIcon,
     int? contentWidth,
     int? contentHeight,
     ContentSizePreset? sizePreset,
     ChatHeadTheme? theme,
     OverlayFlag flag = OverlayFlag.defaultFlag,
     bool enableDrag = true,
-    SnapEdge snapEdge = SnapEdge.both,
-    double snapMargin = -10,
-    bool persistPosition = false,
+    @Deprecated('Use snap instead') SnapEdge snapEdge = SnapEdge.both,
+    @Deprecated('Use snap instead') double snapMargin = -10,
+    @Deprecated('Use snap instead') bool persistPosition = false,
     EntranceAnimation entranceAnimation = EntranceAnimation.none,
+    @Deprecated('Use notification instead')
     NotificationVisibility notificationVisibility =
         NotificationVisibility.visibilityPublic,
     bool debugMode = false,
+    ChatHeadAssets? assets,
+    NotificationConfig? notification,
+    SnapConfig? snap,
   }) async {
     var granted = await FloatyChatheads.checkPermission();
     if (!granted) {
@@ -71,10 +79,15 @@ final class FloatyLauncher {
 
     await FloatyChatheads.showChatHead(
       entryPoint: entryPoint,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       chatheadIconAsset: chatheadIcon,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       closeIconAsset: closeIcon,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       closeBackgroundAsset: closeBackground,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       notificationTitle: notificationTitle,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       notificationIconAsset: notificationIcon,
       contentWidth: contentWidth,
       contentHeight: contentHeight,
@@ -82,12 +95,19 @@ final class FloatyLauncher {
       theme: theme,
       flag: flag,
       enableDrag: enableDrag,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       snapEdge: snapEdge,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       snapMargin: snapMargin,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       persistPosition: persistPosition,
       entranceAnimation: entranceAnimation,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       notificationVisibility: notificationVisibility,
       debugMode: debugMode,
+      assets: assets,
+      notification: notification,
+      snap: snap,
     );
 
     return true;
@@ -101,24 +121,28 @@ final class FloatyLauncher {
   /// {@endtemplate}
   static Future<bool> toggle({
     String entryPoint = 'overlayMain',
-    String? chatheadIcon,
-    String? closeIcon,
-    String? closeBackground,
-    String? notificationTitle,
-    String? notificationIcon,
+    @Deprecated('Use assets instead') String? chatheadIcon,
+    @Deprecated('Use assets instead') String? closeIcon,
+    @Deprecated('Use assets instead') String? closeBackground,
+    @Deprecated('Use notification instead') String? notificationTitle,
+    @Deprecated('Use notification instead') String? notificationIcon,
     int? contentWidth,
     int? contentHeight,
     ContentSizePreset? sizePreset,
     ChatHeadTheme? theme,
     OverlayFlag flag = OverlayFlag.defaultFlag,
     bool enableDrag = true,
-    SnapEdge snapEdge = SnapEdge.both,
-    double snapMargin = -10,
-    bool persistPosition = false,
+    @Deprecated('Use snap instead') SnapEdge snapEdge = SnapEdge.both,
+    @Deprecated('Use snap instead') double snapMargin = -10,
+    @Deprecated('Use snap instead') bool persistPosition = false,
     EntranceAnimation entranceAnimation = EntranceAnimation.none,
+    @Deprecated('Use notification instead')
     NotificationVisibility notificationVisibility =
         NotificationVisibility.visibilityPublic,
     bool debugMode = false,
+    ChatHeadAssets? assets,
+    NotificationConfig? notification,
+    SnapConfig? snap,
   }) async {
     final active = await FloatyChatheads.isActive();
     if (active) {
@@ -127,10 +151,15 @@ final class FloatyLauncher {
     }
     return show(
       entryPoint: entryPoint,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       chatheadIcon: chatheadIcon,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       closeIcon: closeIcon,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       closeBackground: closeBackground,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       notificationTitle: notificationTitle,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       notificationIcon: notificationIcon,
       contentWidth: contentWidth,
       contentHeight: contentHeight,
@@ -138,12 +167,19 @@ final class FloatyLauncher {
       theme: theme,
       flag: flag,
       enableDrag: enableDrag,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       snapEdge: snapEdge,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       snapMargin: snapMargin,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       persistPosition: persistPosition,
       entranceAnimation: entranceAnimation,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       notificationVisibility: notificationVisibility,
       debugMode: debugMode,
+      assets: assets,
+      notification: notification,
+      snap: snap,
     );
   }
 }

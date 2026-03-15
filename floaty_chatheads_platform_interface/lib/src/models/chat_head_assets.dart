@@ -1,14 +1,31 @@
+import 'package:floaty_chatheads_platform_interface/src/models/icon_source.dart';
+
 /// {@template chat_head_assets}
-/// Groups the three asset paths needed by a chathead.
+/// Groups the three icon sources needed by a chathead.
 ///
-/// Instead of passing `chatheadIconAsset`, `closeIconAsset`, and
-/// `closeBackgroundAsset` as separate strings, bundle them here:
+/// Each field accepts an [IconSource], which can be a Flutter asset path,
+/// a network URL, or raw image bytes:
 ///
 /// ```dart
+/// // From assets (most common).
 /// assets: ChatHeadAssets(
-///   icon: 'assets/chatheadIcon.png',
-///   closeIcon: 'assets/close.png',
-///   closeBackground: 'assets/closeBg.png',
+///   icon: IconSource.asset('assets/chatheadIcon.png'),
+///   closeIcon: IconSource.asset('assets/close.png'),
+///   closeBackground: IconSource.asset('assets/closeBg.png'),
+/// ),
+///
+/// // From a network URL.
+/// assets: ChatHeadAssets(
+///   icon: IconSource.network('https://example.com/icon.png'),
+///   closeIcon: IconSource.asset('assets/close.png'),
+///   closeBackground: IconSource.asset('assets/closeBg.png'),
+/// ),
+///
+/// // From raw bytes.
+/// assets: ChatHeadAssets(
+///   icon: IconSource.bytes(myPngBytes),
+///   closeIcon: IconSource.asset('assets/close.png'),
+///   closeBackground: IconSource.asset('assets/closeBg.png'),
 /// ),
 /// ```
 ///
@@ -28,16 +45,16 @@ class ChatHeadAssets {
   /// - `assets/close.png`
   /// - `assets/closeBg.png`
   const ChatHeadAssets.defaults()
-      : icon = 'assets/chatheadIcon.png',
-        closeIcon = 'assets/close.png',
-        closeBackground = 'assets/closeBg.png';
+      : icon = const IconSource.asset('assets/chatheadIcon.png'),
+        closeIcon = const IconSource.asset('assets/close.png'),
+        closeBackground = const IconSource.asset('assets/closeBg.png');
 
-  /// Flutter asset path for the chathead bubble icon.
-  final String icon;
+  /// Icon source for the chathead bubble.
+  final IconSource icon;
 
-  /// Flutter asset path for the close-button icon.
-  final String closeIcon;
+  /// Icon source for the close-button icon.
+  final IconSource closeIcon;
 
-  /// Flutter asset path for the close-button background.
-  final String closeBackground;
+  /// Icon source for the close-button background.
+  final IconSource closeBackground;
 }

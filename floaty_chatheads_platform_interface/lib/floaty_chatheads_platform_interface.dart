@@ -11,6 +11,7 @@ export 'src/models/chat_head_config.dart';
 export 'src/models/chat_head_theme.dart';
 export 'src/models/content_size_preset.dart';
 export 'src/models/entrance_animation.dart';
+export 'src/models/icon_source.dart';
 export 'src/models/notification_config.dart';
 export 'src/models/notification_visibility.dart';
 export 'src/models/overlay_flag.dart';

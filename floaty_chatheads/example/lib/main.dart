@@ -394,11 +394,17 @@ class _HomePageState extends State<HomePage> {
   Future<void> _showChatHead() async {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Chathead Active',
-      notificationIconAsset: 'assets/notificationIcon.png',
+      assets: const ChatHeadAssets(
+        icon: IconSource.asset('assets/showcase_bubble.png'),
+        closeIcon: IconSource.asset('assets/showcase_close.png'),
+        closeBackground: IconSource.asset('assets/showcase_close_bg.png'),
+      ),
+      notification: const NotificationConfig(
+        title: 'Chathead Active',
+        iconAsset: 'assets/notificationIcon.png',
+      ),
+      contentWidth: 240,
+      contentHeight: 220,
     );
   }
 

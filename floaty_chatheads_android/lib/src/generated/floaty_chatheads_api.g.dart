@@ -49,6 +49,16 @@ enum SnapEdgeMessage {
   none,
 }
 
+/// The type of source for an icon image.
+enum IconSourceTypeMessage {
+  /// Flutter asset path.
+  asset,
+  /// Network URL (downloaded on an IO thread).
+  network,
+  /// Raw image bytes.
+  bytes,
+}
+
 /// Animation style used when the chathead first appears on screen.
 enum EntranceAnimationMessage {
   /// No entrance animation — bubble appears at its initial position.
@@ -59,6 +69,42 @@ enum EntranceAnimationMessage {
   slideFromEdge,
   /// Bubble fades in.
   fade,
+}
+
+/// Describes an icon image source with its type and data.
+class IconSourceMessage {
+  IconSourceMessage({
+    required this.type,
+    this.path,
+    this.bytes,
+  });
+
+  /// The type of source.
+  IconSourceTypeMessage type;
+
+  /// Asset path (for [IconSourceTypeMessage.asset]) or
+  /// URL (for [IconSourceTypeMessage.network]).
+  String? path;
+
+  /// Raw image bytes (for [IconSourceTypeMessage.bytes]).
+  Uint8List? bytes;
+
+  Object encode() {
+    return <Object?>[
+      type,
+      path,
+      bytes,
+    ];
+  }
+
+  static IconSourceMessage decode(Object result) {
+    result as List<Object?>;
+    return IconSourceMessage(
+      type: result[0]! as IconSourceTypeMessage,
+      path: result[1] as String?,
+      bytes: result[2] as Uint8List?,
+    );
+  }
 }
 
 /// Theming configuration for the chathead.
@@ -136,6 +182,9 @@ class ChatHeadConfig {
     required this.entranceAnimation,
     this.theme,
     required this.debugMode,
+    this.chatheadIconSource,
+    this.closeIconSource,
+    this.closeBackgroundSource,
   });
 
   String entryPoint;
@@ -179,6 +228,15 @@ class ChatHeadConfig {
   /// Whether to enable the debug overlay inspector.
   bool debugMode;
 
+  /// Multi-source chathead icon (takes precedence over [chatheadIconAsset]).
+  IconSourceMessage? chatheadIconSource;
+
+  /// Multi-source close icon (takes precedence over [closeIconAsset]).
+  IconSourceMessage? closeIconSource;
+
+  /// Multi-source close background (takes precedence over [closeBackgroundAsset]).
+  IconSourceMessage? closeBackgroundSource;
+
   Object encode() {
     return <Object?>[
       entryPoint,
@@ -198,6 +256,9 @@ class ChatHeadConfig {
       entranceAnimation,
       theme,
       debugMode,
+      chatheadIconSource,
+      closeIconSource,
+      closeBackgroundSource,
     ];
   }
 
@@ -221,6 +282,9 @@ class ChatHeadConfig {
       entranceAnimation: result[14]! as EntranceAnimationMessage,
       theme: result[15] as ChatHeadThemeMessage?,
       debugMode: result[16]! as bool,
+      chatheadIconSource: result[17] as IconSourceMessage?,
+      closeIconSource: result[18] as IconSourceMessage?,
+      closeBackgroundSource: result[19] as IconSourceMessage?,
     );
   }
 }
@@ -255,16 +319,21 @@ class AddChatHeadConfig {
   AddChatHeadConfig({
     required this.id,
     this.iconAsset,
+    this.iconSource,
   });
 
   String id;
 
   String? iconAsset;
 
+  /// Multi-source icon (takes precedence over [iconAsset]).
+  IconSourceMessage? iconSource;
+
   Object encode() {
     return <Object?>[
       id,
       iconAsset,
+      iconSource,
     ];
   }
 
@@ -273,6 +342,7 @@ class AddChatHeadConfig {
     return AddChatHeadConfig(
       id: result[0]! as String,
       iconAsset: result[1] as String?,
+      iconSource: result[2] as IconSourceMessage?,
     );
   }
 }
@@ -294,20 +364,26 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is SnapEdgeMessage) {
       buffer.putUint8(131);
       writeValue(buffer, value.index);
-    }    else if (value is EntranceAnimationMessage) {
+    }    else if (value is IconSourceTypeMessage) {
       buffer.putUint8(132);
       writeValue(buffer, value.index);
-    }    else if (value is ChatHeadThemeMessage) {
+    }    else if (value is EntranceAnimationMessage) {
       buffer.putUint8(133);
-      writeValue(buffer, value.encode());
-    }    else if (value is ChatHeadConfig) {
+      writeValue(buffer, value.index);
+    }    else if (value is IconSourceMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is OverlayPositionMessage) {
+    }    else if (value is ChatHeadThemeMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is AddChatHeadConfig) {
+    }    else if (value is ChatHeadConfig) {
       buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    }    else if (value is OverlayPositionMessage) {
+      buffer.putUint8(137);
+      writeValue(buffer, value.encode());
+    }    else if (value is AddChatHeadConfig) {
+      buffer.putUint8(138);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -328,14 +404,19 @@ class _PigeonCodec extends StandardMessageCodec {
         return value == null ? null : SnapEdgeMessage.values[value];
       case 132: 
         final int? value = readValue(buffer) as int?;
-        return value == null ? null : EntranceAnimationMessage.values[value];
+        return value == null ? null : IconSourceTypeMessage.values[value];
       case 133: 
-        return ChatHeadThemeMessage.decode(readValue(buffer)!);
+        final int? value = readValue(buffer) as int?;
+        return value == null ? null : EntranceAnimationMessage.values[value];
       case 134: 
-        return ChatHeadConfig.decode(readValue(buffer)!);
+        return IconSourceMessage.decode(readValue(buffer)!);
       case 135: 
-        return OverlayPositionMessage.decode(readValue(buffer)!);
+        return ChatHeadThemeMessage.decode(readValue(buffer)!);
       case 136: 
+        return ChatHeadConfig.decode(readValue(buffer)!);
+      case 137: 
+        return OverlayPositionMessage.decode(readValue(buffer)!);
+      case 138: 
         return AddChatHeadConfig.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);

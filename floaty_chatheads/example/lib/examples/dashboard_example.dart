@@ -44,10 +44,12 @@ class _DashboardExampleState extends State<DashboardExample> {
     // giving the overlay the full screen from the start.
     await FloatyChatheads.showChatHead(
       entryPoint: 'dashboardOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Dashboard Active',
+      assets: const ChatHeadAssets(
+        icon: IconSource.asset('assets/showcase_bubble.png'),
+        closeIcon: IconSource.asset('assets/showcase_close.png'),
+        closeBackground: IconSource.asset('assets/showcase_close_bg.png'),
+      ),
+      notification: const NotificationConfig(title: 'Dashboard Active'),
       contentWidth: -1,
       contentHeight: -1,
     );

@@ -59,16 +59,16 @@ final class FloatyStateChannel<S> {
 
   /// {@template floaty_state_channel.overlay}
   /// Creates a state channel for the **overlay** side.
+  ///
+  /// Functionally identical to the unnamed constructor — the named
+  /// variant exists for semantic symmetry with
+  /// `FloatyActionRouter.overlay()`.
   /// {@endtemplate}
-  FloatyStateChannel.overlay({
+  factory FloatyStateChannel.overlay({
     required Map<String, dynamic> Function(S state) toJson,
     required S Function(Map<String, dynamic> json) fromJson,
     required S initialState,
-  })  : _toJson = toJson,
-        _fromJson = fromJson,
-        _state = initialState {
-    _init();
-  }
+  }) = FloatyStateChannel<S>;
 
   static const _prefix = '_floaty_state';
 

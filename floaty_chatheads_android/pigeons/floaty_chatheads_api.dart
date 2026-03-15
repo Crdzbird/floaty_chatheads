@@ -37,6 +37,33 @@ enum SnapEdgeMessage {
   none,
 }
 
+/// The type of source for an icon image.
+enum IconSourceTypeMessage {
+  /// Flutter asset path.
+  asset,
+
+  /// Network URL (downloaded on an IO thread).
+  network,
+
+  /// Raw image bytes.
+  bytes,
+}
+
+/// Describes an icon image source with its type and data.
+class IconSourceMessage {
+  IconSourceMessage({required this.type, this.path, this.bytes});
+
+  /// The type of source.
+  final IconSourceTypeMessage type;
+
+  /// Asset path (for [IconSourceTypeMessage.asset]) or
+  /// URL (for [IconSourceTypeMessage.network]).
+  final String? path;
+
+  /// Raw image bytes (for [IconSourceTypeMessage.bytes]).
+  final Uint8List? bytes;
+}
+
 /// Animation style used when the chathead first appears on screen.
 enum EntranceAnimationMessage {
   /// No entrance animation — bubble appears at its initial position.
@@ -97,6 +124,9 @@ class ChatHeadConfig {
     required this.entranceAnimation,
     this.theme,
     required this.debugMode,
+    this.chatheadIconSource,
+    this.closeIconSource,
+    this.closeBackgroundSource,
   });
 
   final String entryPoint;
@@ -129,6 +159,15 @@ class ChatHeadConfig {
 
   /// Whether to enable the debug overlay inspector.
   final bool debugMode;
+
+  /// Multi-source chathead icon (takes precedence over [chatheadIconAsset]).
+  final IconSourceMessage? chatheadIconSource;
+
+  /// Multi-source close icon (takes precedence over [closeIconAsset]).
+  final IconSourceMessage? closeIconSource;
+
+  /// Multi-source close background (takes precedence over [closeBackgroundAsset]).
+  final IconSourceMessage? closeBackgroundSource;
 }
 
 class OverlayPositionMessage {
@@ -139,10 +178,13 @@ class OverlayPositionMessage {
 }
 
 class AddChatHeadConfig {
-  AddChatHeadConfig({required this.id, this.iconAsset});
+  AddChatHeadConfig({required this.id, this.iconAsset, this.iconSource});
 
   final String id;
   final String? iconAsset;
+
+  /// Multi-source icon (takes precedence over [iconAsset]).
+  final IconSourceMessage? iconSource;
 }
 
 @HostApi()

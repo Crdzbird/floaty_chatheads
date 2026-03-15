@@ -70,10 +70,12 @@ class _MiniPlayerExampleState extends State<MiniPlayerExample> {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'miniPlayerOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Mini Player Active',
+      assets: const ChatHeadAssets(
+        icon: IconSource.asset('assets/showcase_bubble.png'),
+        closeIcon: IconSource.asset('assets/close.png'),
+        closeBackground: IconSource.asset('assets/closeBg.png'),
+      ),
+      notification: const NotificationConfig(title: 'Mini Player Active'),
       contentWidth: 260,
       contentHeight: 160,
     );

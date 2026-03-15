@@ -53,10 +53,8 @@ class _MessengerExampleState extends State<MessengerExample> {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'messengerOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Messenger Active',
+      assets: const ChatHeadAssets.defaults(),
+      notification: const NotificationConfig(title: 'Messenger Active'),
       contentWidth: 300,
       contentHeight: 400,
     );

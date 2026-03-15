@@ -133,14 +133,12 @@ class _MapExampleState extends State<MapExample> {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'mapOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Map Overlay Active',
+      assets: const ChatHeadAssets.defaults(),
+      notification: const NotificationConfig(title: 'Map Overlay Active'),
       contentWidth: 220,
       contentHeight: 220,
       entranceAnimation: EntranceAnimation.pop,
-      snapEdge: SnapEdge.both,
+      snap: const SnapConfig(edge: SnapEdge.both),
     );
     setState(() => _chatheadActive = true);
 

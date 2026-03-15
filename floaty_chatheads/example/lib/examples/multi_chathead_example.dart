@@ -45,10 +45,8 @@ class _MultiChatheadExampleState extends State<MultiChatheadExample> {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'multiChatOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Multi-Chat Active',
+      assets: const ChatHeadAssets.defaults(),
+      notification: const NotificationConfig(title: 'Multi-Chat Active'),
       contentWidth: 240,
       contentHeight: 220,
     );

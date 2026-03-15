@@ -91,6 +91,22 @@ enum class SnapEdgeMessage(val raw: Int) {
   }
 }
 
+/** The type of source for an icon image. */
+enum class IconSourceTypeMessage(val raw: Int) {
+  /** Flutter asset path. */
+  ASSET(0),
+  /** Network URL (downloaded on an IO thread). */
+  NETWORK(1),
+  /** Raw image bytes. */
+  BYTES(2);
+
+  companion object {
+    fun ofRaw(raw: Int): IconSourceTypeMessage? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 /** Animation style used when the chathead first appears on screen. */
 enum class EntranceAnimationMessage(val raw: Int) {
   /** No entrance animation — bubble appears at its initial position. */
@@ -106,6 +122,40 @@ enum class EntranceAnimationMessage(val raw: Int) {
     fun ofRaw(raw: Int): EntranceAnimationMessage? {
       return values().firstOrNull { it.raw == raw }
     }
+  }
+}
+
+/**
+ * Describes an icon image source with its type and data.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class IconSourceMessage (
+  /** The type of source. */
+  val type: IconSourceTypeMessage,
+  /**
+   * Asset path (for [IconSourceTypeMessage.asset]) or
+   * URL (for [IconSourceTypeMessage.network]).
+   */
+  val path: String? = null,
+  /** Raw image bytes (for [IconSourceTypeMessage.bytes]). */
+  val bytes: ByteArray? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): IconSourceMessage {
+      val type = pigeonVar_list[0] as IconSourceTypeMessage
+      val path = pigeonVar_list[1] as String?
+      val bytes = pigeonVar_list[2] as ByteArray?
+      return IconSourceMessage(type, path, bytes)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      type,
+      path,
+      bytes,
+    )
   }
 }
 
@@ -182,7 +232,13 @@ data class ChatHeadConfig (
   /** Optional theme configuration. */
   val theme: ChatHeadThemeMessage? = null,
   /** Whether to enable the debug overlay inspector. */
-  val debugMode: Boolean
+  val debugMode: Boolean,
+  /** Multi-source chathead icon (takes precedence over [chatheadIconAsset]). */
+  val chatheadIconSource: IconSourceMessage? = null,
+  /** Multi-source close icon (takes precedence over [closeIconAsset]). */
+  val closeIconSource: IconSourceMessage? = null,
+  /** Multi-source close background (takes precedence over [closeBackgroundAsset]). */
+  val closeBackgroundSource: IconSourceMessage? = null
 )
  {
   companion object {
@@ -204,7 +260,10 @@ data class ChatHeadConfig (
       val entranceAnimation = pigeonVar_list[14] as EntranceAnimationMessage
       val theme = pigeonVar_list[15] as ChatHeadThemeMessage?
       val debugMode = pigeonVar_list[16] as Boolean
-      return ChatHeadConfig(entryPoint, contentWidth, contentHeight, chatheadIconAsset, closeIconAsset, closeBackgroundAsset, notificationTitle, notificationIconAsset, flag, enableDrag, notificationVisibility, snapEdge, snapMargin, persistPosition, entranceAnimation, theme, debugMode)
+      val chatheadIconSource = pigeonVar_list[17] as IconSourceMessage?
+      val closeIconSource = pigeonVar_list[18] as IconSourceMessage?
+      val closeBackgroundSource = pigeonVar_list[19] as IconSourceMessage?
+      return ChatHeadConfig(entryPoint, contentWidth, contentHeight, chatheadIconAsset, closeIconAsset, closeBackgroundAsset, notificationTitle, notificationIconAsset, flag, enableDrag, notificationVisibility, snapEdge, snapMargin, persistPosition, entranceAnimation, theme, debugMode, chatheadIconSource, closeIconSource, closeBackgroundSource)
     }
   }
   fun toList(): List<Any?> {
@@ -226,6 +285,9 @@ data class ChatHeadConfig (
       entranceAnimation,
       theme,
       debugMode,
+      chatheadIconSource,
+      closeIconSource,
+      closeBackgroundSource,
     )
   }
 }
@@ -254,20 +316,24 @@ data class OverlayPositionMessage (
 /** Generated class from Pigeon that represents data sent in messages. */
 data class AddChatHeadConfig (
   val id: String,
-  val iconAsset: String? = null
+  val iconAsset: String? = null,
+  /** Multi-source icon (takes precedence over [iconAsset]). */
+  val iconSource: IconSourceMessage? = null
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): AddChatHeadConfig {
       val id = pigeonVar_list[0] as String
       val iconAsset = pigeonVar_list[1] as String?
-      return AddChatHeadConfig(id, iconAsset)
+      val iconSource = pigeonVar_list[2] as IconSourceMessage?
+      return AddChatHeadConfig(id, iconAsset, iconSource)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       id,
       iconAsset,
+      iconSource,
     )
   }
 }
@@ -291,25 +357,35 @@ private open class FloatyChatheadsApiPigeonCodec : StandardMessageCodec() {
       }
       132.toByte() -> {
         return (readValue(buffer) as Long?)?.let {
-          EntranceAnimationMessage.ofRaw(it.toInt())
+          IconSourceTypeMessage.ofRaw(it.toInt())
         }
       }
       133.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          ChatHeadThemeMessage.fromList(it)
+        return (readValue(buffer) as Long?)?.let {
+          EntranceAnimationMessage.ofRaw(it.toInt())
         }
       }
       134.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          ChatHeadConfig.fromList(it)
+          IconSourceMessage.fromList(it)
         }
       }
       135.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          OverlayPositionMessage.fromList(it)
+          ChatHeadThemeMessage.fromList(it)
         }
       }
       136.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          ChatHeadConfig.fromList(it)
+        }
+      }
+      137.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          OverlayPositionMessage.fromList(it)
+        }
+      }
+      138.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           AddChatHeadConfig.fromList(it)
         }
@@ -331,24 +407,32 @@ private open class FloatyChatheadsApiPigeonCodec : StandardMessageCodec() {
         stream.write(131)
         writeValue(stream, value.raw)
       }
-      is EntranceAnimationMessage -> {
+      is IconSourceTypeMessage -> {
         stream.write(132)
         writeValue(stream, value.raw)
       }
-      is ChatHeadThemeMessage -> {
+      is EntranceAnimationMessage -> {
         stream.write(133)
-        writeValue(stream, value.toList())
+        writeValue(stream, value.raw)
       }
-      is ChatHeadConfig -> {
+      is IconSourceMessage -> {
         stream.write(134)
         writeValue(stream, value.toList())
       }
-      is OverlayPositionMessage -> {
+      is ChatHeadThemeMessage -> {
         stream.write(135)
         writeValue(stream, value.toList())
       }
-      is AddChatHeadConfig -> {
+      is ChatHeadConfig -> {
         stream.write(136)
+        writeValue(stream, value.toList())
+      }
+      is OverlayPositionMessage -> {
+        stream.write(137)
+        writeValue(stream, value.toList())
+      }
+      is AddChatHeadConfig -> {
+        stream.write(138)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)

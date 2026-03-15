@@ -2,6 +2,7 @@ import 'package:floaty_chatheads_platform_interface/src/models/chat_head_assets.
 import 'package:floaty_chatheads_platform_interface/src/models/chat_head_theme.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/content_size_preset.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/entrance_animation.dart';
+import 'package:floaty_chatheads_platform_interface/src/models/icon_source.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/notification_config.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/notification_visibility.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/overlay_flag.dart';
@@ -224,15 +225,46 @@ class ChatHeadConfig {
 
   // ── Effective getters (grouped → individual fallback) ─────────────
 
-  /// Resolved chathead icon asset: [assets] → [chatheadIconAsset].
-  String? get effectiveChatheadIcon => assets?.icon ?? chatheadIconAsset;
+  /// Resolved chathead icon source: [assets] → [chatheadIconAsset].
+  ///
+  /// Returns the [IconSource] from [assets] if available, otherwise
+  /// wraps [chatheadIconAsset] in an [AssetIconSource].
+  IconSource? get effectiveChatheadIconSource => assets?.icon ??
+      (chatheadIconAsset != null
+          ? IconSource.asset(chatheadIconAsset!)
+          : null);
 
-  /// Resolved close icon asset: [assets] → [closeIconAsset].
-  String? get effectiveCloseIcon => assets?.closeIcon ?? closeIconAsset;
+  /// Resolved close icon source: [assets] → [closeIconAsset].
+  IconSource? get effectiveCloseIconSource => assets?.closeIcon ??
+      (closeIconAsset != null ? IconSource.asset(closeIconAsset!) : null);
 
-  /// Resolved close background asset: [assets] → [closeBackgroundAsset].
-  String? get effectiveCloseBackground =>
-      assets?.closeBackground ?? closeBackgroundAsset;
+  /// Resolved close background source: [assets] → [closeBackgroundAsset].
+  IconSource? get effectiveCloseBackgroundSource =>
+      assets?.closeBackground ??
+      (closeBackgroundAsset != null
+          ? IconSource.asset(closeBackgroundAsset!)
+          : null);
+
+  /// Resolved chathead icon as an asset path (backward compat).
+  ///
+  /// Returns the path if the resolved source is an [AssetIconSource],
+  /// otherwise falls back to [chatheadIconAsset].
+  String? get effectiveChatheadIcon {
+    final source = effectiveChatheadIconSource;
+    return source is AssetIconSource ? source.path : chatheadIconAsset;
+  }
+
+  /// Resolved close icon as an asset path (backward compat).
+  String? get effectiveCloseIcon {
+    final source = effectiveCloseIconSource;
+    return source is AssetIconSource ? source.path : closeIconAsset;
+  }
+
+  /// Resolved close background as an asset path (backward compat).
+  String? get effectiveCloseBackground {
+    final source = effectiveCloseBackgroundSource;
+    return source is AssetIconSource ? source.path : closeBackgroundAsset;
+  }
 
   /// Resolved notification title: [notification] → [notificationTitle].
   String? get effectiveNotificationTitle =>

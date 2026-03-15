@@ -27,11 +27,15 @@ library;
 export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart'
     show
         AddChatHeadConfig,
+        AssetIconSource,
+        BytesIconSource,
         ChatHeadAssets,
         ChatHeadConfig,
         ChatHeadTheme,
         ContentSizePreset,
         EntranceAnimation,
+        IconSource,
+        NetworkIconSource,
         NotificationConfig,
         NotificationVisibility,
         OverlayFlag,

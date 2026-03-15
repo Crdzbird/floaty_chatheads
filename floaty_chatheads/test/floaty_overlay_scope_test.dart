@@ -35,10 +35,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
+    // Tear down everything first.
+    FloatyConnectionState.dispose();
     FloatyOverlay.dispose();
-    FloatyOverlay.setUp();
     FloatyChannel.dispose();
+    // Then re-initialise in the correct order.
     FloatyChannel.ensureListening();
+    FloatyOverlay.setUp(); // registers handlers on the fresh channel
   });
 
   group('FloatyOverlayScope', () {
@@ -168,6 +171,41 @@ void main() {
           ),
         ),
       );
+    });
+
+    testWidgets('rebuilds on connection changes', (tester) async {
+      bool? connected;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: FloatyOverlayScope<_TestState>(
+            stateToJson: (s) => s.toJson(),
+            stateFromJson: _TestState.fromJson,
+            initialState: _TestState(),
+            builder: (context, k, s, c) {
+              connected = c;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      // Simulate a disconnection message.
+      await _simulateMessage({
+        '_floaty_connection': {'connected': false},
+      });
+      await tester.pump();
+
+      expect(connected, isFalse);
+
+      // Simulate a reconnection message.
+      await _simulateMessage({
+        '_floaty_connection': {'connected': true},
+      });
+      await tester.pump();
+
+      expect(connected, isTrue);
     });
 
     testWidgets('disposes kit and subscriptions on unmount',

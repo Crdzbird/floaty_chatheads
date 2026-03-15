@@ -50,13 +50,17 @@ class _FeaturesShowcaseExampleState extends State<FeaturesShowcaseExample> {
       entryPoint: 'featuresOverlayMain',
       contentWidth: 320,
       contentHeight: 400,
-      chatheadIconAsset: 'assets/showcase_bubble.png',
-      closeIconAsset: 'assets/showcase_close.png',
-      closeBackgroundAsset: 'assets/showcase_close_bg.png',
-      notificationTitle: 'Features Showcase',
-      snapEdge: _snapEdge,
-      snapMargin: -10,
-      persistPosition: _persistPosition,
+      assets: const ChatHeadAssets(
+        icon: IconSource.asset('assets/showcase_bubble.png'),
+        closeIcon: IconSource.asset('assets/showcase_close.png'),
+        closeBackground: IconSource.asset('assets/showcase_close_bg.png'),
+      ),
+      notification: const NotificationConfig(title: 'Features Showcase'),
+      snap: SnapConfig(
+        edge: _snapEdge,
+        margin: -10,
+        persistPosition: _persistPosition,
+      ),
       entranceAnimation: _entranceAnimation,
     );
     if (mounted) {

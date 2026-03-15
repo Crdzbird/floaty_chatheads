@@ -50,7 +50,7 @@ void main() {
         contentHeight: 400,
         debugMode: true,
         sizePreset: ContentSizePreset.card,
-        snapEdge: SnapEdge.left,
+        snap: const SnapConfig(edge: SnapEdge.left),
       );
       final captured =
           verify(() => platform.showChatHead(captureAny())).captured;
@@ -60,7 +60,7 @@ void main() {
       expect(config.contentHeight, equals(400));
       expect(config.debugMode, isTrue);
       expect(config.sizePreset, equals(ContentSizePreset.card));
-      expect(config.snapEdge, equals(SnapEdge.left));
+      expect(config.snap?.edge, equals(SnapEdge.left));
     });
 
     test('closeChatHead delegates to platform', () async {

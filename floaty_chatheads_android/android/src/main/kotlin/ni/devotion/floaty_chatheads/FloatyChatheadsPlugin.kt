@@ -21,12 +21,18 @@ import io.flutter.plugin.common.PluginRegistry
 import ni.devotion.floaty_chatheads.generated.AddChatHeadConfig
 import ni.devotion.floaty_chatheads.generated.ChatHeadConfig
 import ni.devotion.floaty_chatheads.generated.FloatyHostApi
+import ni.devotion.floaty_chatheads.generated.IconSourceMessage
+import ni.devotion.floaty_chatheads.generated.IconSourceTypeMessage
 import ni.devotion.floaty_chatheads.services.FloatyContentJobService
 import ni.devotion.floaty_chatheads.utils.Constants
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
 import ni.devotion.floaty_chatheads.utils.Managment
 import ni.devotion.floaty_chatheads.utils.SnapEdge
 import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 
 class FloatyChatheadsPlugin :
     FlutterPlugin,
@@ -185,11 +191,13 @@ class FloatyChatheadsPlugin :
         // Destroy any existing engine before creating a new one.
         FloatyContentJobService.instance?.destroyOverlayEngine()
 
-        config.chatheadIconAsset?.let { loadAssetBitmap(appContext, it) }
+        // Load icons: new multi-source fields take precedence over legacy
+        // asset-path strings.
+        loadBitmapFromSource(appContext, config.chatheadIconSource, config.chatheadIconAsset)
             ?.let { Managment.floatingIcon = it }
-        config.closeIconAsset?.let { loadAssetBitmap(appContext, it) }
+        loadBitmapFromSource(appContext, config.closeIconSource, config.closeIconAsset)
             ?.let { Managment.closeIcon = it }
-        config.closeBackgroundAsset?.let { loadAssetBitmap(appContext, it) }
+        loadBitmapFromSource(appContext, config.closeBackgroundSource, config.closeBackgroundAsset)
             ?.let { Managment.backgroundCloseIcon = it }
         config.notificationIconAsset?.let { loadAssetBitmap(appContext, it) }
             ?.let { Managment.notificationIcon = it }
@@ -303,7 +311,7 @@ class FloatyChatheadsPlugin :
     override fun isChatHeadActive(): Boolean = isServiceRunning
 
     override fun addChatHead(config: AddChatHeadConfig) {
-        val icon = config.iconAsset?.let { loadAssetBitmap(context!!, it) }
+        val icon = loadBitmapFromSource(context!!, config.iconSource, config.iconAsset)
         FloatyContentJobService.instance?.addChatHead(config.id, icon)
     }
 
@@ -335,5 +343,48 @@ class FloatyChatheadsPlugin :
         } catch (e: IOException) {
             null
         }
+    }
+
+    private fun loadBitmapFromBytes(bytes: ByteArray): android.graphics.Bitmap? {
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
+    private fun loadBitmapFromNetwork(url: String): android.graphics.Bitmap? {
+        return runBlocking(Dispatchers.IO) {
+            try {
+                val connection = URL(url).openConnection() as HttpURLConnection
+                connection.doInput = true
+                connection.connectTimeout = 10_000
+                connection.readTimeout = 10_000
+                connection.connect()
+                val input = connection.inputStream
+                val bitmap = BitmapFactory.decodeStream(input)
+                input.close()
+                connection.disconnect()
+                bitmap
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    // Resolves an icon from the new IconSourceMessage or falls back to a
+    // legacy asset-path string.
+    private fun loadBitmapFromSource(
+        context: Context,
+        source: IconSourceMessage?,
+        legacyAsset: String?,
+    ): android.graphics.Bitmap? {
+        if (source != null) {
+            return when (source.type) {
+                IconSourceTypeMessage.ASSET ->
+                    source.path?.let { loadAssetBitmap(context, it) }
+                IconSourceTypeMessage.NETWORK ->
+                    source.path?.let { loadBitmapFromNetwork(it) }
+                IconSourceTypeMessage.BYTES ->
+                    source.bytes?.let { loadBitmapFromBytes(it) }
+            }
+        }
+        return legacyAsset?.let { loadAssetBitmap(context, it) }
     }
 }

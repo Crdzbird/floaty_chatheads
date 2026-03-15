@@ -42,10 +42,12 @@ class _ThemedExampleState extends State<ThemedExample> {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'themedOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Themed Chathead',
+      assets: const ChatHeadAssets(
+        icon: IconSource.asset('assets/showcase_bubble.png'),
+        closeIcon: IconSource.asset('assets/showcase_close.png'),
+        closeBackground: IconSource.asset('assets/showcase_close_bg.png'),
+      ),
+      notification: const NotificationConfig(title: 'Themed Chathead'),
       contentWidth: 220,
       contentHeight: 320,
       theme: ChatHeadTheme(
@@ -76,10 +78,8 @@ class _ThemedExampleState extends State<ThemedExample> {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'themedOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Green Theme',
+      assets: const ChatHeadAssets.defaults(),
+      notification: const NotificationConfig(title: 'Green Theme'),
       contentWidth: 220,
       contentHeight: 320,
       theme: ChatHeadTheme(
