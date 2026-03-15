@@ -1,0 +1,467 @@
+import 'dart:async';
+
+import 'package:floaty_chatheads/floaty_chatheads.dart';
+import 'package:flutter/material.dart';
+
+import '../models/survival_actions.dart';
+
+/// Overlay that demonstrates survival after app death:
+///
+/// - **Connection banner** — green when connected, red when the main
+///   app is killed (via `FloatyConnectionState`).
+/// - **Counter buttons** — dispatch `IncrementAction` via the router.
+///   When disconnected, actions are queued (badge shows count).
+/// - **Server Time** — calls a proxy service. Returns a fallback
+///   string when disconnected instead of timing out.
+/// - **State sync** — receives counter updates from the main app.
+class SurvivalOverlay extends StatefulWidget {
+  const SurvivalOverlay({super.key});
+
+  @override
+  State<SurvivalOverlay> createState() => _SurvivalOverlayState();
+}
+
+class _SurvivalOverlayState extends State<SurvivalOverlay> {
+  late final FloatyActionRouter _router;
+  late final FloatyStateChannel<SurvivalState> _stateChannel;
+  late final FloatyProxyClient _proxyClient;
+
+  StreamSubscription<SurvivalState>? _stateSub;
+  StreamSubscription<bool>? _connSub;
+
+  bool _connected = true;
+  int _counter = 0;
+  String _lastProxyResult = '';
+  String _stateLabel = 'Waiting...';
+
+  @override
+  void initState() {
+    super.initState();
+    FloatyOverlay.setUp();
+
+    // Connection state.
+    _connected = FloatyConnectionState.isMainAppConnected;
+    _connSub = FloatyConnectionState.onConnectionChanged.listen(
+      (connected) {
+        if (mounted) setState(() => _connected = connected);
+      },
+    );
+
+    // Action router (overlay side — enables queueing).
+    _router = FloatyActionRouter.overlay();
+
+    // State channel — receive counter sync from main app.
+    _stateChannel = FloatyStateChannel<SurvivalState>.overlay(
+      toJson: (s) => s.toJson(),
+      fromJson: SurvivalState.fromJson,
+      initialState: SurvivalState(),
+    );
+    _stateSub = _stateChannel.onStateChanged.listen((state) {
+      if (!mounted) return;
+      setState(() {
+        _counter = state.counter;
+        _stateLabel = state.label;
+      });
+    });
+
+    // Proxy client — call main app's "time" service.
+    _proxyClient = FloatyProxyClient();
+  }
+
+  void _increment(int amount) {
+    _router.dispatch(IncrementAction(amount: amount));
+    // Optimistically update the local counter.
+    setState(() => _counter += amount);
+  }
+
+  void _sendMessage() {
+    _router.dispatch(MessageAction(
+      text: 'Hello from overlay! '
+          '(queued: ${_router.queueLength})',
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+    ));
+  }
+
+  Future<void> _getServerTime() async {
+    try {
+      final result = await _proxyClient.call(
+        'time',
+        'now',
+        fallback: () => {'iso': 'N/A (offline)', 'millis': 0},
+      );
+      if (result is Map && mounted) {
+        setState(() {
+          _lastProxyResult = '${result['iso']}';
+        });
+      }
+    } on FloatyProxyException catch (e) {
+      if (mounted) {
+        setState(() => _lastProxyResult = 'Error: $e');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final queueCount = _router.queueLength;
+
+    return Material(
+      color: Colors.transparent,
+      child: Center(
+        child: Card(
+          margin: const EdgeInsets.all(4),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Connection banner ──
+              _ConnectionBanner(connected: _connected),
+
+              // ── Counter display ──
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '$_counter',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: _connected
+                            ? Colors.deepOrange
+                            : Colors.grey,
+                      ),
+                    ),
+                    Text(
+                      _stateLabel,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Counter buttons ──
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                ),
+                child: Row(
+                  children: [
+                    _ActionButton(
+                      label: '+1',
+                      onTap: () => _increment(1),
+                      color: Colors.deepOrange,
+                    ),
+                    const SizedBox(width: 6),
+                    _ActionButton(
+                      label: '+5',
+                      onTap: () => _increment(5),
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: 6),
+                    _ActionButton(
+                      label: '+10',
+                      onTap: () => _increment(10),
+                      color: Colors.amber.shade700,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // ── Queue badge ──
+              if (queueCount > 0)
+                Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.red.shade200,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.queue,
+                        size: 12,
+                        color: Colors.red.shade400,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$queueCount queued',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.red.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 8),
+
+              // ── Proxy: Server Time ──
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                ),
+                child: GestureDetector(
+                  onTap: _getServerTime,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.access_time,
+                              size: 14,
+                              color: Colors.blue.shade400,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Get Server Time',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_lastProxyResult.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            _lastProxyResult,
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: _lastProxyResult
+                                      .contains('offline')
+                                  ? Colors.red.shade400
+                                  : Colors.blue.shade600,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // ── Send message & close ──
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: _sendMessage,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.deepOrange,
+                            borderRadius:
+                                BorderRadius.circular(16),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Send Message',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: FloatyOverlay.closeOverlay,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                          ),
+                          borderRadius:
+                              BorderRadius.circular(16),
+                        ),
+                        child: const Text(
+                          'Close',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _connSub?.cancel();
+    _stateSub?.cancel();
+    _router.dispose();
+    _stateChannel.dispose();
+    _proxyClient.dispose();
+    FloatyOverlay.dispose();
+    super.dispose();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Private widgets
+// ---------------------------------------------------------------------------
+
+class _ConnectionBanner extends StatelessWidget {
+  const _ConnectionBanner({required this.connected});
+
+  final bool connected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 5,
+      ),
+      color: connected ? Colors.green : Colors.red.shade700,
+      child: Row(
+        children: [
+          Icon(
+            connected ? Icons.link : Icons.link_off,
+            color: Colors.white,
+            size: 13,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              connected ? 'Connected' : 'Disconnected',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+              ),
+            ),
+          ),
+          if (!connected)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 4,
+                vertical: 1,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                'OFFLINE',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          if (connected)
+            GestureDetector(
+              onTap: FloatyOverlay.closeOverlay,
+              child: const Icon(
+                Icons.close,
+                color: Colors.white70,
+                size: 13,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.label,
+    required this.onTap,
+    required this.color,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: color.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

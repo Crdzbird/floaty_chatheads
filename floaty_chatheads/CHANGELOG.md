@@ -38,6 +38,25 @@
 - Enables clean separation of concerns between the overlay UI and
   app-side business logic.
 
+### 🛡️ Overlay Survival After App Death (Android)
+
+- The Android `FloatyContentJobService` now owns the Flutter engine
+  lifecycle. The overlay survives when the main app is killed and
+  automatically restores from persisted config on service restart.
+- Added `FloatyConnectionState` — overlay-side utility that tracks
+  whether the main app is connected, with a reactive stream and
+  synchronous getter.
+- `FloatyActionRouter` now queues dispatched actions while the main
+  app is disconnected and flushes them in order on reconnection.
+  Configurable `maxQueueSize` and `QueueOverflowStrategy`.
+- `FloatyProxyClient` fails fast with `FloatyProxyDisconnectedException`
+  when the main app is unavailable, with an optional `fallback`
+  parameter to provide default values instead of throwing.
+- `FloatyScopeData` exposes `isMainAppConnected` for reactive overlay
+  UI updates.
+- The plugin automatically reconnects to an existing overlay when the
+  main app restarts (hot-restart or cold launch).
+
 ## 1.0.1
 
 - Added Android and iOS demo GIFs to README.

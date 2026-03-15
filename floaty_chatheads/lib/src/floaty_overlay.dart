@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:floaty_chatheads/src/floaty_channel.dart';
+import 'package:floaty_chatheads/src/floaty_connection_state.dart';
 import 'package:floaty_chatheads/src/generated/floaty_chatheads_overlay_api.g.dart';
 import 'package:flutter/services.dart';
 
@@ -76,6 +77,9 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
         _palette = palette;
         _paletteController.add(palette);
       });
+
+      // Set up connection state tracking.
+      FloatyConnectionState.setUp();
 
       // Ensure the shared channel is listening.
       FloatyChannel.ensureListening();

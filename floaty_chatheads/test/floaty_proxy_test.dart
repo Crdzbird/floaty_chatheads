@@ -341,4 +341,90 @@ void main() {
       expect(error.message, 'Some error');
     });
   });
+
+  group('FloatyProxyClient disconnection behavior', () {
+    setUp(() {
+      FloatyConnectionState.dispose();
+      FloatyConnectionState.setUp();
+    });
+
+    tearDown(FloatyConnectionState.dispose);
+
+    test(
+      'call throws FloatyProxyDisconnectedException when disconnected',
+      () async {
+        // Simulate disconnection.
+        await _simulateMessage({
+          '_floaty_connection': {'connected': false},
+        });
+
+        final client = FloatyProxyClient(
+          timeout: const Duration(seconds: 5),
+        );
+        addTearDown(client.dispose);
+
+        expect(
+          client.call('svc', 'method'),
+          throwsA(isA<FloatyProxyDisconnectedException>()),
+        );
+      },
+    );
+
+    test(
+      'call returns fallback when disconnected and fallback provided',
+      () async {
+        // Simulate disconnection.
+        await _simulateMessage({
+          '_floaty_connection': {'connected': false},
+        });
+
+        final client = FloatyProxyClient(
+          timeout: const Duration(seconds: 5),
+        );
+        addTearDown(client.dispose);
+
+        final result = await client.call(
+          'svc',
+          'method',
+          fallback: () => 'default-value',
+        );
+
+        expect(result, 'default-value');
+      },
+    );
+
+    test('call works normally when connected', () async {
+      final client = FloatyProxyClient(
+        timeout: const Duration(seconds: 5),
+      );
+      addTearDown(client.dispose);
+
+      // Start a call while connected.
+      final future = client.call('svc', 'method');
+
+      // Simulate a response.
+      await _simulateMessage({
+        '_floaty_proxy': {
+          'id': '0',
+          'type': 'response',
+          'result': 'connected-result',
+          'error': null,
+        },
+      });
+
+      final result = await future;
+      expect(result, 'connected-result');
+    });
+
+    test(
+      'FloatyProxyDisconnectedException toString includes service '
+      'and method',
+      () {
+        const ex = FloatyProxyDisconnectedException('loc', 'getPos');
+        expect(ex.toString(), contains('loc'));
+        expect(ex.toString(), contains('getPos'));
+        expect(ex.toString(), contains('disconnected'));
+      },
+    );
+  });
 }

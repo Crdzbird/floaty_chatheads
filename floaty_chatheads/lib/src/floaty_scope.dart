@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:floaty_chatheads/src/floaty_connection_state.dart';
 import 'package:floaty_chatheads/src/floaty_overlay.dart';
 import 'package:flutter/widgets.dart';
 
@@ -78,6 +79,7 @@ class FloatyScopeData {
     this.lastDragEnd,
     this.palette,
     this.messages = const [],
+    this.isMainAppConnected = true,
   });
 
   /// {@template floaty_scope_data.last_message}
@@ -126,6 +128,15 @@ class FloatyScopeData {
   /// The current overlay color palette, or `null` if none was sent.
   /// {@endtemplate}
   final OverlayColorPalette? palette;
+
+  /// {@template floaty_scope_data.is_main_app_connected}
+  /// Whether the main app is currently connected to the overlay.
+  ///
+  /// `false` when the main app has been killed or backgrounded.
+  /// The overlay can use this to show degraded UI or disable
+  /// features that require the main app (e.g. proxy calls).
+  /// {@endtemplate}
+  final bool isMainAppConnected;
 }
 
 final class _FloatyScopeState extends State<FloatyScope> {
@@ -137,6 +148,7 @@ final class _FloatyScopeState extends State<FloatyScope> {
   ChatHeadDragEvent? _lastDragStart;
   ChatHeadDragEvent? _lastDragEnd;
   OverlayColorPalette? _palette;
+  bool _isMainAppConnected = true;
   final List<Object?> _messages = [];
 
   final List<StreamSubscription<Object?>> _subscriptions = [];
@@ -145,6 +157,7 @@ final class _FloatyScopeState extends State<FloatyScope> {
   void initState() {
     super.initState();
     _palette = FloatyOverlay.palette;
+    _isMainAppConnected = FloatyConnectionState.isMainAppConnected;
 
     _subscriptions
       ..add(
@@ -189,6 +202,11 @@ final class _FloatyScopeState extends State<FloatyScope> {
         FloatyOverlay.onPaletteChanged.listen((palette) {
           setState(() => _palette = palette);
         }),
+      )
+      ..add(
+        FloatyConnectionState.onConnectionChanged.listen((connected) {
+          setState(() => _isMainAppConnected = connected);
+        }),
       );
   }
 
@@ -214,6 +232,7 @@ final class _FloatyScopeState extends State<FloatyScope> {
         lastDragStart: _lastDragStart,
         lastDragEnd: _lastDragEnd,
         palette: _palette,
+        isMainAppConnected: _isMainAppConnected,
       ),
       child: widget.child,
     );

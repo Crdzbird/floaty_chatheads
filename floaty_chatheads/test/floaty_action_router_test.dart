@@ -305,4 +305,130 @@ void main() {
       expect(rawReceived.first, 'raw-hello');
     });
   });
+
+  group('FloatyActionRouter queue behavior', () {
+    setUp(() {
+      FloatyConnectionState.dispose();
+      FloatyConnectionState.setUp();
+    });
+
+    tearDown(FloatyConnectionState.dispose);
+
+    test(
+      'dispatch queues actions when overlay is disconnected',
+      () async {
+        // Simulate disconnection.
+        await _simulateMessage({
+          '_floaty_connection': {'connected': false},
+        });
+
+        final router = FloatyActionRouter.overlay();
+        addTearDown(router.dispose);
+
+        await router.dispatch(_PingAction(value: 'queued'));
+
+        expect(router.queueLength, 1);
+      },
+    );
+
+    test('queueLength reflects queued actions', () async {
+      // Simulate disconnection.
+      await _simulateMessage({
+        '_floaty_connection': {'connected': false},
+      });
+
+      final router = FloatyActionRouter.overlay();
+      addTearDown(router.dispose);
+
+      await router.dispatch(_PingAction(value: 'a'));
+      await router.dispatch(_PingAction(value: 'b'));
+      await router.dispatch(_PingAction(value: 'c'));
+
+      expect(router.queueLength, 3);
+    });
+
+    test(
+      'actions are flushed in order on reconnection',
+      () async {
+        // Simulate disconnection.
+        await _simulateMessage({
+          '_floaty_connection': {'connected': false},
+        });
+
+        final router = FloatyActionRouter.overlay();
+        addTearDown(router.dispose);
+
+        await router.dispatch(_PingAction(value: '1'));
+        await router.dispatch(_PingAction(value: '2'));
+        await router.dispatch(_PingAction(value: '3'));
+
+        expect(router.queueLength, 3);
+
+        // Reconnect — triggers flush.
+        await _simulateMessage({
+          '_floaty_connection': {'connected': true},
+        });
+
+        // Queue should be empty after flush.
+        expect(router.queueLength, 0);
+      },
+    );
+
+    test('dropOldest overflow strategy works', () async {
+      // Simulate disconnection.
+      await _simulateMessage({
+        '_floaty_connection': {'connected': false},
+      });
+
+      final router = FloatyActionRouter.overlay(
+        maxQueueSize: 2,
+      );
+      addTearDown(router.dispose);
+
+      await router.dispatch(_PingAction(value: 'a'));
+      await router.dispatch(_PingAction(value: 'b'));
+      await router.dispatch(_PingAction(value: 'c'));
+
+      // Max queue size is 2, oldest should be dropped.
+      expect(router.queueLength, 2);
+    });
+
+    test('dropNewest overflow strategy works', () async {
+      // Simulate disconnection.
+      await _simulateMessage({
+        '_floaty_connection': {'connected': false},
+      });
+
+      final router = FloatyActionRouter.overlay(
+        maxQueueSize: 2,
+        overflowStrategy: QueueOverflowStrategy.dropNewest,
+      );
+      addTearDown(router.dispose);
+
+      await router.dispatch(_PingAction(value: 'a'));
+      await router.dispatch(_PingAction(value: 'b'));
+      await router.dispatch(_PingAction(value: 'c'));
+
+      // Max queue size is 2, newest should be dropped.
+      expect(router.queueLength, 2);
+    });
+
+    test(
+      'main app side (non-overlay) never queues',
+      () async {
+        // Simulate disconnection.
+        await _simulateMessage({
+          '_floaty_connection': {'connected': false},
+        });
+
+        final router = FloatyActionRouter();
+        addTearDown(router.dispose);
+
+        // Main app router dispatches directly, never queues.
+        await router.dispatch(_PingAction(value: 'direct'));
+
+        expect(router.queueLength, 0);
+      },
+    );
+  });
 }

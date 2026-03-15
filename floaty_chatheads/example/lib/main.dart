@@ -13,6 +13,7 @@ import 'examples/mini_player_example.dart';
 import 'examples/multi_chathead_example.dart';
 import 'examples/notification_counter_example.dart';
 import 'examples/quick_action_example.dart';
+import 'examples/survival_example.dart';
 import 'examples/themed_example.dart';
 import 'examples/timer_example.dart';
 import 'overlays/accessibility_overlay.dart';
@@ -25,6 +26,7 @@ import 'overlays/mini_player_overlay.dart';
 import 'overlays/multi_chat_overlay.dart';
 import 'overlays/notification_counter_overlay.dart';
 import 'overlays/quick_action_overlay.dart';
+import 'overlays/survival_overlay.dart';
 import 'overlays/themed_overlay.dart';
 import 'overlays/timer_overlay.dart';
 import 'utils.dart';
@@ -179,6 +181,17 @@ void accessibilityOverlayMain() {
   );
 }
 
+@pragma('vm:entry-point')
+void survivalOverlayMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: SurvivalOverlay(),
+    ),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Gallery — lists all examples
 // ---------------------------------------------------------------------------
@@ -270,6 +283,13 @@ class GalleryPage extends StatelessWidget {
       icon: Icons.map,
       color: Colors.green,
     ),
+    _ExampleInfo(
+      title: 'Overlay Survival',
+      description:
+          'Kill the app — overlay survives, queues actions, reconnects.',
+      icon: Icons.shield,
+      color: Colors.deepOrange,
+    ),
   ];
 
   Widget _buildRoute(int index) {
@@ -287,6 +307,7 @@ class GalleryPage extends StatelessWidget {
       10 => const ThemedExample(),
       11 => const AccessibilityExample(),
       12 => const MapExample(),
+      13 => const SurvivalExample(),
       _ => const HomePage(),
     };
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:floaty_chatheads/src/floaty_channel.dart';
+import 'package:floaty_chatheads/src/floaty_connection_state.dart';
 
 /// {@template floaty_action}
 /// Base class for typed actions dispatched between main app and overlay.
@@ -37,9 +38,9 @@ abstract class FloatyAction {
 
 /// A registered action handler entry.
 ///
-/// The [handle] method deserializes and dispatches within the generic context
-/// where [A] is known, avoiding runtime type errors when stored in a
-/// `Map<String, _HandlerEntry<dynamic>>`.
+/// The [handle] method deserializes and dispatches within the generic
+/// context where [A] is known, avoiding runtime type errors when stored
+/// in a `Map<String, _HandlerEntry<dynamic>>`.
 class _HandlerEntry<A extends FloatyAction> {
   _HandlerEntry({required this.fromJson, required this.handler});
 
@@ -53,11 +54,22 @@ class _HandlerEntry<A extends FloatyAction> {
   }
 }
 
+/// Strategy for handling queue overflow when the maximum queue size
+/// is reached while the main app is disconnected.
+enum QueueOverflowStrategy {
+  /// Drop the oldest queued action to make room for the new one.
+  dropOldest,
+
+  /// Drop the newest (incoming) action when the queue is full.
+  dropNewest,
+}
+
 /// {@template floaty_action_router}
-/// A typed action dispatch system that replaces manual string-key matching.
+/// A typed action dispatch system that replaces manual string-key
+/// matching.
 ///
-/// Register handlers for specific action types, then dispatch actions to
-/// the other side (main app ↔ overlay).
+/// Register handlers for specific action types, then dispatch actions
+/// to the other side (main app ↔ overlay).
 ///
 /// **Main app side:**
 ///
@@ -85,30 +97,67 @@ class _HandlerEntry<A extends FloatyAction> {
 /// ```
 ///
 /// Actions coexist with raw `shareData` messages — they use a reserved
-/// `_floaty_action` prefix and do not interfere with existing data streams.
+/// `_floaty_action` prefix and do not interfere with existing data
+/// streams.
+///
+/// **Offline queueing (overlay only):**
+///
+/// When the main app is disconnected, dispatched actions are queued
+/// and automatically flushed upon reconnection. Control queue behavior
+/// with [maxQueueSize] and [overflowStrategy].
 /// {@endtemplate}
 final class FloatyActionRouter {
   /// {@template floaty_action_router.main}
   /// Creates an action router for the **main app** side.
   /// {@endtemplate}
-  FloatyActionRouter() {
+  FloatyActionRouter({
+    this.maxQueueSize = 100,
+    this.overflowStrategy = QueueOverflowStrategy.dropOldest,
+  }) : _isOverlay = false {
     _init();
   }
 
   /// {@template floaty_action_router.overlay}
   /// Creates an action router for the **overlay** side.
+  ///
+  /// When the main app is disconnected, dispatched actions are queued
+  /// (up to [maxQueueSize]) and flushed when the connection is
+  /// restored.
   /// {@endtemplate}
-  FloatyActionRouter.overlay() {
+  FloatyActionRouter.overlay({
+    this.maxQueueSize = 100,
+    this.overflowStrategy = QueueOverflowStrategy.dropOldest,
+  }) : _isOverlay = true {
     _init();
   }
 
   static const _prefix = '_floaty_action';
 
   final Map<String, _HandlerEntry<dynamic>> _handlers = {};
+  final bool _isOverlay;
+
+  /// Maximum number of actions to queue while disconnected.
+  final int maxQueueSize;
+
+  /// Strategy for handling queue overflow.
+  final QueueOverflowStrategy overflowStrategy;
+
+  final List<FloatyAction> _queue = [];
+  StreamSubscription<bool>? _connectionSub;
 
   void _init() {
     FloatyChannel.registerHandler(_prefix, _onMessage);
     FloatyChannel.ensureListening();
+
+    // On the overlay side, listen for reconnection to flush the queue.
+    if (_isOverlay) {
+      _connectionSub =
+          FloatyConnectionState.onConnectionChanged.listen(
+        (connected) {
+          if (connected) _flushQueue();
+        },
+      );
+    }
   }
 
   /// Registers a handler for actions of the given [type].
@@ -120,7 +169,10 @@ final class FloatyActionRouter {
     required A Function(Map<String, dynamic> json) fromJson,
     required FutureOr<void> Function(A action) handler,
   }) {
-    _handlers[type] = _HandlerEntry<A>(fromJson: fromJson, handler: handler);
+    _handlers[type] = _HandlerEntry<A>(
+      fromJson: fromJson,
+      handler: handler,
+    );
   }
 
   /// Removes the handler for the given action [type].
@@ -130,8 +182,15 @@ final class FloatyActionRouter {
 
   /// Dispatches an action to the other side (main app or overlay).
   ///
-  /// The action is serialized and sent through the shared data channel.
+  /// On the overlay side, if the main app is disconnected, the action
+  /// is queued and will be sent when the connection is restored.
   Future<void> dispatch(FloatyAction action) {
+    // On the overlay side, queue if disconnected.
+    if (_isOverlay && !FloatyConnectionState.isMainAppConnected) {
+      _enqueue(action);
+      return Future<void>.value();
+    }
+
     return FloatyChannel.send({
       _prefix: {
         'type': action.type,
@@ -139,6 +198,30 @@ final class FloatyActionRouter {
       },
     });
   }
+
+  void _enqueue(FloatyAction action) {
+    if (_queue.length >= maxQueueSize) {
+      switch (overflowStrategy) {
+        case QueueOverflowStrategy.dropOldest:
+          _queue.removeAt(0);
+        case QueueOverflowStrategy.dropNewest:
+          return; // Discard the incoming action.
+      }
+    }
+    _queue.add(action);
+  }
+
+  void _flushQueue() {
+    if (_queue.isEmpty) return;
+    final queued = List<FloatyAction>.of(_queue);
+    _queue.clear();
+    for (final action in queued) {
+      unawaited(dispatch(action));
+    }
+  }
+
+  /// The number of actions currently queued (waiting for reconnection).
+  int get queueLength => _queue.length;
 
   void _onMessage(Map<String, dynamic> envelope) {
     final type = envelope['type'] as String?;
@@ -162,6 +245,9 @@ final class FloatyActionRouter {
   /// Releases resources and unregisters the channel handler.
   void dispose() {
     FloatyChannel.unregisterHandler(_prefix);
+    unawaited(_connectionSub?.cancel());
+    _connectionSub = null;
     _handlers.clear();
+    _queue.clear();
   }
 }

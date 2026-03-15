@@ -3,7 +3,7 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
 [![coverage: 100%][coverage_badge]][coverage_link]
-[![tests: 132 passed][tests_badge]][tests_link]
+[![tests: 198 passed][tests_badge]][tests_link]
 
 ## Installation
 
@@ -87,6 +87,10 @@ implementations differ due to OS-level constraints:
 | **Resize from overlay** | Yes | Yes |
 | **Close from overlay** | Yes | Yes |
 | **Multi-bubble** | Messenger-style row | Via Flutter API callback |
+| **Overlay survival** | Survives app death (service-owned engine) | N/A (app-level window) |
+| **State channel** | `FloatyStateChannel<T>` bidirectional sync | `FloatyStateChannel<T>` bidirectional sync |
+| **Action routing** | `FloatyActionRouter` with offline queueing | `FloatyActionRouter` (no queueing) |
+| **Proxy RPC** | `FloatyProxyHost` / `FloatyProxyClient` | `FloatyProxyHost` / `FloatyProxyClient` |
 | **Min platform version** | Android 6.0+ (API 23) | iOS 13.0+ |
 
 > **Note:** On iOS, `checkPermission()` and `requestPermission()` always return `true`
@@ -112,6 +116,10 @@ implementations differ due to OS-level constraints:
 | **Permission Gate** | `FloatyPermissionGate` widget that polls for `SYSTEM_ALERT_WINDOW` and shows a fallback until granted (Android; always passes on iOS) |
 | **Programmatic Control** | `expandChatHead()`, `collapseChatHead()`, `addChatHead()`, `removeChatHead()`, dynamic `resizeContent()`, flag updates |
 | **Foreground Service** | Runs as a foreground service so the overlay persists across app switches (Android) |
+| **Overlay Survival** | Overlay survives app death — service-owned engine, connection state detection, action queueing, proxy fail-fast, and seamless reconnection (Android) |
+| **Shared State Channel** | `FloatyStateChannel<T>` for type-safe bidirectional state sync between main app and overlay with JSON serialization |
+| **Action Routing** | `FloatyActionRouter` for typed action dispatch with `FloatyAction` subclasses, handler registration, and offline queueing |
+| **Proxy Services** | `FloatyProxyHost` + `FloatyProxyClient` for request/response RPC between main app and overlay with timeout and fallback support |
 
 ---
 
@@ -298,6 +306,87 @@ final messenger = FloatyMessenger<ChatMessage>.overlay(
 );
 ```
 
+### `FloatyStateChannel<T>` -- type-safe bidirectional state sync
+
+Synchronises a shared state object between the main app and overlay with
+automatic JSON serialization:
+
+```dart
+// Main app side:
+final channel = FloatyStateChannel<MyState>(
+  toJson: (s) => s.toJson(),
+  fromJson: MyState.fromJson,
+  initialState: MyState(),
+);
+await channel.setState(MyState(counter: 42));
+channel.onStateChanged.listen((state) => print(state.counter));
+
+// Overlay side:
+final channel = FloatyStateChannel<MyState>.overlay(
+  toJson: (s) => s.toJson(),
+  fromJson: MyState.fromJson,
+  initialState: MyState(),
+);
+```
+
+### `FloatyActionRouter` -- typed action dispatch with queueing
+
+Register named action handlers and dispatch typed `FloatyAction` objects.
+On the overlay side, actions are automatically queued when the main app is
+disconnected and flushed on reconnection:
+
+```dart
+// Main app side — register handlers:
+final router = FloatyActionRouter();
+router.on<IncrementAction>(
+  'increment',
+  fromJson: IncrementAction.fromJson,
+  handler: (action) => counter += action.amount,
+);
+
+// Overlay side — dispatch (queues if disconnected):
+final router = FloatyActionRouter.overlay();
+router.dispatch(IncrementAction(amount: 5));
+print('Queued: ${router.queueLength}');
+```
+
+### `FloatyProxyHost` / `FloatyProxyClient` -- overlay-to-app RPC
+
+Expose named services from the main app that the overlay can call.
+Includes timeout, fallback support, and fail-fast when disconnected:
+
+```dart
+// Main app side — register a service:
+final host = FloatyProxyHost();
+host.register('time', (method, params) {
+  return {'iso': DateTime.now().toIso8601String()};
+});
+
+// Overlay side — call the service:
+final client = FloatyProxyClient();
+final result = await client.call('time', 'now',
+  fallback: () => {'iso': 'offline'},
+);
+```
+
+### `FloatyConnectionState` -- main app connection tracking
+
+Overlay-side utility that tracks whether the main app is connected.
+Useful for showing connection indicators and adapting UI:
+
+```dart
+// In overlay initState:
+FloatyConnectionState.setUp(); // called automatically by FloatyOverlay.setUp()
+
+// Check current state:
+if (FloatyConnectionState.isMainAppConnected) { ... }
+
+// React to changes:
+FloatyConnectionState.onConnectionChanged.listen((connected) {
+  setState(() => _online = connected);
+});
+```
+
 ---
 
 ## Pre-built Overlay Widgets
@@ -346,14 +435,14 @@ void notifOverlay() => FloatyOverlayApp.run(
 
 ## Test Suite & Coverage
 
-The plugin ships with **147 unit and widget tests** across all 4 packages:
+The plugin ships with **213 unit and widget tests** across all 4 packages:
 
 | Package | Tests | Status |
 |---|---|---|
-| `floaty_chatheads` | 132 | ✅ All passing |
+| `floaty_chatheads` | 198 | ✅ All passing |
 | `floaty_chatheads_platform_interface` | 14 | ✅ All passing |
 | `floaty_chatheads_android` | 1 | ✅ All passing |
-| **Total** | **147** | ✅ |
+| **Total** | **213** | ✅ |
 
 ### Coverage (handwritten code, excluding generated Pigeon files)
 
@@ -367,6 +456,10 @@ The plugin ships with **147 unit and widget tests** across all 4 packages:
 | `floaty_overlay_app.dart` | 100% |
 | `floaty_permission_gate.dart` | 100% |
 | `floaty_scope.dart` | 100% |
+| `floaty_connection_state.dart` | 100% |
+| `floaty_state_channel.dart` | 100% |
+| `floaty_action_router.dart` | 100% |
+| `floaty_proxy.dart` | 100% |
 | `floaty_mini_player.dart` | 100% |
 | `floaty_notification_card.dart` | 100% |
 | `testing.dart` | 100% |
@@ -452,6 +545,48 @@ for a complete, minimal integration using all the helpers (~120 lines total).
 | `shareData(data)` | Sends data to the overlay isolate | Yes | Yes |
 | `onData` | Stream of messages from the overlay | Yes | Yes |
 | `dispose()` | Tears down the message channel | Yes | Yes |
+
+### `FloatyConnectionState` (overlay side)
+
+| Member | Description |
+|---|---|
+| `setUp()` | Registers the connection-state handler (called automatically by `FloatyOverlay.setUp()`) |
+| `isMainAppConnected` | Whether the main app is currently connected (`bool`) |
+| `onConnectionChanged` | `Stream<bool>` that fires on connect/disconnect transitions |
+| `dispose()` | Tears down the handler and stream |
+
+### `FloatyStateChannel<T>` (both sides)
+
+| Member | Description |
+|---|---|
+| `FloatyStateChannel(...)` | Main-app constructor with `toJson`, `fromJson`, `initialState` |
+| `FloatyStateChannel.overlay(...)` | Overlay constructor |
+| `setState(T state)` | Sends the full state to the other side |
+| `updateState(Map<String, dynamic>)` | Sends a partial update (merged on the receiver) |
+| `onStateChanged` | `Stream<T>` of incoming state updates |
+| `currentState` | The latest state value |
+| `dispose()` | Tears down handler and stream |
+
+### `FloatyActionRouter` (both sides)
+
+| Member | Description |
+|---|---|
+| `FloatyActionRouter()` | Main-app constructor |
+| `FloatyActionRouter.overlay(...)` | Overlay constructor with optional `maxQueueSize`, `overflowStrategy` |
+| `on<A>(type, fromJson, handler)` | Registers a handler for a named action type |
+| `dispatch(FloatyAction)` | Sends an action (queues if overlay is disconnected) |
+| `queueLength` | Number of actions currently queued |
+| `dispose()` | Tears down handler, stream, and connection subscription |
+
+### `FloatyProxyHost` / `FloatyProxyClient`
+
+| Member | Description |
+|---|---|
+| `FloatyProxyHost()` | Main-app side — exposes services to the overlay |
+| `register(service, handler)` | Registers a named service with a `(method, params) => result` handler |
+| `FloatyProxyClient()` | Overlay side — calls services on the main app |
+| `call(service, method, {params, timeout, fallback})` | Calls a service; returns fallback or throws `FloatyProxyDisconnectedException` if offline |
+| `dispose()` | Tears down handler and pending completers |
 
 ### `FloatyOverlay` (overlay isolate side)
 
@@ -587,6 +722,44 @@ platforms).
 
 ---
 
+## Overlay Survival (Android)
+
+On Android, the overlay can **survive app death**. When the user force-stops or
+swipes away the main app, the overlay remains visible and functional:
+
+- The **foreground service** owns the Flutter engine (not the plugin), so the
+  engine keeps running after the main app's process is killed.
+- `FloatyConnectionState` detects the disconnect and fires
+  `onConnectionChanged` so the overlay can show an offline indicator.
+- `FloatyActionRouter` (overlay side) **queues** dispatched actions while
+  disconnected and flushes them in order when the main app reconnects.
+- `FloatyProxyClient` returns a **fallback value** (or throws
+  `FloatyProxyDisconnectedException`) instead of timing out.
+- When the main app restarts, the plugin automatically reconnects to the
+  existing overlay — queued actions flush, state re-syncs, and proxy calls
+  resume.
+
+```dart
+// Overlay side — react to connection changes:
+FloatyConnectionState.onConnectionChanged.listen((connected) {
+  setState(() => _banner = connected ? 'Connected' : 'Offline');
+});
+
+// Overlay side — dispatch with queueing:
+final router = FloatyActionRouter.overlay(maxQueueSize: 50);
+router.dispatch(IncrementAction(amount: 1)); // queued if disconnected
+
+// Overlay side — proxy with fallback:
+final result = await proxyClient.call('time', 'now',
+  fallback: () => {'iso': 'N/A (offline)'},
+);
+```
+
+> **iOS:** Overlay survival does not apply on iOS since the overlay uses an
+> app-level `UIWindow` that is tied to the app's process.
+
+---
+
 ## Configuration Options
 
 ### `showChatHead` parameters
@@ -637,7 +810,7 @@ presence, consider integrating with iOS Live Activities or PiP APIs separately.
 
 ## Examples
 
-The example app ships with **12 demo screens** accessible from a gallery page:
+The example app ships with **14 demo screens** accessible from a gallery page:
 
 | # | Example | Description |
 |---|---|---|
@@ -653,6 +826,8 @@ The example app ships with **12 demo screens** accessible from a gallery page:
 | 10 | Features Showcase | Badge, expand/collapse, lifecycle |
 | 11 | Themed Chathead | Badge colors, border, palette delivery |
 | 12 | Accessibility | TalkBack labels and large touch targets |
+| 13 | Interactive Map | OSM map with action routing, state sync, proxy |
+| 14 | Overlay Survival | Kill app — overlay survives, queues actions, reconnects |
 
 Run the example:
 
@@ -671,6 +846,10 @@ floaty_chatheads/                    # Main package (public API, platform-agnost
     floaty_chatheads.dart            # FloatyChatheads static class
     floaty_overlay.dart              # FloatyOverlay + OverlayColorPalette
     floaty_permission_gate.dart      # Permission gate widget
+    floaty_connection_state.dart     # Main-app connection tracking (overlay side)
+    floaty_state_channel.dart        # Bidirectional type-safe state sync
+    floaty_action_router.dart        # Typed action dispatch + offline queueing
+    floaty_proxy.dart                # Overlay-to-app RPC (host + client)
 
 floaty_chatheads_platform_interface/
   lib/src/models/
@@ -765,5 +944,5 @@ This project is licensed under the MIT License. See [LICENSE](../LICENSE) for de
 [very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
 [coverage_badge]: https://img.shields.io/badge/coverage-100%25-brightgreen.svg
 [coverage_link]: #test-suite--coverage
-[tests_badge]: https://img.shields.io/badge/tests-132%20passed-brightgreen.svg
+[tests_badge]: https://img.shields.io/badge/tests-198%20passed-brightgreen.svg
 [tests_link]: #test-suite--coverage

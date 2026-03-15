@@ -36,6 +36,7 @@ export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
 
 export 'src/floaty_action_router.dart';
 export 'src/floaty_chatheads.dart';
+export 'src/floaty_connection_state.dart';
 export 'src/floaty_controller.dart';
 export 'src/floaty_launcher.dart';
 export 'src/floaty_messenger.dart';

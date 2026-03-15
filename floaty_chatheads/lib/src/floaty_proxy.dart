@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:floaty_chatheads/src/floaty_channel.dart';
+import 'package:floaty_chatheads/src/floaty_connection_state.dart';
 
 /// {@template floaty_proxy_exception}
 /// Base exception for proxy call failures.
@@ -33,12 +34,31 @@ class FloatyProxyErrorException extends FloatyProxyException {
   const FloatyProxyErrorException(super.message);
 }
 
+/// {@template floaty_proxy_disconnected_exception}
+/// Thrown when a proxy call is attempted while the main app is
+/// disconnected.
+///
+/// This avoids a full timeout wait when the main app is known to be
+/// unavailable. Use the optional `fallback` parameter on
+/// [FloatyProxyClient.call] to provide a default value instead of
+/// throwing.
+/// {@endtemplate}
+class FloatyProxyDisconnectedException extends FloatyProxyException {
+  /// {@macro floaty_proxy_disconnected_exception}
+  const FloatyProxyDisconnectedException(String service, String method)
+      : super(
+          'Main app is disconnected — '
+          'cannot call $service.$method',
+        );
+}
+
 /// {@template floaty_proxy_host}
 /// Main-app-side proxy host that registers service providers.
 ///
-/// The overlay can call services registered here via [FloatyProxyClient].
-/// Each service exposes named methods that accept parameters and return
-/// results — all serialized as JSON through the shared data channel.
+/// The overlay can call services registered here via
+/// [FloatyProxyClient]. Each service exposes named methods that accept
+/// parameters and return results — all serialized as JSON through the
+/// shared data channel.
 ///
 /// ```dart
 /// final host = FloatyProxyHost();
@@ -63,17 +83,23 @@ final class FloatyProxyHost {
 
   final Map<
     String,
-    FutureOr<Object?> Function(String method, Map<String, dynamic> params)
+    FutureOr<Object?> Function(
+      String method,
+      Map<String, dynamic> params,
+    )
   > _services = {};
 
   /// Registers a service provider.
   ///
   /// [service] is a name string (e.g. `'location'`, `'prefs'`).
-  /// [handler] receives the method name and parameters, and returns the result.
+  /// [handler] receives the method name and parameters, and returns
+  /// the result.
   void register(
     String service,
-    FutureOr<Object?> Function(String method, Map<String, dynamic> params)
-        handler,
+    FutureOr<Object?> Function(
+      String method,
+      Map<String, dynamic> params,
+    ) handler,
   ) {
     _services[service] = handler;
   }
@@ -90,7 +116,8 @@ final class FloatyProxyHost {
     final id = envelope['id'] as String?;
     final service = envelope['service'] as String?;
     final method = envelope['method'] as String?;
-    final params = (envelope['params'] as Map?)?.cast<String, dynamic>() ??
+    final params =
+        (envelope['params'] as Map?)?.cast<String, dynamic>() ??
         const <String, dynamic>{};
 
     if (id == null || service == null || method == null) return;
@@ -150,8 +177,11 @@ final class FloatyProxyHost {
 /// // result == {'lat': 12.0, 'lng': -86.0}
 /// ```
 ///
-/// Throws [FloatyProxyTimeoutException] if the call takes longer than
-/// [timeout], and [FloatyProxyErrorException] if the host handler threw.
+/// Throws [FloatyProxyDisconnectedException] if the main app is not
+/// connected (unless a `fallback` is provided),
+/// [FloatyProxyTimeoutException] if the call takes longer than
+/// [timeout], and [FloatyProxyErrorException] if the host handler
+/// threw.
 /// {@endtemplate}
 final class FloatyProxyClient {
   /// {@macro floaty_proxy_client}
@@ -171,13 +201,30 @@ final class FloatyProxyClient {
 
   /// Calls a service method on the main app.
   ///
-  /// Returns the result, or throws [FloatyProxyTimeoutException] on timeout
-  /// and [FloatyProxyErrorException] if the host handler threw.
+  /// Returns the result, or throws:
+  /// - [FloatyProxyDisconnectedException] if the main app is not
+  ///   connected (unless [fallback] is provided).
+  /// - [FloatyProxyTimeoutException] on timeout.
+  /// - [FloatyProxyErrorException] if the host handler threw.
+  ///
+  /// If [fallback] is provided and the main app is disconnected,
+  /// the fallback value is returned instead of throwing.
   Future<Object?> call(
     String service,
     String method, {
     Map<String, dynamic> params = const {},
+    Object? Function()? fallback,
   }) {
+    // Fail fast if the main app is disconnected.
+    if (!FloatyConnectionState.isMainAppConnected) {
+      if (fallback != null) {
+        return Future<Object?>.value(fallback());
+      }
+      return Future<Object?>.error(
+        FloatyProxyDisconnectedException(service, method),
+      );
+    }
+
     final id = '${_nextId++}';
     final completer = Completer<Object?>();
     _pending[id] = completer;
@@ -187,7 +234,9 @@ final class FloatyProxyClient {
       _pending.remove(id);
       _timers.remove(id);
       if (!completer.isCompleted) {
-        completer.completeError(FloatyProxyTimeoutException(service, method));
+        completer.completeError(
+          FloatyProxyTimeoutException(service, method),
+        );
       }
     });
 
@@ -220,7 +269,9 @@ final class FloatyProxyClient {
 
     final error = envelope['error'];
     if (error != null) {
-      completer.completeError(FloatyProxyErrorException(error.toString()));
+      completer.completeError(
+        FloatyProxyErrorException(error.toString()),
+      );
     } else {
       completer.complete(envelope['result']);
     }
