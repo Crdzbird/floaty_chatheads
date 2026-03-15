@@ -1,5 +1,43 @@
 # Changelog
 
+## 1.1.0
+
+### 🚀 iOS Feature Parity
+
+- iOS now supports entrance animations, snap-to-edge, position persistence,
+  badge counter, theming, expand/collapse, drag events, and VoiceOver
+  accessibility.
+- Removed "Android only" notes from platform interface docs.
+- Bumped `floaty_chatheads_ios` dependency to `^1.1.0`.
+
+### 🔗 Shared State Channel
+
+- Added `FloatyStateChannel<T>` — a generic, type-safe channel for
+  synchronizing arbitrary state between the main app and the overlay.
+- Supports partial updates via `update()` and full replacements via `set()`.
+- Provides a reactive `stream` of state changes and synchronous `state`
+  access.
+- Works with any serializable Dart model, not limited to a specific domain.
+
+### 🛰️ Bidirectional Action Routing
+
+- Added `FloatyActionRouter` — a typed, extensible action bus for
+  dispatching structured commands between app and overlay.
+- Register strongly-typed handlers with `on<A>()` and send actions with
+  `send()`.
+- Actions implement `FloatyAction` with `type` and `toJson()` for
+  automatic serialization over the platform channel.
+
+### 🪞 Overlay Proxy
+
+- Added `FloatyProxy` — lets the overlay call app-side services (e.g.
+  APIs, databases, repositories) without direct dependencies.
+- `FloatyProxyHost` registers named service handlers in the main app.
+- `FloatyProxyClient` invokes them from the overlay and receives
+  `Future`-based responses.
+- Enables clean separation of concerns between the overlay UI and
+  app-side business logic.
+
 ## 1.0.1
 
 - Added Android and iOS demo GIFs to README.

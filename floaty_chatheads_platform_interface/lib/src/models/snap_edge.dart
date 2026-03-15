@@ -1,5 +1,5 @@
 /// {@template snap_edge}
-/// Which screen edge(s) the chathead snaps to after being released (Android).
+/// Which screen edge(s) the chathead snaps to after being released.
 /// {@endtemplate}
 enum SnapEdge {
   /// {@template snap_edge.both}

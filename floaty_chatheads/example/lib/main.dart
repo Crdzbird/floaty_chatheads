@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'examples/accessibility_example.dart';
 import 'examples/dashboard_example.dart';
 import 'examples/features_showcase_example.dart';
+import 'examples/map_example.dart';
 import 'examples/messenger_example.dart';
 import 'examples/messenger_fullscreen_example.dart';
 import 'examples/mini_player_example.dart';
@@ -17,6 +18,7 @@ import 'examples/timer_example.dart';
 import 'overlays/accessibility_overlay.dart';
 import 'overlays/dashboard_overlay.dart';
 import 'overlays/features_showcase_overlay.dart';
+import 'overlays/map_overlay.dart';
 import 'overlays/messenger_fullscreen_overlay.dart';
 import 'overlays/messenger_overlay.dart';
 import 'overlays/mini_player_overlay.dart';
@@ -156,6 +158,17 @@ void themedOverlayMain() {
 }
 
 @pragma('vm:entry-point')
+void mapOverlayMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: MapOverlay(),
+    ),
+  );
+}
+
+@pragma('vm:entry-point')
 void accessibilityOverlayMain() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
@@ -218,14 +231,14 @@ class GalleryPage extends StatelessWidget {
     ),
     _ExampleInfo(
       title: 'Dashboard (Fullscreen)',
-      description: 'Near-fullscreen scrollable notes overlay with rich content.',
+      description:
+          'Near-fullscreen scrollable notes overlay with rich content.',
       icon: Icons.dashboard,
       color: Colors.blue,
     ),
     _ExampleInfo(
       title: 'Messenger (Fullscreen)',
-      description:
-          'Facebook Messenger-style: bubble at top, full chat below.',
+      description: 'Facebook Messenger-style: bubble at top, full chat below.',
       icon: Icons.mark_chat_read,
       color: Color(0xFF0084FF),
     ),
@@ -250,6 +263,13 @@ class GalleryPage extends StatelessWidget {
       icon: Icons.accessibility_new,
       color: Colors.blue,
     ),
+    _ExampleInfo(
+      title: 'Interactive Map',
+      description:
+          'OSM map with action routing, state sync, and proxy features.',
+      icon: Icons.map,
+      color: Colors.green,
+    ),
   ];
 
   Widget _buildRoute(int index) {
@@ -266,6 +286,7 @@ class GalleryPage extends StatelessWidget {
       9 => const FeaturesShowcaseExample(),
       10 => const ThemedExample(),
       11 => const AccessibilityExample(),
+      12 => const MapExample(),
       _ => const HomePage(),
     };
   }
@@ -437,7 +458,10 @@ class _HomePageState extends State<HomePage> {
                     itemBuilder: (_, i) => Card(
                       child: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: Text(_received[i], style: const TextStyle(fontSize: 13)),
+                        child: Text(
+                          _received[i],
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       ),
                     ),
                   ),
@@ -526,7 +550,10 @@ class _OverlayContentState extends State<OverlayContent> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),

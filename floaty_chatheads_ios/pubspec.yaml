@@ -3,7 +3,7 @@ description: >
   iOS implementation of floaty_chatheads. Uses a UIWindow-based PiP overlay
   at window level .alert + 1 with no special permissions required. Supports
   iOS 13+ with Pigeon-generated type-safe Dart-Swift communication.
-version: 1.0.1
+version: 1.1.0
 homepage: https://github.com/crdzbird/floaty_chatheads
 repository: https://github.com/crdzbird/floaty_chatheads/tree/main/floaty_chatheads_ios
 issue_tracker: https://github.com/crdzbird/floaty_chatheads/issues

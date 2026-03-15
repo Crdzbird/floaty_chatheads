@@ -47,7 +47,7 @@ void main() {
     });
 
     test('show passes theme', () async {
-      final theme = ChatHeadTheme(badgeColor: 0xFFFF0000);
+      const theme = ChatHeadTheme(badgeColor: 0xFFFF0000);
       await FloatyLauncher.show(theme: theme);
       expect(fake.lastConfig?.theme?.badgeColor, equals(0xFFFF0000));
     });

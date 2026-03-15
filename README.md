@@ -70,16 +70,16 @@ implementations differ due to OS-level constraints:
 | **Overlay scope** | System-wide (above all apps) | App-level (`UIWindow` PiP) |
 | **Permissions** | `SYSTEM_ALERT_WINDOW` + foreground service | None required |
 | **Bubble rendering** | Native `View` with bitmap icon | Flutter widget in `UIWindow` |
-| **Edge snapping** | Spring-based snap with configurable margin | Bounds-clamped drag with animation |
-| **Entrance animations** | Pop, slide, fade | Not yet implemented |
-| **Badge counter** | Native drawn badge on bubble | Not yet implemented |
-| **Expand / Collapse** | Native toggle with accessibility | Not yet implemented |
-| **Theming** | Badge, border, shadow, close tint, palette | Not yet implemented |
-| **Size presets** | Full support (compact, card, half, full) | Width/height respected |
-| **Debug inspector** | FPS, spring HUD, bounds, message log | Not yet implemented |
-| **TalkBack / VoiceOver** | Full TalkBack support | Not yet implemented |
-| **Dragging** | Custom touch handler + spring physics | `UIPanGestureRecognizer` |
-| **Position persistence** | Supported | Not yet implemented |
+| **Edge snapping** | Spring-based snap with configurable margin | Spring-based snap with configurable margin |
+| **Entrance animations** | Pop, slide, fade | Pop, slide, fade |
+| **Badge counter** | Native drawn badge on bubble | Native drawn badge on bubble |
+| **Expand / Collapse** | Native toggle with accessibility | Animated toggle with VoiceOver |
+| **Theming** | Badge, border, shadow, close tint, palette | Badge, border, shadow, palette |
+| **Size presets** | Full support (compact, card, half, full) | Full support (compact, card, half, full) |
+| **Debug inspector** | FPS, spring HUD, bounds, message log | State and frame info via `getDebugInfo()` |
+| **TalkBack / VoiceOver** | Full TalkBack support | VoiceOver labels, values, screen changes |
+| **Dragging** | Custom touch handler + spring physics | `UIPanGestureRecognizer` + drag events |
+| **Position persistence** | Supported | Supported (`UserDefaults`) |
 | **Foreground service** | Persists across app switches | N/A (app-level window) |
 | **Separate Flutter engine** | Yes | Yes |
 | **Bidirectional messaging** | Yes | Yes |

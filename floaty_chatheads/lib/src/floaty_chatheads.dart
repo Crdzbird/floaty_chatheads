@@ -1,7 +1,5 @@
-import 'dart:async';
-
+import 'package:floaty_chatheads/src/floaty_channel.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
-import 'package:flutter/services.dart';
 
 /// {@template floaty_chatheads}
 /// Main app API for controlling the floating chathead.
@@ -22,36 +20,12 @@ final class FloatyChatheads {
   static FloatyChatheadsPlatform get _platform =>
       FloatyChatheadsPlatform.instance;
 
-  static const BasicMessageChannel<Object?> _messenger =
-      BasicMessageChannel<Object?>(
-        'ni.devotion.floaty_head/messenger',
-        JSONMessageCodec(),
-      );
-
-  static final StreamController<Object?> _dataController =
-      StreamController<Object?>.broadcast();
-
-  static bool _isListening = false;
-
   /// {@template floaty_chatheads.on_data}
   /// Stream of messages sent from the overlay isolate.
   ///
   /// Attaches the message handler lazily on first access.
   /// {@endtemplate}
-  static Stream<Object?> get onData {
-    _ensureListening();
-    return _dataController.stream;
-  }
-
-  static void _ensureListening() {
-    if (!_isListening) {
-      _messenger.setMessageHandler((message) async {
-        _dataController.add(message);
-        return message;
-      });
-      _isListening = true;
-    }
-  }
+  static Stream<Object?> get onData => FloatyChannel.rawMessages;
 
   /// {@macro floaty_chatheads_platform.check_permission}
   static Future<bool> checkPermission() => _platform.checkPermission();
@@ -144,10 +118,10 @@ final class FloatyChatheads {
   /// {@template floaty_chatheads.share_data}
   /// Sends data from the main app to the overlay isolate.
   ///
-  /// The data is serialized via [JSONMessageCodec] and forwarded
-  /// through a [BasicMessageChannel].
+  /// The data is serialized via `JSONMessageCodec` and forwarded
+  /// through a `BasicMessageChannel`.
   /// {@endtemplate}
-  static Future<void> shareData(Object? data) => _messenger.send(data);
+  static Future<void> shareData(Object? data) => FloatyChannel.send(data);
 
   /// {@template floaty_chatheads.dispose}
   /// Detaches the message handler.
@@ -156,7 +130,6 @@ final class FloatyChatheads {
   /// re-attach the handler automatically on the next access.
   /// {@endtemplate}
   static void dispose() {
-    _messenger.setMessageHandler(null);
-    _isListening = false;
+    FloatyChannel.dispose();
   }
 }

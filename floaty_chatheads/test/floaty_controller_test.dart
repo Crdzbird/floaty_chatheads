@@ -92,7 +92,7 @@ void main() {
     });
 
     test('passes all config options', () async {
-      final theme = ChatHeadTheme(badgeColor: 0xFFFF0000);
+      const theme = ChatHeadTheme(badgeColor: 0xFFFF0000);
       final controller = FloatyController(
         entryPoint: 'custom',
         chatheadIcon: 'assets/icon.png',

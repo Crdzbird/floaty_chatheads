@@ -108,8 +108,9 @@ void main() {
     test('emitData adds to data stream', () async {
       final values = <Object?>[];
       source.dataController.stream.listen(values.add);
-      source.emitData('hello');
-      source.emitData(42);
+      source
+        ..emitData('hello')
+        ..emitData(42);
       await Future<void>.delayed(Duration.zero);
       expect(values, equals(['hello', 42]));
     });
@@ -167,8 +168,9 @@ void main() {
     });
 
     test('sendData tracks sent messages', () {
-      source.sendData('msg1');
-      source.sendData('msg2');
+      source
+        ..sendData('msg1')
+        ..sendData('msg2');
       expect(source.sentData, equals(['msg1', 'msg2']));
       expect(source.lastSentData, equals('msg2'));
     });

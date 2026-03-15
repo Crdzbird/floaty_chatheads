@@ -37,6 +37,86 @@ enum NotificationVisibilityMessage {
   visibilityPrivate,
 }
 
+/// Which screen edge(s) the chathead snaps to after being released.
+enum SnapEdgeMessage {
+  /// Snap to the nearest horizontal edge (left or right). Default.
+  both,
+  /// Always snap to the left edge.
+  left,
+  /// Always snap to the right edge.
+  right,
+  /// No snapping — the bubble stays where the user releases it.
+  none,
+}
+
+/// Animation style used when the chathead first appears on screen.
+enum EntranceAnimationMessage {
+  /// No entrance animation — bubble appears at its initial position.
+  none,
+  /// Bubble pops in with a scale spring (default).
+  pop,
+  /// Bubble slides in from the nearest edge.
+  slideFromEdge,
+  /// Bubble fades in.
+  fade,
+}
+
+/// Theming configuration for the chathead.
+///
+/// All color values are ARGB integers.
+class ChatHeadThemeMessage {
+  ChatHeadThemeMessage({
+    this.badgeColor,
+    this.badgeTextColor,
+    this.bubbleBorderColor,
+    this.bubbleBorderWidth,
+    this.bubbleShadowColor,
+    this.closeTintColor,
+    this.overlayPalette,
+  });
+
+  int? badgeColor;
+
+  int? badgeTextColor;
+
+  int? bubbleBorderColor;
+
+  double? bubbleBorderWidth;
+
+  int? bubbleShadowColor;
+
+  int? closeTintColor;
+
+  /// Color palette forwarded to the overlay isolate.
+  /// Keys: primary, secondary, surface, background, onPrimary, etc.
+  Map<String?, int?>? overlayPalette;
+
+  Object encode() {
+    return <Object?>[
+      badgeColor,
+      badgeTextColor,
+      bubbleBorderColor,
+      bubbleBorderWidth,
+      bubbleShadowColor,
+      closeTintColor,
+      overlayPalette,
+    ];
+  }
+
+  static ChatHeadThemeMessage decode(Object result) {
+    result as List<Object?>;
+    return ChatHeadThemeMessage(
+      badgeColor: result[0] as int?,
+      badgeTextColor: result[1] as int?,
+      bubbleBorderColor: result[2] as int?,
+      bubbleBorderWidth: result[3] as double?,
+      bubbleShadowColor: result[4] as int?,
+      closeTintColor: result[5] as int?,
+      overlayPalette: (result[6] as Map<Object?, Object?>?)?.cast<String?, int?>(),
+    );
+  }
+}
+
 class ChatHeadConfig {
   ChatHeadConfig({
     required this.entryPoint,
@@ -50,6 +130,12 @@ class ChatHeadConfig {
     required this.flag,
     required this.enableDrag,
     required this.notificationVisibility,
+    required this.snapEdge,
+    required this.snapMargin,
+    required this.persistPosition,
+    required this.entranceAnimation,
+    this.theme,
+    required this.debugMode,
   });
 
   String entryPoint;
@@ -74,6 +160,25 @@ class ChatHeadConfig {
 
   NotificationVisibilityMessage notificationVisibility;
 
+  /// Which screen edge(s) the chathead snaps to.
+  SnapEdgeMessage snapEdge;
+
+  /// Margin (in dp) from the screen edge when snapped.
+  /// Negative values mean the bubble overlaps the edge (partially hidden).
+  double snapMargin;
+
+  /// Whether to save and restore the chathead position across sessions.
+  bool persistPosition;
+
+  /// The entrance animation when the chathead first appears.
+  EntranceAnimationMessage entranceAnimation;
+
+  /// Optional theme configuration.
+  ChatHeadThemeMessage? theme;
+
+  /// Whether to enable the debug overlay inspector.
+  bool debugMode;
+
   Object encode() {
     return <Object?>[
       entryPoint,
@@ -87,6 +192,12 @@ class ChatHeadConfig {
       flag,
       enableDrag,
       notificationVisibility,
+      snapEdge,
+      snapMargin,
+      persistPosition,
+      entranceAnimation,
+      theme,
+      debugMode,
     ];
   }
 
@@ -104,6 +215,12 @@ class ChatHeadConfig {
       flag: result[8]! as OverlayFlagMessage,
       enableDrag: result[9]! as bool,
       notificationVisibility: result[10]! as NotificationVisibilityMessage,
+      snapEdge: result[11]! as SnapEdgeMessage,
+      snapMargin: result[12]! as double,
+      persistPosition: result[13]! as bool,
+      entranceAnimation: result[14]! as EntranceAnimationMessage,
+      theme: result[15] as ChatHeadThemeMessage?,
+      debugMode: result[16]! as bool,
     );
   }
 }
@@ -174,14 +291,23 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is NotificationVisibilityMessage) {
       buffer.putUint8(130);
       writeValue(buffer, value.index);
-    }    else if (value is ChatHeadConfig) {
+    }    else if (value is SnapEdgeMessage) {
       buffer.putUint8(131);
+      writeValue(buffer, value.index);
+    }    else if (value is EntranceAnimationMessage) {
+      buffer.putUint8(132);
+      writeValue(buffer, value.index);
+    }    else if (value is ChatHeadThemeMessage) {
+      buffer.putUint8(133);
+      writeValue(buffer, value.encode());
+    }    else if (value is ChatHeadConfig) {
+      buffer.putUint8(134);
       writeValue(buffer, value.encode());
     }    else if (value is OverlayPositionMessage) {
-      buffer.putUint8(132);
+      buffer.putUint8(135);
       writeValue(buffer, value.encode());
     }    else if (value is AddChatHeadConfig) {
-      buffer.putUint8(133);
+      buffer.putUint8(136);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -198,10 +324,18 @@ class _PigeonCodec extends StandardMessageCodec {
         final int? value = readValue(buffer) as int?;
         return value == null ? null : NotificationVisibilityMessage.values[value];
       case 131: 
-        return ChatHeadConfig.decode(readValue(buffer)!);
+        final int? value = readValue(buffer) as int?;
+        return value == null ? null : SnapEdgeMessage.values[value];
       case 132: 
-        return OverlayPositionMessage.decode(readValue(buffer)!);
+        final int? value = readValue(buffer) as int?;
+        return value == null ? null : EntranceAnimationMessage.values[value];
       case 133: 
+        return ChatHeadThemeMessage.decode(readValue(buffer)!);
+      case 134: 
+        return ChatHeadConfig.decode(readValue(buffer)!);
+      case 135: 
+        return OverlayPositionMessage.decode(readValue(buffer)!);
+      case 136: 
         return AddChatHeadConfig.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -390,6 +524,76 @@ class FloatyHostApi {
       return;
     }
   }
+
+  /// Updates the badge count on the chathead bubble.
+  /// Pass 0 to hide the badge.
+  Future<void> updateBadge(int count) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.updateBadge$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[count]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Programmatically expands the chathead to show its content panel.
+  Future<void> expandChatHead() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.expandChatHead$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Programmatically collapses the chathead content panel.
+  Future<void> collapseChatHead() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.collapseChatHead$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
 }
 
 class FloatyOverlayHostApi {
@@ -497,6 +701,57 @@ class FloatyOverlayHostApi {
       return (pigeonVar_replyList[0] as OverlayPositionMessage?)!;
     }
   }
+
+  /// Updates the badge count from the overlay isolate.
+  Future<void> updateBadgeFromOverlay(int count) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.updateBadgeFromOverlay$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[count]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Returns debug information when debugMode is enabled.
+  Future<Map<String?, Object?>> getDebugInfo() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.getDebugInfo$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as Map<Object?, Object?>?)!.cast<String?, Object?>();
+    }
+  }
 }
 
 abstract class FloatyOverlayFlutterApi {
@@ -505,6 +760,18 @@ abstract class FloatyOverlayFlutterApi {
   void onChatHeadTapped(String id);
 
   void onChatHeadClosed(String id);
+
+  /// Called when the content panel is expanded.
+  void onChatHeadExpanded(String id);
+
+  /// Called when the content panel is collapsed.
+  void onChatHeadCollapsed(String id);
+
+  /// Called when the user starts dragging the chathead.
+  void onChatHeadDragStart(String id, double x, double y);
+
+  /// Called when the user stops dragging the chathead.
+  void onChatHeadDragEnd(String id, double x, double y);
 
   static void setUp(FloatyOverlayFlutterApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
     messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
@@ -549,6 +816,118 @@ abstract class FloatyOverlayFlutterApi {
               'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadClosed was null, expected non-null String.');
           try {
             api.onChatHeadClosed(arg_id!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadExpanded$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadExpanded was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final String? arg_id = (args[0] as String?);
+          assert(arg_id != null,
+              'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadExpanded was null, expected non-null String.');
+          try {
+            api.onChatHeadExpanded(arg_id!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadCollapsed$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadCollapsed was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final String? arg_id = (args[0] as String?);
+          assert(arg_id != null,
+              'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadCollapsed was null, expected non-null String.');
+          try {
+            api.onChatHeadCollapsed(arg_id!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragStart$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragStart was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final String? arg_id = (args[0] as String?);
+          assert(arg_id != null,
+              'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragStart was null, expected non-null String.');
+          final double? arg_x = (args[1] as double?);
+          assert(arg_x != null,
+              'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragStart was null, expected non-null double.');
+          final double? arg_y = (args[2] as double?);
+          assert(arg_y != null,
+              'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragStart was null, expected non-null double.');
+          try {
+            api.onChatHeadDragStart(arg_id!, arg_x!, arg_y!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragEnd$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragEnd was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final String? arg_id = (args[0] as String?);
+          assert(arg_id != null,
+              'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragEnd was null, expected non-null String.');
+          final double? arg_x = (args[1] as double?);
+          assert(arg_x != null,
+              'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragEnd was null, expected non-null double.');
+          final double? arg_y = (args[2] as double?);
+          assert(arg_y != null,
+              'Argument for dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragEnd was null, expected non-null double.');
+          try {
+            api.onChatHeadDragEnd(arg_id!, arg_x!, arg_y!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);

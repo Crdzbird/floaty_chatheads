@@ -33,11 +33,33 @@ class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
   /// {@macro floaty_chatheads_platform.show_chat_head}
   @override
   Future<void> showChatHead(ChatHeadConfig config) {
+    // Resolve size preset: if set, use preset dimensions;
+    // otherwise use raw values.
+    final effectiveWidth = config.sizePreset?.width ?? config.contentWidth;
+    final effectiveHeight = config.sizePreset?.height ?? config.contentHeight;
+
+    // Build theme message if theme is provided.
+    pigeon.ChatHeadThemeMessage? themeMsg;
+    if (config.theme != null) {
+      final t = config.theme!;
+      themeMsg = pigeon.ChatHeadThemeMessage(
+        badgeColor: t.badgeColor,
+        badgeTextColor: t.badgeTextColor,
+        bubbleBorderColor: t.bubbleBorderColor,
+        bubbleBorderWidth: t.bubbleBorderWidth,
+        bubbleShadowColor: t.bubbleShadowColor,
+        closeTintColor: t.closeTintColor,
+        overlayPalette: t.overlayPalette != null
+            ? Map<String?, int?>.from(t.overlayPalette!)
+            : null,
+      );
+    }
+
     return _hostApi.showChatHead(
       pigeon.ChatHeadConfig(
         entryPoint: config.entryPoint,
-        contentWidth: config.contentWidth,
-        contentHeight: config.contentHeight,
+        contentWidth: effectiveWidth,
+        contentHeight: effectiveHeight,
         chatheadIconAsset: config.chatheadIconAsset,
         closeIconAsset: config.closeIconAsset,
         closeBackgroundAsset: config.closeBackgroundAsset,
@@ -47,6 +69,13 @@ class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
         enableDrag: config.enableDrag,
         notificationVisibility: pigeon.NotificationVisibilityMessage
             .values[config.notificationVisibility.index],
+        snapEdge: pigeon.SnapEdgeMessage.values[config.snapEdge.index],
+        snapMargin: config.snapMargin,
+        persistPosition: config.persistPosition,
+        entranceAnimation: pigeon.EntranceAnimationMessage
+            .values[config.entranceAnimation.index],
+        theme: themeMsg,
+        debugMode: config.debugMode,
       ),
     );
   }
@@ -91,4 +120,16 @@ class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
     final pos = await _overlayHostApi.getOverlayPosition();
     return OverlayPosition(x: pos.x, y: pos.y);
   }
+
+  /// {@macro floaty_chatheads_platform.update_badge}
+  @override
+  Future<void> updateBadge(int count) => _hostApi.updateBadge(count);
+
+  /// {@macro floaty_chatheads_platform.expand_chat_head}
+  @override
+  Future<void> expandChatHead() => _hostApi.expandChatHead();
+
+  /// {@macro floaty_chatheads_platform.collapse_chat_head}
+  @override
+  Future<void> collapseChatHead() => _hostApi.collapseChatHead();
 }

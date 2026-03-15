@@ -80,6 +80,80 @@ enum NotificationVisibilityMessage: Int {
   case visibilityPrivate = 2
 }
 
+/// Which screen edge(s) the chathead snaps to after being released.
+enum SnapEdgeMessage: Int {
+  /// Snap to the nearest horizontal edge (left or right). Default.
+  case both = 0
+  /// Always snap to the left edge.
+  case left = 1
+  /// Always snap to the right edge.
+  case right = 2
+  /// No snapping — the bubble stays where the user releases it.
+  case none = 3
+}
+
+/// Animation style used when the chathead first appears on screen.
+enum EntranceAnimationMessage: Int {
+  /// No entrance animation — bubble appears at its initial position.
+  case none = 0
+  /// Bubble pops in with a scale spring (default).
+  case pop = 1
+  /// Bubble slides in from the nearest edge.
+  case slideFromEdge = 2
+  /// Bubble fades in.
+  case fade = 3
+}
+
+/// Theming configuration for the chathead.
+///
+/// All color values are ARGB integers.
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct ChatHeadThemeMessage {
+  var badgeColor: Int64? = nil
+  var badgeTextColor: Int64? = nil
+  var bubbleBorderColor: Int64? = nil
+  var bubbleBorderWidth: Double? = nil
+  var bubbleShadowColor: Int64? = nil
+  var closeTintColor: Int64? = nil
+  /// Color palette forwarded to the overlay isolate.
+  /// Keys: primary, secondary, surface, background, onPrimary, etc.
+  var overlayPalette: [String?: Int64?]? = nil
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> ChatHeadThemeMessage? {
+    let badgeColor: Int64? = nilOrValue(pigeonVar_list[0])
+    let badgeTextColor: Int64? = nilOrValue(pigeonVar_list[1])
+    let bubbleBorderColor: Int64? = nilOrValue(pigeonVar_list[2])
+    let bubbleBorderWidth: Double? = nilOrValue(pigeonVar_list[3])
+    let bubbleShadowColor: Int64? = nilOrValue(pigeonVar_list[4])
+    let closeTintColor: Int64? = nilOrValue(pigeonVar_list[5])
+    let overlayPalette: [String?: Int64?]? = nilOrValue(pigeonVar_list[6])
+
+    return ChatHeadThemeMessage(
+      badgeColor: badgeColor,
+      badgeTextColor: badgeTextColor,
+      bubbleBorderColor: bubbleBorderColor,
+      bubbleBorderWidth: bubbleBorderWidth,
+      bubbleShadowColor: bubbleShadowColor,
+      closeTintColor: closeTintColor,
+      overlayPalette: overlayPalette
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      badgeColor,
+      badgeTextColor,
+      bubbleBorderColor,
+      bubbleBorderWidth,
+      bubbleShadowColor,
+      closeTintColor,
+      overlayPalette,
+    ]
+  }
+}
+
 /// Generated class from Pigeon that represents data sent in messages.
 struct ChatHeadConfig {
   var entryPoint: String
@@ -93,6 +167,19 @@ struct ChatHeadConfig {
   var flag: OverlayFlagMessage
   var enableDrag: Bool
   var notificationVisibility: NotificationVisibilityMessage
+  /// Which screen edge(s) the chathead snaps to.
+  var snapEdge: SnapEdgeMessage
+  /// Margin (in dp) from the screen edge when snapped.
+  /// Negative values mean the bubble overlaps the edge (partially hidden).
+  var snapMargin: Double
+  /// Whether to save and restore the chathead position across sessions.
+  var persistPosition: Bool
+  /// The entrance animation when the chathead first appears.
+  var entranceAnimation: EntranceAnimationMessage
+  /// Optional theme configuration.
+  var theme: ChatHeadThemeMessage? = nil
+  /// Whether to enable the debug overlay inspector.
+  var debugMode: Bool
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -108,6 +195,12 @@ struct ChatHeadConfig {
     let flag = pigeonVar_list[8] as! OverlayFlagMessage
     let enableDrag = pigeonVar_list[9] as! Bool
     let notificationVisibility = pigeonVar_list[10] as! NotificationVisibilityMessage
+    let snapEdge = pigeonVar_list[11] as! SnapEdgeMessage
+    let snapMargin = pigeonVar_list[12] as! Double
+    let persistPosition = pigeonVar_list[13] as! Bool
+    let entranceAnimation = pigeonVar_list[14] as! EntranceAnimationMessage
+    let theme: ChatHeadThemeMessage? = nilOrValue(pigeonVar_list[15])
+    let debugMode = pigeonVar_list[16] as! Bool
 
     return ChatHeadConfig(
       entryPoint: entryPoint,
@@ -120,7 +213,13 @@ struct ChatHeadConfig {
       notificationIconAsset: notificationIconAsset,
       flag: flag,
       enableDrag: enableDrag,
-      notificationVisibility: notificationVisibility
+      notificationVisibility: notificationVisibility,
+      snapEdge: snapEdge,
+      snapMargin: snapMargin,
+      persistPosition: persistPosition,
+      entranceAnimation: entranceAnimation,
+      theme: theme,
+      debugMode: debugMode
     )
   }
   func toList() -> [Any?] {
@@ -136,6 +235,12 @@ struct ChatHeadConfig {
       flag,
       enableDrag,
       notificationVisibility,
+      snapEdge,
+      snapMargin,
+      persistPosition,
+      entranceAnimation,
+      theme,
+      debugMode,
     ]
   }
 }
@@ -204,10 +309,24 @@ private class FloatyChatheadsApiPigeonCodecReader: FlutterStandardReader {
       }
       return nil
     case 131:
-      return ChatHeadConfig.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return SnapEdgeMessage(rawValue: enumResultAsInt)
+      }
+      return nil
     case 132:
-      return OverlayPositionMessage.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return EntranceAnimationMessage(rawValue: enumResultAsInt)
+      }
+      return nil
     case 133:
+      return ChatHeadThemeMessage.fromList(self.readValue() as! [Any?])
+    case 134:
+      return ChatHeadConfig.fromList(self.readValue() as! [Any?])
+    case 135:
+      return OverlayPositionMessage.fromList(self.readValue() as! [Any?])
+    case 136:
       return AddChatHeadConfig.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
@@ -223,14 +342,23 @@ private class FloatyChatheadsApiPigeonCodecWriter: FlutterStandardWriter {
     } else if let value = value as? NotificationVisibilityMessage {
       super.writeByte(130)
       super.writeValue(value.rawValue)
-    } else if let value = value as? ChatHeadConfig {
+    } else if let value = value as? SnapEdgeMessage {
       super.writeByte(131)
+      super.writeValue(value.rawValue)
+    } else if let value = value as? EntranceAnimationMessage {
+      super.writeByte(132)
+      super.writeValue(value.rawValue)
+    } else if let value = value as? ChatHeadThemeMessage {
+      super.writeByte(133)
+      super.writeValue(value.toList())
+    } else if let value = value as? ChatHeadConfig {
+      super.writeByte(134)
       super.writeValue(value.toList())
     } else if let value = value as? OverlayPositionMessage {
-      super.writeByte(132)
+      super.writeByte(135)
       super.writeValue(value.toList())
     } else if let value = value as? AddChatHeadConfig {
-      super.writeByte(133)
+      super.writeByte(136)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -262,6 +390,13 @@ protocol FloatyHostApi {
   func isChatHeadActive() throws -> Bool
   func addChatHead(config: AddChatHeadConfig) throws
   func removeChatHead(id: String) throws
+  /// Updates the badge count on the chathead bubble.
+  /// Pass 0 to hide the badge.
+  func updateBadge(count: Int64) throws
+  /// Programmatically expands the chathead to show its content panel.
+  func expandChatHead() throws
+  /// Programmatically collapses the chathead content panel.
+  func collapseChatHead() throws
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -369,6 +504,51 @@ class FloatyHostApiSetup {
     } else {
       removeChatHeadChannel.setMessageHandler(nil)
     }
+    /// Updates the badge count on the chathead bubble.
+    /// Pass 0 to hide the badge.
+    let updateBadgeChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.updateBadge\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      updateBadgeChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let countArg = args[0] as! Int64
+        do {
+          try api.updateBadge(count: countArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      updateBadgeChannel.setMessageHandler(nil)
+    }
+    /// Programmatically expands the chathead to show its content panel.
+    let expandChatHeadChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.expandChatHead\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      expandChatHeadChannel.setMessageHandler { _, reply in
+        do {
+          try api.expandChatHead()
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      expandChatHeadChannel.setMessageHandler(nil)
+    }
+    /// Programmatically collapses the chathead content panel.
+    let collapseChatHeadChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.collapseChatHead\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      collapseChatHeadChannel.setMessageHandler { _, reply in
+        do {
+          try api.collapseChatHead()
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      collapseChatHeadChannel.setMessageHandler(nil)
+    }
   }
 }
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
@@ -377,6 +557,10 @@ protocol FloatyOverlayHostApi {
   func updateFlag(flag: OverlayFlagMessage) throws
   func closeOverlay() throws
   func getOverlayPosition() throws -> OverlayPositionMessage
+  /// Updates the badge count from the overlay isolate.
+  func updateBadgeFromOverlay(count: Int64) throws
+  /// Returns debug information when debugMode is enabled.
+  func getDebugInfo() throws -> [String?: Any?]
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -442,12 +626,50 @@ class FloatyOverlayHostApiSetup {
     } else {
       getOverlayPositionChannel.setMessageHandler(nil)
     }
+    /// Updates the badge count from the overlay isolate.
+    let updateBadgeFromOverlayChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.updateBadgeFromOverlay\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      updateBadgeFromOverlayChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let countArg = args[0] as! Int64
+        do {
+          try api.updateBadgeFromOverlay(count: countArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      updateBadgeFromOverlayChannel.setMessageHandler(nil)
+    }
+    /// Returns debug information when debugMode is enabled.
+    let getDebugInfoChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.getDebugInfo\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getDebugInfoChannel.setMessageHandler { _, reply in
+        do {
+          let result = try api.getDebugInfo()
+          reply(wrapResult(result))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      getDebugInfoChannel.setMessageHandler(nil)
+    }
   }
 }
 /// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
 protocol FloatyOverlayFlutterApiProtocol {
   func onChatHeadTapped(id idArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void)
   func onChatHeadClosed(id idArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  /// Called when the content panel is expanded.
+  func onChatHeadExpanded(id idArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  /// Called when the content panel is collapsed.
+  func onChatHeadCollapsed(id idArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  /// Called when the user starts dragging the chathead.
+  func onChatHeadDragStart(id idArg: String, x xArg: Double, y yArg: Double, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  /// Called when the user stops dragging the chathead.
+  func onChatHeadDragEnd(id idArg: String, x xArg: Double, y yArg: Double, completion: @escaping (Result<Void, PigeonError>) -> Void)
 }
 class FloatyOverlayFlutterApi: FloatyOverlayFlutterApiProtocol {
   private let binaryMessenger: FlutterBinaryMessenger
@@ -481,6 +703,82 @@ class FloatyOverlayFlutterApi: FloatyOverlayFlutterApiProtocol {
     let channelName: String = "dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadClosed\(messageChannelSuffix)"
     let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
     channel.sendMessage([idArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(Void()))
+      }
+    }
+  }
+  /// Called when the content panel is expanded.
+  func onChatHeadExpanded(id idArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadExpanded\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([idArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(Void()))
+      }
+    }
+  }
+  /// Called when the content panel is collapsed.
+  func onChatHeadCollapsed(id idArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadCollapsed\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([idArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(Void()))
+      }
+    }
+  }
+  /// Called when the user starts dragging the chathead.
+  func onChatHeadDragStart(id idArg: String, x xArg: Double, y yArg: Double, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragStart\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([idArg, xArg, yArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(Void()))
+      }
+    }
+  }
+  /// Called when the user stops dragging the chathead.
+  func onChatHeadDragEnd(id idArg: String, x xArg: Double, y yArg: Double, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragEnd\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([idArg, xArg, yArg] as [Any?]) { response in
       guard let listResponse = response as? [Any?] else {
         completion(.failure(createConnectionError(withChannelName: channelName)))
         return

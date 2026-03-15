@@ -11,6 +11,9 @@
 /// - `FloatyLauncher` -- one-call launcher with automatic permission handling
 /// - `FloatyController` -- lifecycle-aware controller for declarative usage
 /// - `FloatyMessenger` -- type-safe messaging wrapper
+/// - `FloatyStateChannel` -- auto-syncing typed state between app and overlay
+/// - `FloatyActionRouter` -- typed bidirectional action routing
+/// - `FloatyProxyHost` / `FloatyProxyClient` -- overlay-side plugin access
 ///
 /// For pre-built overlay widgets, see:
 /// - `FloatyMiniPlayer` -- media player overlay
@@ -31,6 +34,7 @@ export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
         OverlayPosition,
         SnapEdge;
 
+export 'src/floaty_action_router.dart';
 export 'src/floaty_chatheads.dart';
 export 'src/floaty_controller.dart';
 export 'src/floaty_launcher.dart';
@@ -38,7 +42,9 @@ export 'src/floaty_messenger.dart';
 export 'src/floaty_overlay.dart';
 export 'src/floaty_overlay_app.dart';
 export 'src/floaty_permission_gate.dart';
+export 'src/floaty_proxy.dart';
 export 'src/floaty_scope.dart';
+export 'src/floaty_state_channel.dart';
 export 'src/generated/floaty_chatheads_overlay_api.g.dart'
     show OverlayFlagMessage, OverlayPositionMessage;
 export 'src/widgets/floaty_mini_player.dart';

@@ -1,5 +1,5 @@
 /// {@template entrance_animation}
-/// Animation style used when the chathead first appears on screen (Android).
+/// Animation style used when the chathead first appears on screen.
 /// {@endtemplate}
 enum EntranceAnimation {
   /// {@template entrance_animation.none}
