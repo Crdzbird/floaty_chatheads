@@ -2,6 +2,13 @@
 
 ## 1.2.1
 
+### ✨ Enhancements
+
+- **Debug logs are now optional and silent by default (Android).** All
+  native logcat output from the plugin is gated behind `debugMode`. Set
+  `debugMode: true` in `showChatHead()` to enable verbose logging during
+  development; production builds produce zero log noise.
+
 ### 🐛 Bug Fixes
 
 - **Fixed content panel rendering fullscreen on subsequent launches
@@ -138,7 +145,6 @@
 - Added Android and iOS demo GIFs to README.
 - Fixed foreground notification on service reuse.
 - Documentation and metadata updates.
-
 
 ## 1.0.0
 

@@ -2,6 +2,15 @@
 
 ## 1.0.2
 
+### ✨ Enhancements
+
+- **Debug logs are now optional and silent by default.** All native
+  `Log.d/w/e` output is gated behind `Managment.debugMode`. Developers
+  enable verbose logging by setting `debugMode: true` in `ChatHeadConfig`;
+  production builds produce zero log noise. Three convenience helpers
+  (`Managment.logD`, `logW`, `logE`) replace every raw `Log.*` call
+  across `FloatyContentJobService`, `FlutterContentPanel`, and `ChatHeads`.
+
 ### 🐛 Bug Fixes
 
 - **Fixed content panel rendering fullscreen on subsequent launches.**

@@ -329,6 +329,75 @@ void main() {
       expect(kit.state.counter, 99);
     });
 
+    test('onAction/offAction delegates to router', () async {
+      final kit = FloatyOverlayKit<_TestState>(
+        stateToJson: (s) => s.toJson(),
+        stateFromJson: _TestState.fromJson,
+        initialState: _TestState(),
+      );
+      addTearDown(kit.dispose);
+
+      var received = false;
+      kit.onAction<_IncrementAction>(
+        'increment',
+        fromJson: _IncrementAction.fromJson,
+        handler: (_) => received = true,
+      );
+
+      await _simulateMessage({
+        '_floaty_action': {
+          'type': 'increment',
+          'payload': {'amount': 1},
+        },
+      });
+
+      expect(received, isTrue);
+
+      // After offAction, the handler should be removed.
+      kit.offAction('increment');
+      received = false;
+
+      await _simulateMessage({
+        '_floaty_action': {
+          'type': 'increment',
+          'payload': {'amount': 2},
+        },
+      });
+
+      expect(received, isFalse);
+    });
+
+    test('setState delegates to stateChannel', () async {
+      final kit = FloatyOverlayKit<_TestState>(
+        stateToJson: (s) => s.toJson(),
+        stateFromJson: _TestState.fromJson,
+        initialState: _TestState(),
+      );
+      addTearDown(kit.dispose);
+
+      expect(kit.state.counter, 0);
+
+      await kit.setState(_TestState(counter: 42, label: 'updated'));
+
+      expect(kit.state.counter, 42);
+      expect(kit.state.label, 'updated');
+    });
+
+    test('updateState performs shallow merge', () async {
+      final kit = FloatyOverlayKit<_TestState>(
+        stateToJson: (s) => s.toJson(),
+        stateFromJson: _TestState.fromJson,
+        initialState: _TestState(),
+      );
+      addTearDown(kit.dispose);
+
+      await kit.setState(_TestState(counter: 10, label: 'before'));
+      await kit.updateState({'counter': 20});
+
+      expect(kit.state.counter, 20);
+      expect(kit.state.label, 'before'); // Preserved.
+    });
+
     test('dispose tears down all overlay components', () async {
       FloatyOverlayKit<_TestState>(
         stateToJson: (s) => s.toJson(),

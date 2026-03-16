@@ -9,8 +9,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
+    FloatyConnectionState.dispose();
     FloatyOverlay.dispose();
     FloatyOverlay.setUp();
+    FloatyConnectionState.setUp();
   });
 
   group('FloatyScope', () {
@@ -323,6 +325,52 @@ void main() {
 
       await tester.pump();
       expect(data!.palette, isNotNull);
+    });
+
+    testWidgets('updates isMainAppConnected on connection change',
+        (tester) async {
+      FloatyScopeData? data;
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: FloatyScope(
+            child: Builder(
+              builder: (context) {
+                data = FloatyScope.of(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+
+      // Simulate a disconnect.
+      final encoded = const JSONMessageCodec().encodeMessage({
+        '_floaty_connection': {'connected': false},
+      });
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        'ni.devotion.floaty_head/messenger',
+        encoded,
+        (data) {},
+      );
+      await tester.pump();
+      expect(data!.isMainAppConnected, isFalse);
+
+      // Simulate a reconnect.
+      final encoded2 = const JSONMessageCodec().encodeMessage({
+        '_floaty_connection': {'connected': true},
+      });
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        'ni.devotion.floaty_head/messenger',
+        encoded2,
+        (data) {},
+      );
+      await tester.pump();
+      expect(data!.isMainAppConnected, isTrue);
     });
 
     testWidgets('disposes stream subscriptions on unmount', (tester) async {

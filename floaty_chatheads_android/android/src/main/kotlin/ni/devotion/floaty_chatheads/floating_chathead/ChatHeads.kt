@@ -6,7 +6,6 @@ import android.content.SharedPreferences
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -272,7 +271,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
     }
 
     fun add(id: String = "default", icon: android.graphics.Bitmap? = null): ChatHead {
-        Log.d("FloatyDebug", "add() id=$id, entranceAnim=${Managment.entranceAnimation}, childCount=$childCount")
+        Managment.logD("add() id=$id, entranceAnim=${Managment.entranceAnimation}, childCount=$childCount")
         chatHeads.forEach {
             it.visibility = View.VISIBLE
         }
@@ -447,7 +446,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
 
     /** Programmatically expand the chathead and show the content panel. */
     fun expand() {
-        Log.d("FloatyDebug", "expand() called. toggled=$toggled, topChatHead=${topChatHead?.id}")
+        Managment.logD("expand() called. toggled=$toggled, topChatHead=${topChatHead?.id}")
         if (toggled || topChatHead == null) return
         val metrics = WindowManagerHelper.getScreenSize()
 
@@ -503,7 +502,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             content.y = newY
             content.pivotX = metrics.widthPixels.toFloat() - chatHead.width / 2 - ((chatHeads.size - 1 - chatHeads.indexOf(tmpChatHead)) * (tmpChatHead.width + CHAT_HEAD_EXPANDED_PADDING))
             if (toggled && totalVelocity % 100 == 0) {
-                Log.d("FloatyDebug", "onSpringUpdate: content.x=$newX, content.y=$newY, content.visibility=${content.visibility}, content.scaleX=${content.scaleX}, content.scaleY=${content.scaleY}, content.w=${content.width}, content.h=${content.height}")
+                Managment.logD("onSpringUpdate: content.x=$newX, content.y=$newY, content.visibility=${content.visibility}, content.scaleX=${content.scaleX}, content.scaleY=${content.scaleY}, content.w=${content.width}, content.h=${content.height}")
             }
         }
         content.pivotY = chatHead.height.toFloat()
@@ -610,7 +609,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                 if (captured) return true
                 if (!moving) {
                     if (!toggled) {
-                        Log.d("FloatyDebug", "EXPAND: toggled=false, entering expand flow. topChatHead=${topChatHead?.id}, chatHeads.size=${chatHeads.size}")
+                        Managment.logD("EXPAND: toggled=false, entering expand flow. topChatHead=${topChatHead?.id}, chatHeads.size=${chatHeads.size}")
                         toggled = true
                         chatHeads.forEachIndexed { index, it ->
                             it.springX.springConfig = SpringConfigs.NOT_DRAGGING
@@ -624,10 +623,10 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                         FloatyContentJobService.instance?.windowManager?.updateViewLayout(this, params)
                         topChatHead!!.isActive = true
                         changeContent()
-                        Log.d("FloatyDebug", "EXPAND: scheduling showContent() in 200ms. content.visibility=${content.visibility}, content.childCount=${content.childCount}")
+                        Managment.logD("EXPAND: scheduling showContent() in 200ms. content.visibility=${content.visibility}, content.childCount=${content.childCount}")
                         Handler(Looper.getMainLooper()).postDelayed(
                             {
-                                Log.d("FloatyDebug", "EXPAND: postDelayed fired. Calling content.showContent(). content.visibility=${content.visibility}")
+                                Managment.logD("EXPAND: postDelayed fired. Calling content.showContent(). content.visibility=${content.visibility}")
                                 content.showContent()
                                 // Accessibility: announce state + move focus to content panel
                                 announceForAccessibility("Chat expanded")
@@ -638,7 +637,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                             }, 200
                         )
                     } else {
-                        Log.d("FloatyDebug", "EXPAND: toggled=true, already expanded — skipping")
+                        Managment.logD("EXPAND: toggled=true, already expanded — skipping")
                     }
                 } else if (!toggled) {
                     moving = false

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.util.Log
 
 /** Which screen edge(s) the chathead snaps to. */
 enum class SnapEdge { BOTH, LEFT, RIGHT, NONE }
@@ -47,4 +48,20 @@ object Managment {
     // ── Debug ───────────────────────────────────────────────────────
     var debugMode: Boolean = false
 
+    private const val TAG = "FloatyDebug"
+
+    /** Logs a debug message only when [debugMode] is enabled. */
+    fun logD(message: String) {
+        if (debugMode) Log.d(TAG, message)
+    }
+
+    /** Logs a warning only when [debugMode] is enabled. */
+    fun logW(message: String) {
+        if (debugMode) Log.w(TAG, message)
+    }
+
+    /** Logs an error only when [debugMode] is enabled. */
+    fun logE(message: String) {
+        if (debugMode) Log.e(TAG, message)
+    }
 }

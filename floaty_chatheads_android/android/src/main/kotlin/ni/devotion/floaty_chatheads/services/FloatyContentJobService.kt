@@ -10,7 +10,7 @@ import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
+
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
@@ -88,12 +88,12 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         val existing = FlutterEngineCache.getInstance()
             .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
         if (existing != null) {
-            Log.d("FloatyDebug", "ensureOverlayEngine: engine already cached")
+            Managment.logD("ensureOverlayEngine: engine already cached")
             setupOverlayMessenger(existing)
             return
         }
 
-        Log.d("FloatyDebug", "ensureOverlayEngine: creating engine for '$entryPoint'")
+        Managment.logD("ensureOverlayEngine: creating engine for '$entryPoint'")
         val engineGroup = FlutterEngineGroup(this)
         val dartEntrypoint = DartExecutor.DartEntrypoint(
             FlutterInjector.instance().flutterLoader().findAppBundlePath(),
@@ -324,14 +324,14 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     // ── Service lifecycle ───────────────────────────────────────────
 
     override fun onCreate() {
-        Log.d("FloatyDebug", "onCreate() called. instance=$instance")
+        Managment.logD("onCreate() called. instance=$instance")
         instance = this
         createNotificationChannel()
         showNotification()
 
         val engine = FlutterEngineCache.getInstance()
             .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-        Log.d("FloatyDebug", "onCreate() engine=$engine")
+        Managment.logD("onCreate() engine=$engine")
 
         if (engine != null) {
             // Engine already exists (normal startup via plugin).
@@ -348,8 +348,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
                 Constants.PREF_ENTRY_POINT, null,
             )
             if (entryPoint != null) {
-                Log.d(
-                    "FloatyDebug",
+                Managment.logD(
                     "onCreate() plugin active, creating engine for '$entryPoint'",
                 )
                 ensureOverlayEngine(entryPoint)
@@ -376,8 +375,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
             val entryPoint = if (managmentAlreadySet) {
                 // Managment was populated by the plugin's
                 // showChatHead() — just read the entry point.
-                Log.d(
-                    "FloatyDebug",
+                Managment.logD(
                     "onCreate() Managment already set " +
                         "(w=${Managment.contentWidth}, h=${Managment.contentHeight})" +
                         " — skipping restoreConfig()",
@@ -387,8 +385,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
                 restoreConfig()
             }
             if (entryPoint != null) {
-                Log.d(
-                    "FloatyDebug",
+                Managment.logD(
                     "onCreate() restoring engine for '$entryPoint'",
                 )
                 ensureOverlayEngine(entryPoint)
@@ -403,8 +400,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
                     )
                 }
             } else {
-                Log.w(
-                    "FloatyDebug",
+                Managment.logW(
                     "onCreate() no saved config — cannot restore overlay",
                 )
             }
@@ -412,8 +408,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(
-            "FloatyDebug",
+        Managment.logD(
             "onStartCommand() called. chatHeads=$chatHeads, instance=$instance",
         )
         // Re-post the foreground notification so Android doesn't kill the
@@ -422,8 +417,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         if (chatHeads == null) {
             createWindow()
         } else {
-            Log.d(
-                "FloatyDebug",
+            Managment.logD(
                 "onStartCommand() chatHeads already exists — skipping createWindow()",
             )
         }
@@ -431,8 +425,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     }
 
     fun createWindow() {
-        Log.d(
-            "FloatyDebug",
+        Managment.logD(
             "createWindow() called. instance=$instance, chatHeads=$chatHeads",
         )
         // Ensure instance always points to the live service. When the
@@ -445,8 +438,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
         val engine = FlutterEngineCache.getInstance()
             .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-        Log.d(
-            "FloatyDebug",
+        Managment.logD(
             "createWindow() engine=$engine, " +
                 "contentW=${Managment.contentWidth}, " +
                 "contentH=${Managment.contentHeight}, " +
@@ -459,8 +451,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
             chatHeads?.content?.attachEngine(engine)
         } else {
-            Log.e(
-                "FloatyDebug",
+            Managment.logE(
                 "createWindow() ENGINE IS NULL — overlay will not render!",
             )
         }
@@ -489,8 +480,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
             }
             chatHeads?.content?.setContentSize(w, h)
         }
-        Log.d(
-            "FloatyDebug",
+        Managment.logD(
             "createWindow() done. " +
                 "content.lp.w=${chatHeads?.content?.layoutParams?.width}, " +
                 "content.lp.h=${chatHeads?.content?.layoutParams?.height}",
@@ -506,8 +496,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     }
 
     fun closeWindow(stopService: Boolean) {
-        Log.d(
-            "FloatyDebug",
+        Managment.logD(
             "closeWindow(stopService=$stopService) called. chatHeads=$chatHeads",
         )
         val closedId = chatHeads?.topChatHead?.id ?: "default"
@@ -709,7 +698,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
-        Log.d("FloatyDebug", "onDestroy() called. instance=$instance")
+        Managment.logD("onDestroy() called. instance=$instance")
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(Constants.NOTIFICATION_ID)

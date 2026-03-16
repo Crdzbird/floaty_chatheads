@@ -244,6 +244,23 @@ void main() {
       expect(foundController, isNull);
     });
 
+    testWidgets('renders builder when provided', (tester) async {
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: FloatyControllerWidget(
+            entryPoint: 'test',
+            builder: (context, controller) {
+              return Text(controller.isActive ? 'Active' : 'Inactive');
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(fake.showChatHeadCalled, isTrue);
+      expect(find.text('Active'), findsOneWidget);
+    });
+
     testWidgets('closes chathead on unmount', (tester) async {
       await tester.pumpWidget(
         const FloatyControllerWidget(

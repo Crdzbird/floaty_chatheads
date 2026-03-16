@@ -2,7 +2,6 @@ package ni.devotion.floaty_chatheads
 
 import android.content.Context
 import android.graphics.Color
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.accessibility.AccessibilityEvent
@@ -14,6 +13,7 @@ import io.flutter.embedding.android.FlutterTextureView
 import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
 import ni.devotion.floaty_chatheads.floating_chathead.SpringConfigs
+import ni.devotion.floaty_chatheads.utils.Managment
 
 class FlutterContentPanel(context: Context) : FrameLayout(context) {
     private val springSystem = SpringSystem.create()
@@ -57,7 +57,7 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
      * survive the GONE→VISIBLE layout transition.
      */
     fun setContentSize(widthPx: Int, heightPx: Int) {
-        Log.d("FloatyDebug", "setContentSize() widthPx=$widthPx, heightPx=$heightPx")
+        Managment.logD("setContentSize() widthPx=$widthPx, heightPx=$heightPx")
         targetWidthPx = widthPx
         targetHeightPx = heightPx
         applyTargetSize()
@@ -69,7 +69,7 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
         layoutParams = LayoutParams(w, h).apply {
             gravity = Gravity.CENTER
         }
-        Log.d("FloatyDebug", "applyTargetSize() w=$w, h=$h")
+        Managment.logD("applyTargetSize() w=$w, h=$h")
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -79,7 +79,7 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
             // Force exact target dimensions regardless of what the parent suggests.
             val wSpec = MeasureSpec.makeMeasureSpec(tw, MeasureSpec.EXACTLY)
             val hSpec = MeasureSpec.makeMeasureSpec(th, MeasureSpec.EXACTLY)
-            Log.d("FloatyDebug", "onMeasure() FORCING tw=$tw, th=$th (incoming: ${MeasureSpec.getSize(widthMeasureSpec)}x${MeasureSpec.getSize(heightMeasureSpec)})")
+            Managment.logD("onMeasure() FORCING tw=$tw, th=$th (incoming: ${MeasureSpec.getSize(widthMeasureSpec)}x${MeasureSpec.getSize(heightMeasureSpec)})")
             super.onMeasure(wSpec, hSpec)
         } else {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -88,11 +88,11 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        Log.d("FloatyDebug", "onSizeChanged() ${oldw}x${oldh} -> ${w}x${h} (target=${targetWidthPx}x${targetHeightPx})")
+        Managment.logD("onSizeChanged() ${oldw}x${oldh} -> ${w}x${h} (target=${targetWidthPx}x${targetHeightPx})")
     }
 
     fun attachEngine(engine: FlutterEngine) {
-        Log.d("FloatyDebug", "attachEngine() called. visibility=$visibility, childCount=$childCount")
+        Managment.logD("attachEngine() called. visibility=$visibility, childCount=$childCount")
         val textureView = FlutterTextureView(context)
         flutterView = FlutterView(context, textureView).apply {
             attachToFlutterEngine(engine)
@@ -105,7 +105,7 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
             LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
         )
         engine.lifecycleChannel.appIsResumed()
-        Log.d("FloatyDebug", "attachEngine() done. childCount=$childCount")
+        Managment.logD("attachEngine() done. childCount=$childCount")
     }
 
     fun detachEngine() {
@@ -118,7 +118,7 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
         // Re-apply target dimensions before becoming visible so they
         // survive the GONE → VISIBLE layout transition.
         applyTargetSize()
-        Log.d("FloatyDebug", "showContent() lp.w=${layoutParams?.width}, lp.h=${layoutParams?.height}, targetW=$targetWidthPx, targetH=$targetHeightPx")
+        Managment.logD("showContent() lp.w=${layoutParams?.width}, lp.h=${layoutParams?.height}, targetW=$targetWidthPx, targetH=$targetHeightPx")
         // Make the panel visible and start the scale-up animation.
         visibility = View.VISIBLE
         // Force the parent to re-measure this view with the correct params.
@@ -129,12 +129,12 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
         sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
         // Post a verification check after the layout pass completes.
         post {
-            Log.d("FloatyDebug", "showContent() POST-LAYOUT: measuredW=$measuredWidth, measuredH=$measuredHeight, w=$width, h=$height, lp.w=${layoutParams?.width}, lp.h=${layoutParams?.height}")
+            Managment.logD("showContent() POST-LAYOUT: measuredW=$measuredWidth, measuredH=$measuredHeight, w=$width, h=$height, lp.w=${layoutParams?.width}, lp.h=${layoutParams?.height}")
             val tw = targetWidthPx
             val th = targetHeightPx
             if (tw != null && tw > 0 && th != null && th > 0) {
                 if (measuredWidth != tw || measuredHeight != th) {
-                    Log.w("FloatyDebug", "DIMENSION MISMATCH! Forcing re-measure: target=${tw}x${th}, actual=${measuredWidth}x${measuredHeight}")
+                    Managment.logW("DIMENSION MISMATCH! Forcing re-measure: target=${tw}x${th}, actual=${measuredWidth}x${measuredHeight}")
                     // Emergency: force exact dimensions directly.
                     val wSpec = MeasureSpec.makeMeasureSpec(tw, MeasureSpec.EXACTLY)
                     val hSpec = MeasureSpec.makeMeasureSpec(th, MeasureSpec.EXACTLY)

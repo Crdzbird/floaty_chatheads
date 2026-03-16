@@ -138,6 +138,36 @@ void main() {
       expect(foundKit, same(directKit));
     });
 
+    testWidgets('maybeOf() returns kit when ancestor exists',
+        (tester) async {
+      FloatyOverlayKit<_TestState>? result;
+      FloatyOverlayKit<_TestState>? directKit;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: FloatyOverlayScope<_TestState>(
+            stateToJson: (s) => s.toJson(),
+            stateFromJson: _TestState.fromJson,
+            initialState: _TestState(),
+            builder: (context, k, s, c) {
+              directKit = k;
+              return Builder(
+                builder: (innerContext) {
+                  result =
+                      FloatyOverlayScope.maybeOf<_TestState>(innerContext);
+                  return const SizedBox.shrink();
+                },
+              );
+            },
+          ),
+        ),
+      );
+
+      expect(result, isNotNull);
+      expect(result, same(directKit));
+    });
+
     testWidgets('maybeOf() returns null when no ancestor', (tester) async {
       FloatyOverlayKit<_TestState>? result;
 
