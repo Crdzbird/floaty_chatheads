@@ -4,6 +4,16 @@
 
 ### 🐛 Bug Fixes
 
+- **Fixed content panel rendering fullscreen on subsequent launches.**
+  The root cause was a two-stage data loss: when the service had not
+  started yet, `showChatHead()` only persisted the entry point to
+  `SharedPreferences`, omitting content dimensions and all other config.
+  When the service's `onCreate()` later called `restoreConfig()`, it
+  overwrote the in-memory `Managment` values with `null`, causing
+  `createWindow()` to skip `setContentSize()` and fall back to
+  `MATCH_PARENT`. The fix saves the **full config** to SharedPreferences
+  in the plugin's else branch and adds a defensive guard in `onCreate()`
+  to skip `restoreConfig()` when `Managment` is already populated.
 - Fixed content panel dimensions and touch interaction leaking between
   chathead sessions. The plugin now explicitly tears down stale windows
   and calls `createWindow()` directly with fresh `Managment` values

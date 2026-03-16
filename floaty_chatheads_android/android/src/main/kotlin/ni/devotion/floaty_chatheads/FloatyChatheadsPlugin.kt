@@ -296,15 +296,70 @@ class FloatyChatheadsPlugin :
             // createWindow() when chatHeads is already non-null.
             service.createWindow()
         } else {
-            // Service hasn't started yet — persist config so its
-            // onCreate() can pick it up. The engine will be created
-            // by the service in onCreate() → ensureOverlayEngine().
+            // Service hasn't started yet — persist the FULL config so
+            // its onCreate() → restoreConfig() recovers all values
+            // (especially content dimensions).  Previously only the
+            // entry point was saved, causing dimensions to restore as
+            // null → MATCH_PARENT on every subsequent launch.
             val prefs = appContext.getSharedPreferences(
                 Constants.PREFS_NAME, Context.MODE_PRIVATE,
             )
             prefs.edit().apply {
                 putBoolean(Constants.PREF_HAS_SAVED_CONFIG, true)
                 putString(Constants.PREF_ENTRY_POINT, config.entryPoint)
+                // ── Dimensions ────────────────────────────────────
+                Managment.contentWidth?.let {
+                    putInt(Constants.PREF_CONTENT_WIDTH, it)
+                } ?: remove(Constants.PREF_CONTENT_WIDTH)
+                Managment.contentHeight?.let {
+                    putInt(Constants.PREF_CONTENT_HEIGHT, it)
+                } ?: remove(Constants.PREF_CONTENT_HEIGHT)
+                // ── Snap / position ───────────────────────────────
+                putString(Constants.PREF_SNAP_EDGE, Managment.snapEdge.name)
+                putFloat(Constants.PREF_SNAP_MARGIN, Managment.snapMargin)
+                putBoolean(
+                    Constants.PREF_PERSIST_POSITION,
+                    Managment.persistPosition,
+                )
+                // ── Animation / debug ─────────────────────────────
+                putString(
+                    Constants.PREF_ENTRANCE_ANIMATION,
+                    Managment.entranceAnimation.name,
+                )
+                putBoolean(Constants.PREF_DEBUG_MODE, Managment.debugMode)
+                // ── Notification ──────────────────────────────────
+                putString(
+                    Constants.PREF_NOTIFICATION_TITLE,
+                    Managment.notificationTitle,
+                )
+                // ── Theme ─────────────────────────────────────────
+                putInt(Constants.PREF_BADGE_COLOR, Managment.badgeColor)
+                putInt(
+                    Constants.PREF_BADGE_TEXT_COLOR,
+                    Managment.badgeTextColor,
+                )
+                Managment.bubbleBorderColor?.let {
+                    putInt(Constants.PREF_BUBBLE_BORDER_COLOR, it)
+                } ?: remove(Constants.PREF_BUBBLE_BORDER_COLOR)
+                putFloat(
+                    Constants.PREF_BUBBLE_BORDER_WIDTH,
+                    Managment.bubbleBorderWidth,
+                )
+                putInt(
+                    Constants.PREF_BUBBLE_SHADOW_COLOR,
+                    Managment.bubbleShadowColor,
+                )
+                Managment.closeTintColor?.let {
+                    putInt(Constants.PREF_CLOSE_TINT_COLOR, it)
+                } ?: remove(Constants.PREF_CLOSE_TINT_COLOR)
+                Managment.overlayPalette?.let { palette ->
+                    putString(
+                        Constants.PREF_OVERLAY_PALETTE,
+                        org.json.JSONObject(
+                            palette.mapValues { it.value },
+                        ).toString(),
+                    )
+                } ?: remove(Constants.PREF_OVERLAY_PALETTE)
                 apply()
             }
         }

@@ -365,9 +365,27 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
                 }
             }
         } else {
-            // No engine and no plugin — restarted after app death via
-            // START_STICKY. Restore config from SharedPreferences.
-            val entryPoint = restoreConfig()
+            // No engine and no plugin — either restarted after app
+            // death via START_STICKY, or the service is starting async
+            // from startForegroundService() while the plugin already
+            // populated Managment.  Only call restoreConfig() when
+            // Managment looks unpopulated (both dimensions null) to
+            // avoid overwriting values the plugin just set.
+            val managmentAlreadySet =
+                Managment.contentWidth != null || Managment.contentHeight != null
+            val entryPoint = if (managmentAlreadySet) {
+                // Managment was populated by the plugin's
+                // showChatHead() — just read the entry point.
+                Log.d(
+                    "FloatyDebug",
+                    "onCreate() Managment already set " +
+                        "(w=${Managment.contentWidth}, h=${Managment.contentHeight})" +
+                        " — skipping restoreConfig()",
+                )
+                getPrefs().getString(Constants.PREF_ENTRY_POINT, null)
+            } else {
+                restoreConfig()
+            }
             if (entryPoint != null) {
                 Log.d(
                     "FloatyDebug",

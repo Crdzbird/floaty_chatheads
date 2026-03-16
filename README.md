@@ -3,7 +3,7 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
 [![coverage: 100%][coverage_badge]][coverage_link]
-[![tests: 132 passed][tests_badge]][tests_link]
+[![tests: 233 passed][tests_badge]][tests_link]
 
 ## Installation
 
@@ -11,7 +11,7 @@ Add `floaty_chatheads` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  floaty_chatheads: ^1.0.1
+  floaty_chatheads: ^1.2.1
 ```
 
 Then run:
@@ -121,7 +121,7 @@ implementations differ due to OS-level constraints:
 
 ```yaml
 dependencies:
-  floaty_chatheads: ^1.0.1
+  floaty_chatheads: ^1.2.1
 ```
 
 ### 2. Android setup
@@ -346,14 +346,14 @@ void notifOverlay() => FloatyOverlayApp.run(
 
 ## Test Suite & Coverage
 
-The plugin ships with **147 unit and widget tests** across all 4 packages:
+The plugin ships with **233+ unit and widget tests** across all 4 packages:
 
 | Package | Tests | Status |
 |---|---|---|
-| `floaty_chatheads` | 132 | ✅ All passing |
-| `floaty_chatheads_platform_interface` | 14 | ✅ All passing |
+| `floaty_chatheads` | 233 | ✅ All passing |
+| `floaty_chatheads_platform_interface` | 33 | ✅ All passing |
 | `floaty_chatheads_android` | 1 | ✅ All passing |
-| **Total** | **147** | ✅ |
+| **Total** | **267** | ✅ |
 
 ### Coverage (handwritten code, excluding generated Pigeon files)
 
@@ -743,7 +743,7 @@ It is a **complete rewrite** -- not a drop-in upgrade.
 
 ### How to migrate
 
-1. Replace `floaty_chathead` with `floaty_chatheads: ^1.0.1` in your `pubspec.yaml`.
+1. Replace `floaty_chathead` with `floaty_chatheads: ^1.2.1` in your `pubspec.yaml`.
 2. Update imports from `package:floaty_chathead/...` to `package:floaty_chatheads/floaty_chatheads.dart`.
 3. Replace method calls with the new static API on `FloatyChatheads` and `FloatyOverlay`.
 4. Add Android manifest permissions if not already present (see [Getting Started](#2-android-setup)).
@@ -779,7 +779,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 [very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
 [coverage_badge]: https://img.shields.io/badge/coverage-100%25-brightgreen.svg
 [coverage_link]: #test-suite--coverage
-[tests_badge]: https://img.shields.io/badge/tests-132%20passed-brightgreen.svg
+[tests_badge]: https://img.shields.io/badge/tests-267%20passed-brightgreen.svg
 [tests_link]: #test-suite--coverage
 [federated_link]: https://docs.flutter.dev/packages-and-plugins/developing-packages#federated-plugins
 [main_link]: floaty_chatheads/

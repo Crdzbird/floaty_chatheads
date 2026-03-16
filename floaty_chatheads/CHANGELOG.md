@@ -4,6 +4,14 @@
 
 ### 🐛 Bug Fixes
 
+- **Fixed content panel rendering fullscreen on subsequent launches
+  (Android).** When the foreground service had not started yet,
+  `showChatHead()` only saved the entry point to SharedPreferences,
+  omitting content dimensions. On service startup, `restoreConfig()`
+  then overwrote the in-memory values with `null`, causing the panel to
+  fall back to `MATCH_PARENT`. The plugin now persists the full config
+  and the service guards against overwriting values that the plugin
+  already set.
 - Fixed content panel dimensions leaking between chathead sessions on
   Android. Switching from a larger overlay (e.g. 300x400) to a smaller
   one (e.g. 220x220) no longer inherits the previous session's size.

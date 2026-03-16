@@ -57,6 +57,7 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
      * survive the GONE→VISIBLE layout transition.
      */
     fun setContentSize(widthPx: Int, heightPx: Int) {
+        Log.d("FloatyDebug", "setContentSize() widthPx=$widthPx, heightPx=$heightPx")
         targetWidthPx = widthPx
         targetHeightPx = heightPx
         applyTargetSize()
@@ -68,7 +69,7 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
         layoutParams = LayoutParams(w, h).apply {
             gravity = Gravity.CENTER
         }
-        Log.d("FloatyDebug", "applyTargetSize() w=$w, h=$h, lp.class=${layoutParams?.javaClass?.simpleName}")
+        Log.d("FloatyDebug", "applyTargetSize() w=$w, h=$h")
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -78,10 +79,16 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
             // Force exact target dimensions regardless of what the parent suggests.
             val wSpec = MeasureSpec.makeMeasureSpec(tw, MeasureSpec.EXACTLY)
             val hSpec = MeasureSpec.makeMeasureSpec(th, MeasureSpec.EXACTLY)
+            Log.d("FloatyDebug", "onMeasure() FORCING tw=$tw, th=$th (incoming: ${MeasureSpec.getSize(widthMeasureSpec)}x${MeasureSpec.getSize(heightMeasureSpec)})")
             super.onMeasure(wSpec, hSpec)
         } else {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         }
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        Log.d("FloatyDebug", "onSizeChanged() ${oldw}x${oldh} -> ${w}x${h} (target=${targetWidthPx}x${targetHeightPx})")
     }
 
     fun attachEngine(engine: FlutterEngine) {
@@ -98,7 +105,7 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
             LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
         )
         engine.lifecycleChannel.appIsResumed()
-        Log.d("FloatyDebug", "attachEngine() done. childCount=$childCount, flutterView=$flutterView")
+        Log.d("FloatyDebug", "attachEngine() done. childCount=$childCount")
     }
 
     fun detachEngine() {
@@ -111,15 +118,30 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
         // Re-apply target dimensions before becoming visible so they
         // survive the GONE → VISIBLE layout transition.
         applyTargetSize()
+        Log.d("FloatyDebug", "showContent() lp.w=${layoutParams?.width}, lp.h=${layoutParams?.height}, targetW=$targetWidthPx, targetH=$targetHeightPx")
         // Make the panel visible and start the scale-up animation.
-        Log.d("FloatyDebug", "showContent() called. childCount=$childCount, w=$width, h=$height, lp.w=${layoutParams?.width}, lp.h=${layoutParams?.height}, visibility=$visibility, targetW=$targetWidthPx, targetH=$targetHeightPx")
         visibility = View.VISIBLE
+        // Force the parent to re-measure this view with the correct params.
+        forceLayout()
+        requestLayout()
         scaleSpring.endValue = 1.0
         // Accessibility: announce focus
         sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
-        // Post a check after layout to verify actual rendered dimensions.
+        // Post a verification check after the layout pass completes.
         post {
-            Log.d("FloatyDebug", "showContent() POST-LAYOUT: measuredW=$measuredWidth, measuredH=$measuredHeight, w=$width, h=$height")
+            Log.d("FloatyDebug", "showContent() POST-LAYOUT: measuredW=$measuredWidth, measuredH=$measuredHeight, w=$width, h=$height, lp.w=${layoutParams?.width}, lp.h=${layoutParams?.height}")
+            val tw = targetWidthPx
+            val th = targetHeightPx
+            if (tw != null && tw > 0 && th != null && th > 0) {
+                if (measuredWidth != tw || measuredHeight != th) {
+                    Log.w("FloatyDebug", "DIMENSION MISMATCH! Forcing re-measure: target=${tw}x${th}, actual=${measuredWidth}x${measuredHeight}")
+                    // Emergency: force exact dimensions directly.
+                    val wSpec = MeasureSpec.makeMeasureSpec(tw, MeasureSpec.EXACTLY)
+                    val hSpec = MeasureSpec.makeMeasureSpec(th, MeasureSpec.EXACTLY)
+                    measure(wSpec, hSpec)
+                    layout(left, top, left + tw, top + th)
+                }
+            }
         }
     }
 
