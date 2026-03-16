@@ -1,5 +1,6 @@
 import 'package:floaty_chatheads/floaty_chatheads.dart';
-import 'package:floaty_chatheads/src/generated/floaty_chatheads_overlay_api.g.dart';
+import 'package:floaty_chatheads/src/generated/'
+    'floaty_chatheads_overlay_api.g.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,8 +9,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
+    FloatyConnectionState.dispose();
     FloatyOverlay.dispose();
     FloatyOverlay.setUp();
+    FloatyConnectionState.setUp();
   });
 
   group('FloatyScope', () {
@@ -91,7 +94,8 @@ void main() {
       );
 
       final encoded = const JSONMessageCodec().encodeMessage('hello');
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,
@@ -121,9 +125,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default']);
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadTapped',
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadTapped',
         encoded,
         (data) {},
       );
@@ -150,9 +156,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['bubble1']);
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadClosed',
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadClosed',
         encoded,
         (data) {},
       );
@@ -179,9 +187,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default']);
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadExpanded',
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadExpanded',
         encoded,
         (data) {},
       );
@@ -208,9 +218,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default']);
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadCollapsed',
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadCollapsed',
         encoded,
         (data) {},
       );
@@ -237,9 +249,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default', 10.0, 20.0]);
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragStart',
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadDragStart',
         encoded,
         (data) {},
       );
@@ -267,9 +281,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default', 100.0, 200.0]);
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragEnd',
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadDragEnd',
         encoded,
         (data) {},
       );
@@ -299,7 +315,8 @@ void main() {
         '_floaty_theme': {'primary': 0xFF6200EE},
       };
       final encoded = const JSONMessageCodec().encodeMessage(paletteMessage);
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,
@@ -308,6 +325,52 @@ void main() {
 
       await tester.pump();
       expect(data!.palette, isNotNull);
+    });
+
+    testWidgets('updates isMainAppConnected on connection change',
+        (tester) async {
+      FloatyScopeData? data;
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: FloatyScope(
+            child: Builder(
+              builder: (context) {
+                data = FloatyScope.of(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+
+      // Simulate a disconnect.
+      final encoded = const JSONMessageCodec().encodeMessage({
+        '_floaty_connection': {'connected': false},
+      });
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        'ni.devotion.floaty_head/messenger',
+        encoded,
+        (data) {},
+      );
+      await tester.pump();
+      expect(data!.isMainAppConnected, isFalse);
+
+      // Simulate a reconnect.
+      final encoded2 = const JSONMessageCodec().encodeMessage({
+        '_floaty_connection': {'connected': true},
+      });
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        'ni.devotion.floaty_head/messenger',
+        encoded2,
+        (data) {},
+      );
+      await tester.pump();
+      expect(data!.isMainAppConnected, isTrue);
     });
 
     testWidgets('disposes stream subscriptions on unmount', (tester) async {
@@ -338,9 +401,9 @@ void main() {
 
     test('constructor accepts all fields', () {
       const event = ChatHeadDragEvent(id: 'default', x: 10, y: 20);
-      final data = FloatyScopeData(
+      const data = FloatyScopeData(
         lastMessage: 'hello',
-        messages: const ['hello', 'world'],
+        messages: ['hello', 'world'],
         lastTappedId: 'default',
         lastClosedId: 'bubble1',
         lastExpandedId: 'default',

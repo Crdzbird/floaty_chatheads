@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:floaty_chatheads/floaty_chatheads.dart';
-import 'package:floaty_chatheads/src/generated/floaty_chatheads_overlay_api.g.dart';
+import 'package:floaty_chatheads/src/generated/'
+    'floaty_chatheads_overlay_api.g.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,10 +10,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('FloatyOverlay', () {
-    setUp(() {
-      // Reset the overlay by disposing first.
-      FloatyOverlay.dispose();
-    });
+    setUp(FloatyOverlay.dispose);
 
     test('setUp registers handler and can be called multiple times', () {
       // First call should set up.
@@ -29,52 +27,61 @@ void main() {
     });
 
     test('onData stream is broadcast', () {
-      final stream = FloatyOverlay.onData;
-      // Broadcast streams allow multiple listeners.
-      stream.listen((_) {});
-      stream.listen((_) {});
+      final stream = FloatyOverlay.onData
+        // Broadcast streams allow multiple listeners.
+        ..listen((_) {})
+        ..listen((_) {});
+      expect(stream.isBroadcast, isTrue);
     });
 
     test('onTapped stream is broadcast', () {
-      final stream = FloatyOverlay.onTapped;
-      stream.listen((_) {});
-      stream.listen((_) {});
+      final stream = FloatyOverlay.onTapped
+        ..listen((_) {})
+        ..listen((_) {});
+      expect(stream.isBroadcast, isTrue);
     });
 
     test('onClosed stream is broadcast', () {
-      final stream = FloatyOverlay.onClosed;
-      stream.listen((_) {});
-      stream.listen((_) {});
+      final stream = FloatyOverlay.onClosed
+        ..listen((_) {})
+        ..listen((_) {});
+      expect(stream.isBroadcast, isTrue);
     });
 
     test('onExpanded stream is broadcast', () {
-      final stream = FloatyOverlay.onExpanded;
-      stream.listen((_) {});
-      stream.listen((_) {});
+      final stream = FloatyOverlay.onExpanded
+        ..listen((_) {})
+        ..listen((_) {});
+      expect(stream.isBroadcast, isTrue);
     });
 
     test('onCollapsed stream is broadcast', () {
-      final stream = FloatyOverlay.onCollapsed;
-      stream.listen((_) {});
-      stream.listen((_) {});
+      final stream = FloatyOverlay.onCollapsed
+        ..listen((_) {})
+        ..listen((_) {});
+      expect(stream.isBroadcast, isTrue);
     });
 
     test('onDragStart stream is broadcast', () {
-      final stream = FloatyOverlay.onDragStart;
-      stream.listen((_) {});
-      stream.listen((_) {});
+      final stream = FloatyOverlay.onDragStart
+        ..listen((_) {})
+        ..listen((_) {});
+      expect(stream.isBroadcast, isTrue);
     });
 
     test('onDragEnd stream is broadcast', () {
-      final stream = FloatyOverlay.onDragEnd;
-      stream.listen((_) {});
+      final stream = FloatyOverlay.onDragEnd
+        ..listen((_) {})
+        ..listen((_) {});
+      expect(stream.isBroadcast, isTrue);
       stream.listen((_) {});
     });
 
     test('onPaletteChanged stream is broadcast', () {
-      final stream = FloatyOverlay.onPaletteChanged;
-      stream.listen((_) {});
-      stream.listen((_) {});
+      final stream = FloatyOverlay.onPaletteChanged
+        ..listen((_) {})
+        ..listen((_) {});
+      expect(stream.isBroadcast, isTrue);
     });
 
     test('palette returns null initially', () {
@@ -87,16 +94,11 @@ void main() {
       final completer = Completer<Object?>();
       FloatyOverlay.onData.listen(completer.complete);
 
-      // Simulate native sending data via the messenger channel.
-      const channel = BasicMessageChannel<Object?>(
-        'ni.devotion.floaty_head/messenger',
-        JSONMessageCodec(),
-      );
-
       // Send a message using the handler.
-      final handler = ServicesBinding.instance.defaultBinaryMessenger;
+      final handler = TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger;
       final encoded = const JSONMessageCodec().encodeMessage('hello');
-      final response = await handler.handlePlatformMessage(
+      await handler.handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,
         (data) {},
@@ -125,7 +127,9 @@ void main() {
       };
 
       final encoded = const JSONMessageCodec().encodeMessage(paletteMessage);
-      await ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,
         (data) {},
@@ -145,20 +149,17 @@ void main() {
       final ids = <String>[];
       FloatyOverlay.onTapped.listen(ids.add);
 
-      // Simulate Pigeon calling the Flutter API.
-      final channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadTapped',
-        FloatyOverlayFlutterApi.pigeonChannelCodec,
-      );
-
       // First set up the handlers.
       FloatyOverlay.setUp();
 
       // Send message through the pigeon channel.
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default']);
-      await ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadTapped',
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadTapped',
         encoded,
         (data) {},
       );
@@ -174,8 +175,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['bubble1']);
-      await ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadClosed',
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadClosed',
         encoded,
         (data) {},
       );
@@ -191,8 +195,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default']);
-      await ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadExpanded',
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadExpanded',
         encoded,
         (data) {},
       );
@@ -208,8 +215,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default']);
-      await ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadCollapsed',
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadCollapsed',
         encoded,
         (data) {},
       );
@@ -225,8 +235,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default', 10.0, 20.0]);
-      await ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragStart',
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadDragStart',
         encoded,
         (data) {},
       );
@@ -245,8 +258,11 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default', 100.0, 200.0]);
-      await ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
-        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragEnd',
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        'dev.flutter.pigeon.floaty_chatheads.'
+            'FloatyOverlayFlutterApi.onChatHeadDragEnd',
         encoded,
         (data) {},
       );
@@ -259,15 +275,7 @@ void main() {
   });
 
   group('OverlayColorPalette', () {
-    test('exposes all standard color keys', () {
-      // Trigger palette creation through setUp.
-      FloatyOverlay.setUp();
-
-      // Create palette by sending theme message.
-      // Instead, test OverlayColorPalette indirectly by creating it via
-      // the setUp theme handler. For a direct test, we need to access
-      // the factory. Let's do that via the palette stream.
-    });
+    test('exposes all standard color keys', FloatyOverlay.setUp);
 
     test('palette getters return correct colors from setUp', () async {
       FloatyOverlay.dispose();
@@ -291,7 +299,9 @@ void main() {
       };
 
       final encoded = const JSONMessageCodec().encodeMessage(paletteMessage);
-      await ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,
         (data) {},

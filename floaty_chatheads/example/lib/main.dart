@@ -6,23 +6,27 @@ import 'package:flutter/material.dart';
 import 'examples/accessibility_example.dart';
 import 'examples/dashboard_example.dart';
 import 'examples/features_showcase_example.dart';
+import 'examples/map_example.dart';
 import 'examples/messenger_example.dart';
 import 'examples/messenger_fullscreen_example.dart';
 import 'examples/mini_player_example.dart';
 import 'examples/multi_chathead_example.dart';
 import 'examples/notification_counter_example.dart';
 import 'examples/quick_action_example.dart';
+import 'examples/survival_example.dart';
 import 'examples/themed_example.dart';
 import 'examples/timer_example.dart';
 import 'overlays/accessibility_overlay.dart';
 import 'overlays/dashboard_overlay.dart';
 import 'overlays/features_showcase_overlay.dart';
+import 'overlays/map_overlay.dart';
 import 'overlays/messenger_fullscreen_overlay.dart';
 import 'overlays/messenger_overlay.dart';
 import 'overlays/mini_player_overlay.dart';
 import 'overlays/multi_chat_overlay.dart';
 import 'overlays/notification_counter_overlay.dart';
 import 'overlays/quick_action_overlay.dart';
+import 'overlays/survival_overlay.dart';
 import 'overlays/themed_overlay.dart';
 import 'overlays/timer_overlay.dart';
 import 'utils.dart';
@@ -34,137 +38,56 @@ void main() => runApp(const MaterialApp(home: GalleryPage()));
 // ---------------------------------------------------------------------------
 
 @pragma('vm:entry-point')
-void overlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: OverlayContent(),
-    ),
-  );
-}
+void overlayMain() => FloatyOverlayApp.run(const OverlayContent());
 
 @pragma('vm:entry-point')
-void messengerOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MessengerOverlay(),
-    ),
-  );
-}
+void messengerOverlayMain() =>
+    FloatyOverlayApp.run(const MessengerOverlay());
 
 @pragma('vm:entry-point')
-void miniPlayerOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MiniPlayerOverlay(),
-    ),
-  );
-}
+void miniPlayerOverlayMain() =>
+    FloatyOverlayApp.run(const MiniPlayerOverlay());
 
 @pragma('vm:entry-point')
-void quickActionOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: QuickActionOverlay(),
-    ),
-  );
-}
+void quickActionOverlayMain() =>
+    FloatyOverlayApp.run(const QuickActionOverlay());
 
 @pragma('vm:entry-point')
-void counterOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: NotificationCounterOverlay(),
-    ),
-  );
-}
+void counterOverlayMain() =>
+    FloatyOverlayApp.run(const NotificationCounterOverlay());
 
 @pragma('vm:entry-point')
-void timerOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: TimerOverlay(),
-    ),
-  );
-}
+void timerOverlayMain() => FloatyOverlayApp.run(const TimerOverlay());
 
 @pragma('vm:entry-point')
-void multiChatOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MultiChatOverlay(),
-    ),
-  );
-}
+void multiChatOverlayMain() =>
+    FloatyOverlayApp.run(const MultiChatOverlay());
 
 @pragma('vm:entry-point')
-void dashboardOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: DashboardOverlay(),
-    ),
-  );
-}
+void dashboardOverlayMain() =>
+    FloatyOverlayApp.run(const DashboardOverlay());
 
 @pragma('vm:entry-point')
-void messengerFullscreenOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MessengerFullscreenOverlay(),
-    ),
-  );
-}
+void messengerFullscreenOverlayMain() =>
+    FloatyOverlayApp.run(const MessengerFullscreenOverlay());
 
 @pragma('vm:entry-point')
-void featuresOverlayMain() {
-  debugPrint('featuresOverlayMain: entry point executing');
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: FeaturesShowcaseOverlay(),
-    ),
-  );
-}
+void featuresOverlayMain() =>
+    FloatyOverlayApp.run(const FeaturesShowcaseOverlay());
 
 @pragma('vm:entry-point')
-void themedOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: ThemedOverlay(),
-    ),
-  );
-}
+void themedOverlayMain() => FloatyOverlayApp.run(const ThemedOverlay());
 
 @pragma('vm:entry-point')
-void accessibilityOverlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: AccessibilityOverlay(),
-    ),
-  );
-}
+void mapOverlayMain() => FloatyOverlayApp.run(const MapOverlay());
+
+@pragma('vm:entry-point')
+void accessibilityOverlayMain() =>
+    FloatyOverlayApp.run(const AccessibilityOverlay());
+
+@pragma('vm:entry-point')
+void survivalOverlayMain() =>
+    FloatyOverlayApp.run(const SurvivalOverlay());
 
 // ---------------------------------------------------------------------------
 // Gallery — lists all examples
@@ -218,14 +141,14 @@ class GalleryPage extends StatelessWidget {
     ),
     _ExampleInfo(
       title: 'Dashboard (Fullscreen)',
-      description: 'Near-fullscreen scrollable notes overlay with rich content.',
+      description:
+          'Near-fullscreen scrollable notes overlay with rich content.',
       icon: Icons.dashboard,
       color: Colors.blue,
     ),
     _ExampleInfo(
       title: 'Messenger (Fullscreen)',
-      description:
-          'Facebook Messenger-style: bubble at top, full chat below.',
+      description: 'Facebook Messenger-style: bubble at top, full chat below.',
       icon: Icons.mark_chat_read,
       color: Color(0xFF0084FF),
     ),
@@ -250,6 +173,20 @@ class GalleryPage extends StatelessWidget {
       icon: Icons.accessibility_new,
       color: Colors.blue,
     ),
+    _ExampleInfo(
+      title: 'Interactive Map',
+      description:
+          'OSM map with action routing, state sync, and proxy features.',
+      icon: Icons.map,
+      color: Colors.green,
+    ),
+    _ExampleInfo(
+      title: 'Overlay Survival',
+      description:
+          'Kill the app — overlay survives, queues actions, reconnects.',
+      icon: Icons.shield,
+      color: Colors.deepOrange,
+    ),
   ];
 
   Widget _buildRoute(int index) {
@@ -266,6 +203,8 @@ class GalleryPage extends StatelessWidget {
       9 => const FeaturesShowcaseExample(),
       10 => const ThemedExample(),
       11 => const AccessibilityExample(),
+      12 => const MapExample(),
+      13 => const SurvivalExample(),
       _ => const HomePage(),
     };
   }
@@ -352,11 +291,17 @@ class _HomePageState extends State<HomePage> {
   Future<void> _showChatHead() async {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Chathead Active',
-      notificationIconAsset: 'assets/notificationIcon.png',
+      assets: const ChatHeadAssets(
+        icon: IconSource.asset('assets/showcase_bubble.png'),
+        closeIcon: IconSource.asset('assets/showcase_close.png'),
+        closeBackground: IconSource.asset('assets/showcase_close_bg.png'),
+      ),
+      notification: const NotificationConfig(
+        title: 'Chathead Active',
+        iconAsset: 'assets/notificationIcon.png',
+      ),
+      contentWidth: 240,
+      contentHeight: 220,
     );
   }
 
@@ -437,7 +382,10 @@ class _HomePageState extends State<HomePage> {
                     itemBuilder: (_, i) => Card(
                       child: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: Text(_received[i], style: const TextStyle(fontSize: 13)),
+                        child: Text(
+                          _received[i],
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       ),
                     ),
                   ),
@@ -526,7 +474,10 @@ class _OverlayContentState extends State<OverlayContent> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),

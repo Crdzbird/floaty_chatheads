@@ -42,10 +42,8 @@ class _TimerExampleState extends State<TimerExample> {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'timerOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Timer Active',
+      assets: const ChatHeadAssets.defaults(),
+      notification: const NotificationConfig(title: 'Timer Active'),
       contentWidth: 200,
       contentHeight: 160,
     );
@@ -148,6 +146,7 @@ class _TimerExampleState extends State<TimerExample> {
   @override
   void dispose() {
     _sub?.cancel();
+    FloatyChatheads.closeChatHead();
     FloatyChatheads.dispose();
     super.dispose();
   }

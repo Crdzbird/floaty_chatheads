@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:floaty_chatheads/src/floaty_channel.dart';
+import 'package:floaty_chatheads/src/floaty_connection_state.dart';
 import 'package:floaty_chatheads/src/generated/floaty_chatheads_overlay_api.g.dart';
 import 'package:flutter/services.dart';
 
@@ -22,18 +24,11 @@ import 'package:flutter/services.dart';
 final class FloatyOverlay implements FloatyOverlayFlutterApi {
   FloatyOverlay._(); // coverage:ignore-line
 
-  static final FloatyOverlay _instance = FloatyOverlay._(); // coverage:ignore-line
-
-  static final FloatyOverlayHostApi _overlayHostApi = FloatyOverlayHostApi(); // coverage:ignore-line
-
-  static const BasicMessageChannel<Object?> _messenger =
-      BasicMessageChannel<Object?>(
-        'ni.devotion.floaty_head/messenger',
-        JSONMessageCodec(),
-      );
-
-  static final StreamController<Object?> _dataController =
-      StreamController<Object?>.broadcast();
+  // coverage:ignore-start
+  static final FloatyOverlay _instance = FloatyOverlay._();
+  static final FloatyOverlayHostApi _overlayHostApi =
+      FloatyOverlayHostApi();
+  // coverage:ignore-end
 
   static final StreamController<String> _tapController =
       StreamController<String>.broadcast();
@@ -61,6 +56,9 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
   /// The current overlay color palette, if one was sent by the main app.
   static OverlayColorPalette? _palette;
 
+  /// Handler key for the theme palette prefix.
+  static const _themePrefixKey = '_floaty_theme';
+
   /// {@template floaty_overlay.set_up}
   /// Call once in your overlay entry point to set up the Flutter API handler.
   ///
@@ -70,22 +68,22 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
   static void setUp() {
     if (!_isSetUp) {
       FloatyOverlayFlutterApi.setUp(_instance);
-      _messenger.setMessageHandler((message) async {
-        // Intercept theme palette messages from native.
-        if (message is Map && message.containsKey('_floaty_theme')) {
-          final raw = message['_floaty_theme'];
-          if (raw is Map) {
-            final palette = OverlayColorPalette._fromMap(
-              raw.map((k, v) => MapEntry(k.toString(), v as int)),
-            );
-            _palette = palette;
-            _paletteController.add(palette);
-            return message;
-          }
-        }
-        _dataController.add(message);
-        return message;
+
+      // Register the theme palette handler on the shared channel.
+      FloatyChannel.registerHandler(_themePrefixKey, (data) {
+        final palette = OverlayColorPalette._fromMap(
+          data.map((k, v) => MapEntry(k, v as int)),
+        );
+        _palette = palette;
+        _paletteController.add(palette);
       });
+
+      // Set up connection state tracking.
+      FloatyConnectionState.setUp();
+
+      // Ensure the shared channel is listening.
+      FloatyChannel.ensureListening();
+
       _isSetUp = true;
     }
   }
@@ -93,7 +91,7 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
   /// {@template floaty_overlay.on_data}
   /// Stream of messages sent from the main app.
   /// {@endtemplate}
-  static Stream<Object?> get onData => _dataController.stream;
+  static Stream<Object?> get onData => FloatyChannel.rawMessages;
 
   /// {@template floaty_overlay.on_tapped}
   /// Stream that emits the ID of the chathead bubble that was tapped.
@@ -179,7 +177,7 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
   /// The data is serialized via [JSONMessageCodec] and forwarded
   /// through a [BasicMessageChannel].
   /// {@endtemplate}
-  static Future<void> shareData(Object? data) => _messenger.send(data);
+  static Future<void> shareData(Object? data) => FloatyChannel.send(data);
 
   // coverage:ignore-end
 
@@ -190,7 +188,8 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
   /// called again to re-attach handlers.
   /// {@endtemplate}
   static void dispose() {
-    _messenger.setMessageHandler(null);
+    FloatyChannel.unregisterHandler(_themePrefixKey);
+    FloatyChannel.dispose();
     _isSetUp = false;
   }
 

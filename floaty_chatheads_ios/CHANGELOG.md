@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.1.1
+
+### 🐛 Bug Fixes
+
+- Fixed content panel size leaking between chathead sessions. The
+  `contentSize` is now reset to defaults (300x400) before applying the
+  new config so previous session dimensions don't persist.
+
+## 1.1.0
+
+### 🚀 iOS Feature Parity
+
+- **Entrance animations**: `none`, `pop`, `slideFromEdge`, `fade` with spring physics.
+- **Snap-to-edge**: `both`, `left`, `right`, `none` with configurable margin.
+- **Position persistence**: saves and restores chathead position via `UserDefaults`.
+- **Badge counter**: red pill badge with count, themed colors, caps at "99+".
+- **Theming**: bubble border color/width, shadow color, badge colors, overlay palette delivery.
+- **Expand / Collapse**: programmatic expand/collapse with animated transitions.
+- **Drag lifecycle events**: `onChatHeadDragStart` and `onChatHeadDragEnd` callbacks.
+- **VoiceOver accessibility**: `accessibilityLabel`, `accessibilityValue` for badge,
+  screen change notifications on expand/collapse.
+- **Debug info**: `getDebugInfo()` returns overlay state, window frame, snap config.
+- Updated Pigeon schema to match Android with all new enums, models, and API methods.
+- Full size preset support via Dart-side resolution.
+
 ## 1.0.1
 
 - Documentation and metadata updates.

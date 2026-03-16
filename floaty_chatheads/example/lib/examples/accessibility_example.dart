@@ -37,10 +37,12 @@ class _AccessibilityExampleState extends State<AccessibilityExample> {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'accessibilityOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Accessibility Test',
+      assets: const ChatHeadAssets(
+        icon: IconSource.asset('assets/showcase_bubble.png'),
+        closeIcon: IconSource.asset('assets/showcase_close.png'),
+        closeBackground: IconSource.asset('assets/showcase_close_bg.png'),
+      ),
+      notification: const NotificationConfig(title: 'Accessibility Test'),
       contentWidth: 200,
       contentHeight: 240,
     );
@@ -153,6 +155,7 @@ class _AccessibilityExampleState extends State<AccessibilityExample> {
   @override
   void dispose() {
     _sub?.cancel();
+    FloatyChatheads.closeChatHead();
     FloatyChatheads.dispose();
     super.dispose();
   }

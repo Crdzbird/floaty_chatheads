@@ -96,10 +96,8 @@ class _QuickstartHomeState extends State<QuickstartHome> {
   Future<void> _launch() async {
     final shown = await FloatyLauncher.show(
       entryPoint: 'overlayMain',
-      chatheadIcon: 'assets/chatheadIcon.png',
-      closeIcon: 'assets/close.png',
-      closeBackground: 'assets/closeBg.png',
-      notificationTitle: 'Quickstart',
+      assets: const ChatHeadAssets.defaults(),
+      notification: const NotificationConfig(title: 'Quickstart'),
       sizePreset: ContentSizePreset.card,
     );
     setState(() => _status = shown ? 'Chathead shown' : 'Permission denied');

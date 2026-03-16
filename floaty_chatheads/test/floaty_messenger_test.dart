@@ -39,20 +39,20 @@ void main() {
         serialize: (value) => value,
         deserialize: (raw) => raw! as String,
       );
-      final stream = messenger.messages;
       // Should be able to listen twice (broadcast).
-      stream.listen((_) {});
-      stream.listen((_) {});
+      messenger.messages
+        ..listen((_) {})
+        ..listen((_) {});
       messenger.dispose();
     });
 
     test('dispose can be called multiple times', () {
-      final messenger = FloatyMessenger<String>(
+      FloatyMessenger<String>(
         serialize: (value) => value,
         deserialize: (raw) => raw! as String,
-      );
-      messenger.dispose();
-      messenger.dispose(); // Should not throw.
+      )
+        ..dispose()
+        ..dispose(); // Should not throw.
     });
 
     test('send serializes and sends via main app channel', () async {
@@ -90,7 +90,8 @@ void main() {
 
       // Simulate overlay sending data.
       final encoded = const JSONMessageCodec().encodeMessage('test-msg');
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,
@@ -114,7 +115,8 @@ void main() {
 
       // Send a String which can't be cast to int.
       final encoded = const JSONMessageCodec().encodeMessage('not-an-int');
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,

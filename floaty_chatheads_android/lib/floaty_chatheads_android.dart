@@ -60,22 +60,32 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
         entryPoint: config.entryPoint,
         contentWidth: effectiveWidth,
         contentHeight: effectiveHeight,
-        chatheadIconAsset: config.chatheadIconAsset,
-        closeIconAsset: config.closeIconAsset,
-        closeBackgroundAsset: config.closeBackgroundAsset,
-        notificationTitle: config.notificationTitle,
-        notificationIconAsset: config.notificationIconAsset,
+        chatheadIconAsset: config.effectiveChatheadIcon,
+        closeIconAsset: config.effectiveCloseIcon,
+        closeBackgroundAsset: config.effectiveCloseBackground,
+        notificationTitle: config.effectiveNotificationTitle,
+        notificationIconAsset: config.effectiveNotificationIcon,
         flag: pigeon.OverlayFlagMessage.values[config.flag.index],
         enableDrag: config.enableDrag,
         notificationVisibility: pigeon.NotificationVisibilityMessage
-            .values[config.notificationVisibility.index],
-        snapEdge: pigeon.SnapEdgeMessage.values[config.snapEdge.index],
-        snapMargin: config.snapMargin,
-        persistPosition: config.persistPosition,
+            .values[config.effectiveNotificationVisibility.index],
+        snapEdge: pigeon.SnapEdgeMessage
+            .values[config.effectiveSnapEdge.index],
+        snapMargin: config.effectiveSnapMargin,
+        persistPosition: config.effectivePersistPosition,
         entranceAnimation: pigeon.EntranceAnimationMessage
             .values[config.entranceAnimation.index],
         theme: themeMsg,
         debugMode: config.debugMode,
+        chatheadIconSource: _toIconSourceMessage(
+          config.effectiveChatheadIconSource,
+        ),
+        closeIconSource: _toIconSourceMessage(
+          config.effectiveCloseIconSource,
+        ),
+        closeBackgroundSource: _toIconSourceMessage(
+          config.effectiveCloseBackgroundSource,
+        ),
       ),
     );
   }
@@ -92,7 +102,15 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
   @override
   Future<void> addChatHead(AddChatHeadConfig config) {
     return _hostApi.addChatHead(
-      pigeon.AddChatHeadConfig(id: config.id, iconAsset: config.iconAsset),
+      pigeon.AddChatHeadConfig(
+        id: config.id,
+        iconAsset: config.iconAsset,
+        iconSource: config.iconSource != null
+            ? _toIconSourceMessage(config.iconSource)
+            : (config.iconAsset != null
+                ? _toIconSourceMessage(IconSource.asset(config.iconAsset!))
+                : null),
+      ),
     );
   }
 
@@ -132,4 +150,24 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
   /// {@macro floaty_chatheads_platform.collapse_chat_head}
   @override
   Future<void> collapseChatHead() => _hostApi.collapseChatHead();
+
+  /// Converts a platform-interface [IconSource] to a Pigeon
+  /// [pigeon.IconSourceMessage].
+  static pigeon.IconSourceMessage? _toIconSourceMessage(IconSource? source) {
+    if (source == null) return null;
+    return switch (source) {
+      AssetIconSource(:final path) => pigeon.IconSourceMessage(
+          type: pigeon.IconSourceTypeMessage.asset,
+          path: path,
+        ),
+      NetworkIconSource(:final url) => pigeon.IconSourceMessage(
+          type: pigeon.IconSourceTypeMessage.network,
+          path: url,
+        ),
+      BytesIconSource(:final data) => pigeon.IconSourceMessage(
+          type: pigeon.IconSourceTypeMessage.bytes,
+          bytes: data,
+        ),
+    };
+  }
 }

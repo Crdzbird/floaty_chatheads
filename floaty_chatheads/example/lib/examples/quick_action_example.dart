@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
 
@@ -7,44 +5,43 @@ import '../utils.dart';
 
 /// Quick-action overlay example: floating action buttons send
 /// action names back to the main app for logging.
-class QuickActionExample extends StatefulWidget {
+///
+/// Uses [FloatyDataBuilder] to eliminate manual stream subscription
+/// boilerplate — incoming actions accumulate into a log list via reducer.
+class QuickActionExample extends StatelessWidget {
   const QuickActionExample({super.key});
 
   @override
-  State<QuickActionExample> createState() => _QuickActionExampleState();
+  Widget build(BuildContext context) {
+    return FloatyDataBuilder<List<_LogEntry>>(
+      initialData: const [],
+      onData: (log, raw) {
+        if (raw is Map) {
+          final action = raw['action'];
+          if (action is String) {
+            return [
+              _LogEntry(action: action, time: DateTime.now()),
+              ...log,
+            ].take(100).toList();
+          }
+        }
+        return log;
+      },
+      builder: (context, log) => _QuickActionPage(log: log),
+    );
+  }
 }
 
-class _QuickActionExampleState extends State<QuickActionExample> {
-  final _log = <_LogEntry>[];
-  StreamSubscription<Object?>? _sub;
-
-  @override
-  void initState() {
-    super.initState();
-    _sub = FloatyChatheads.onData.listen((data) {
-      if (data is Map && mounted) {
-        final action = data['action'];
-        if (action is String) {
-          setState(() {
-            _log.insert(
-              0,
-              _LogEntry(action: action, time: DateTime.now()),
-            );
-            if (_log.length > 100) _log.removeLast();
-          });
-        }
-      }
-    });
-  }
+class _QuickActionPage extends StatelessWidget {
+  const _QuickActionPage({required this.log});
+  final List<_LogEntry> log;
 
   Future<void> _launch() async {
     if (!await ensureOverlayPermission()) return;
     await FloatyChatheads.showChatHead(
       entryPoint: 'quickActionOverlayMain',
-      chatheadIconAsset: 'assets/chatheadIcon.png',
-      closeIconAsset: 'assets/close.png',
-      closeBackgroundAsset: 'assets/closeBg.png',
-      notificationTitle: 'Quick Actions Active',
+      assets: const ChatHeadAssets.defaults(),
+      notification: const NotificationConfig(title: 'Quick Actions Active'),
       contentWidth: 200,
       contentHeight: 300,
     );
@@ -78,23 +75,13 @@ class _QuickActionExampleState extends State<QuickActionExample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quick Actions'),
-        actions: [
-          if (_log.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => setState(_log.clear),
-              tooltip: 'Clear log',
-            ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Quick Actions')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _launch,
         icon: const Icon(Icons.bolt),
         label: const Text('Launch'),
       ),
-      body: _log.isEmpty
+      body: log.isEmpty
           ? const Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
@@ -116,9 +103,9 @@ class _QuickActionExampleState extends State<QuickActionExample> {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(12),
-              itemCount: _log.length,
+              itemCount: log.length,
               itemBuilder: (_, i) {
-                final entry = _log[i];
+                final entry = log[i];
                 final color = _colorForAction(entry.action);
                 return Card(
                   child: ListTile(
@@ -139,13 +126,6 @@ class _QuickActionExampleState extends State<QuickActionExample> {
               },
             ),
     );
-  }
-
-  @override
-  void dispose() {
-    _sub?.cancel();
-    FloatyChatheads.dispose();
-    super.dispose();
   }
 }
 

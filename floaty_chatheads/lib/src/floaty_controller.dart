@@ -21,7 +21,7 @@ import 'package:flutter/widgets.dart';
 ///     super.initState();
 ///     _controller = FloatyController(
 ///       entryPoint: 'overlayMain',
-///       chatheadIcon: 'assets/icon.png',
+///       assets: ChatHeadAssets.defaults(),
 ///       sizePreset: ContentSizePreset.card,
 ///       autoShow: true,
 ///     );
@@ -45,26 +45,30 @@ final class FloatyController extends ChangeNotifier {
   /// {@macro floaty_controller}
   FloatyController({
     this.entryPoint = 'overlayMain',
-    this.chatheadIcon,
-    this.closeIcon,
-    this.closeBackground,
-    this.notificationTitle,
-    this.notificationIcon,
+    @Deprecated('Use assets instead') this.chatheadIcon,
+    @Deprecated('Use assets instead') this.closeIcon,
+    @Deprecated('Use assets instead') this.closeBackground,
+    @Deprecated('Use notification instead') this.notificationTitle,
+    @Deprecated('Use notification instead') this.notificationIcon,
     this.contentWidth,
     this.contentHeight,
     this.sizePreset,
     this.theme,
     this.flag = OverlayFlag.defaultFlag,
     this.enableDrag = true,
-    this.snapEdge = SnapEdge.both,
-    this.snapMargin = -10,
-    this.persistPosition = false,
+    @Deprecated('Use snap instead') this.snapEdge = SnapEdge.both,
+    @Deprecated('Use snap instead') this.snapMargin = -10,
+    @Deprecated('Use snap instead') this.persistPosition = false,
     this.entranceAnimation = EntranceAnimation.none,
+    @Deprecated('Use notification instead')
     this.notificationVisibility = NotificationVisibility.visibilityPublic,
     this.debugMode = false,
     bool autoShow = false,
     this.onData,
     this.onError,
+    this.assets,
+    this.notification,
+    this.snap,
   }) {
     if (autoShow) {
       unawaited(show());
@@ -78,27 +82,42 @@ final class FloatyController extends ChangeNotifier {
 
   /// {@template floaty_controller.chathead_icon}
   /// Flutter asset path for the bubble icon (Android).
+  ///
+  /// Deprecated: use [assets] instead.
   /// {@endtemplate}
+  @Deprecated('Use assets instead')
   final String? chatheadIcon;
 
   /// {@template floaty_controller.close_icon}
   /// Flutter asset path for the close icon (Android).
+  ///
+  /// Deprecated: use [assets] instead.
   /// {@endtemplate}
+  @Deprecated('Use assets instead')
   final String? closeIcon;
 
   /// {@template floaty_controller.close_background}
   /// Flutter asset path for the close background (Android).
+  ///
+  /// Deprecated: use [assets] instead.
   /// {@endtemplate}
+  @Deprecated('Use assets instead')
   final String? closeBackground;
 
   /// {@template floaty_controller.notification_title}
   /// Foreground-service notification title (Android).
+  ///
+  /// Deprecated: use [notification] instead.
   /// {@endtemplate}
+  @Deprecated('Use notification instead')
   final String? notificationTitle;
 
   /// {@template floaty_controller.notification_icon}
   /// Flutter asset path for the notification icon (Android).
+  ///
+  /// Deprecated: use [notification] instead.
   /// {@endtemplate}
+  @Deprecated('Use notification instead')
   final String? notificationIcon;
 
   /// {@template floaty_controller.content_width}
@@ -133,17 +152,26 @@ final class FloatyController extends ChangeNotifier {
 
   /// {@template floaty_controller.snap_edge}
   /// Edge snapping mode (Android).
+  ///
+  /// Deprecated: use [snap] instead.
   /// {@endtemplate}
+  @Deprecated('Use snap instead')
   final SnapEdge snapEdge;
 
   /// {@template floaty_controller.snap_margin}
   /// Margin from screen edge when snapped (Android).
+  ///
+  /// Deprecated: use [snap] instead.
   /// {@endtemplate}
+  @Deprecated('Use snap instead')
   final double snapMargin;
 
   /// {@template floaty_controller.persist_position}
   /// Whether to restore position across sessions (Android).
+  ///
+  /// Deprecated: use [snap] instead.
   /// {@endtemplate}
+  @Deprecated('Use snap instead')
   final bool persistPosition;
 
   /// {@template floaty_controller.entrance_animation}
@@ -153,13 +181,34 @@ final class FloatyController extends ChangeNotifier {
 
   /// {@template floaty_controller.notification_visibility}
   /// Lock-screen visibility (Android).
+  ///
+  /// Deprecated: use [notification] instead.
   /// {@endtemplate}
+  @Deprecated('Use notification instead')
   final NotificationVisibility notificationVisibility;
 
   /// {@template floaty_controller.debug_mode}
   /// Whether the native debug inspector is enabled (Android).
   /// {@endtemplate}
   final bool debugMode;
+
+  /// Grouped asset configuration.
+  ///
+  /// When provided, takes precedence over the individual icon asset
+  /// parameters (which are deprecated).
+  final ChatHeadAssets? assets;
+
+  /// Grouped notification configuration.
+  ///
+  /// When provided, takes precedence over the individual notification
+  /// parameters (which are deprecated).
+  final NotificationConfig? notification;
+
+  /// Grouped snap-behavior configuration.
+  ///
+  /// When provided, takes precedence over the individual snap
+  /// parameters (which are deprecated).
+  final SnapConfig? snap;
 
   /// {@template floaty_controller.on_data}
   /// Callback invoked when data arrives from the overlay.
@@ -185,10 +234,15 @@ final class FloatyController extends ChangeNotifier {
     try {
       final shown = await FloatyLauncher.show(
         entryPoint: entryPoint,
+        // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
         chatheadIcon: chatheadIcon,
+        // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
         closeIcon: closeIcon,
+        // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
         closeBackground: closeBackground,
+        // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
         notificationTitle: notificationTitle,
+        // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
         notificationIcon: notificationIcon,
         contentWidth: contentWidth,
         contentHeight: contentHeight,
@@ -196,12 +250,19 @@ final class FloatyController extends ChangeNotifier {
         theme: theme,
         flag: flag,
         enableDrag: enableDrag,
+        // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
         snapEdge: snapEdge,
+        // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
         snapMargin: snapMargin,
+        // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
         persistPosition: persistPosition,
         entranceAnimation: entranceAnimation,
+        // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
         notificationVisibility: notificationVisibility,
         debugMode: debugMode,
+        assets: assets,
+        notification: notification,
+        snap: snap,
       );
       _isActive = shown;
       if (shown && onData != null) {
@@ -254,7 +315,7 @@ final class FloatyController extends ChangeNotifier {
 /// ```dart
 /// FloatyControllerWidget(
 ///   entryPoint: 'overlayMain',
-///   chatheadIcon: 'assets/icon.png',
+///   assets: ChatHeadAssets.defaults(),
 ///   sizePreset: ContentSizePreset.card,
 ///   child: MyPageContent(),
 /// )
@@ -265,35 +326,72 @@ final class FloatyController extends ChangeNotifier {
 final class FloatyControllerWidget extends StatefulWidget {
   /// {@macro floaty_controller_widget}
   const FloatyControllerWidget({
-    required this.child,
+    this.child,
+    this.builder,
     super.key,
     this.entryPoint = 'overlayMain',
-    this.chatheadIcon,
-    this.closeIcon,
-    this.closeBackground,
-    this.notificationTitle,
+    @Deprecated('Use assets instead') this.chatheadIcon,
+    @Deprecated('Use assets instead') this.closeIcon,
+    @Deprecated('Use assets instead') this.closeBackground,
+    @Deprecated('Use notification instead') this.notificationTitle,
     this.sizePreset,
     this.theme,
     this.debugMode = false,
     this.onData,
-  });
+    this.assets,
+    this.notification,
+    this.snap,
+  }) : assert(
+          child != null || builder != null,
+          'Either child or builder must be provided.',
+        );
 
   /// The widget to render while the chathead is active.
-  final Widget child;
+  final Widget? child;
+
+  /// Builder that receives the [FloatyController] directly.
+  ///
+  /// Use this instead of [child] when you need access to the controller
+  /// without calling [FloatyControllerWidget.of]:
+  ///
+  /// ```dart
+  /// FloatyControllerWidget(
+  ///   assets: const ChatHeadAssets.defaults(),
+  ///   sizePreset: ContentSizePreset.card,
+  ///   builder: (context, controller) => ElevatedButton(
+  ///     onPressed: controller.toggle,
+  ///     child: Text(controller.isActive ? 'Close' : 'Show'),
+  ///   ),
+  /// )
+  /// ```
+  final Widget Function(BuildContext context, FloatyController controller)?
+      builder;
 
   /// Dart entry-point function name for the overlay.
   final String entryPoint;
 
   /// Flutter asset path for the bubble icon (Android).
+  ///
+  /// Deprecated: use [assets] instead.
+  @Deprecated('Use assets instead')
   final String? chatheadIcon;
 
   /// Flutter asset path for the close icon (Android).
+  ///
+  /// Deprecated: use [assets] instead.
+  @Deprecated('Use assets instead')
   final String? closeIcon;
 
   /// Flutter asset path for the close background (Android).
+  ///
+  /// Deprecated: use [assets] instead.
+  @Deprecated('Use assets instead')
   final String? closeBackground;
 
   /// Foreground-service notification title (Android).
+  ///
+  /// Deprecated: use [notification] instead.
+  @Deprecated('Use notification instead')
   final String? notificationTitle;
 
   /// Named size preset.
@@ -307,6 +405,15 @@ final class FloatyControllerWidget extends StatefulWidget {
 
   /// Callback when data arrives from the overlay.
   final void Function(Object? data)? onData;
+
+  /// Grouped asset configuration.
+  final ChatHeadAssets? assets;
+
+  /// Grouped notification configuration.
+  final NotificationConfig? notification;
+
+  /// Grouped snap-behavior configuration.
+  final SnapConfig? snap;
 
   /// Returns the nearest [FloatyController] above [context], or `null`.
   static FloatyController? of(BuildContext context) {
@@ -329,15 +436,22 @@ final class _FloatyControllerWidgetState
     super.initState();
     _controller = FloatyController(
       entryPoint: widget.entryPoint,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       chatheadIcon: widget.chatheadIcon,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       closeIcon: widget.closeIcon,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       closeBackground: widget.closeBackground,
+      // ignore: deprecated_member_use_from_same_package, forwards deprecated param for backward compat.
       notificationTitle: widget.notificationTitle,
       sizePreset: widget.sizePreset,
       theme: widget.theme,
       debugMode: widget.debugMode,
       onData: widget.onData,
       autoShow: true,
+      assets: widget.assets,
+      notification: widget.notification,
+      snap: widget.snap,
     );
   }
 
@@ -348,5 +462,13 @@ final class _FloatyControllerWidgetState
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    if (widget.builder != null) {
+      return ListenableBuilder(
+        listenable: _controller,
+        builder: (context, _) => widget.builder!(context, _controller),
+      );
+    }
+    return widget.child!;
+  }
 }

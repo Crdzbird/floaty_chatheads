@@ -17,14 +17,18 @@ void main() {
     test('show checks permission and shows chathead', () async {
       final result = await FloatyLauncher.show(
         entryPoint: 'testOverlay',
-        chatheadIcon: 'assets/icon.png',
+        assets: const ChatHeadAssets(
+          icon: IconSource.asset('assets/icon.png'),
+          closeIcon: IconSource.asset('assets/close.png'),
+          closeBackground: IconSource.asset('assets/closeBg.png'),
+        ),
       );
       expect(result, isTrue);
       expect(fake.checkPermissionCalled, isTrue);
       expect(fake.showChatHeadCalled, isTrue);
       expect(fake.lastConfig?.entryPoint, equals('testOverlay'));
       expect(
-        fake.lastConfig?.chatheadIconAsset,
+        fake.lastConfig?.effectiveChatheadIcon,
         equals('assets/icon.png'),
       );
     });
@@ -47,7 +51,7 @@ void main() {
     });
 
     test('show passes theme', () async {
-      final theme = ChatHeadTheme(badgeColor: 0xFFFF0000);
+      const theme = ChatHeadTheme(badgeColor: 0xFFFF0000);
       await FloatyLauncher.show(theme: theme);
       expect(fake.lastConfig?.theme?.badgeColor, equals(0xFFFF0000));
     });

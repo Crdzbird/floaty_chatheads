@@ -22,8 +22,8 @@ void main() {
         const Directionality(
           textDirection: TextDirection.ltr,
           child: FloatyPermissionGate(
-            child: Text('Granted'),
             fallback: Text('Denied'),
+            child: Text('Granted'),
           ),
         ),
       );
@@ -42,8 +42,8 @@ void main() {
         const Directionality(
           textDirection: TextDirection.ltr,
           child: FloatyPermissionGate(
-            child: Text('Granted'),
             fallback: Text('Denied'),
+            child: Text('Granted'),
           ),
         ),
       );
@@ -63,8 +63,8 @@ void main() {
           textDirection: TextDirection.ltr,
           child: FloatyPermissionGate(
             onPermissionGranted: () => granted = true,
-            child: const Text('Granted'),
             fallback: const Text('Denied'),
+            child: const Text('Granted'),
           ),
         ),
       );
@@ -82,8 +82,8 @@ void main() {
           textDirection: TextDirection.ltr,
           child: FloatyPermissionGate(
             onPermissionDenied: () => denied = true,
-            child: const Text('Granted'),
             fallback: const Text('Denied'),
+            child: const Text('Granted'),
           ),
         ),
       );
@@ -98,8 +98,8 @@ void main() {
         const Directionality(
           textDirection: TextDirection.ltr,
           child: FloatyPermissionGate(
-            child: Text('Granted'),
             fallback: Text('Denied'),
+            child: Text('Granted'),
           ),
         ),
       );
@@ -117,12 +117,12 @@ void main() {
       fake.permissionGranted = false;
 
       await tester.pumpWidget(
-        Directionality(
+        const Directionality(
           textDirection: TextDirection.ltr,
           child: FloatyPermissionGate(
-            checkInterval: const Duration(milliseconds: 100),
-            child: const Text('Granted'),
-            fallback: const Text('Denied'),
+            checkInterval: Duration(milliseconds: 100),
+            fallback: Text('Denied'),
+            child: Text('Granted'),
           ),
         ),
       );
@@ -147,8 +147,8 @@ void main() {
         const Directionality(
           textDirection: TextDirection.ltr,
           child: FloatyPermissionGate(
-            child: Text('Granted'),
             fallback: Text('Denied'),
+            child: Text('Granted'),
           ),
         ),
       );
@@ -168,12 +168,12 @@ void main() {
       fake.permissionGranted = false;
 
       await tester.pumpWidget(
-        Directionality(
+        const Directionality(
           textDirection: TextDirection.ltr,
           child: FloatyPermissionGate(
-            checkInterval: const Duration(milliseconds: 50),
-            child: const Text('Granted'),
-            fallback: const Text('Denied'),
+            checkInterval: Duration(milliseconds: 50),
+            fallback: Text('Denied'),
+            child: Text('Granted'),
           ),
         ),
       );
@@ -198,8 +198,8 @@ void main() {
         const Directionality(
           textDirection: TextDirection.ltr,
           child: FloatyPermissionGate(
-            child: Text('Granted'),
             fallback: Text('Denied'),
+            child: Text('Granted'),
           ),
         ),
       );
@@ -223,8 +223,8 @@ void main() {
         const Directionality(
           textDirection: TextDirection.ltr,
           child: FloatyPermissionGate(
-            child: Text('Granted'),
             fallback: Text('Denied'),
+            child: Text('Granted'),
           ),
         ),
       );
@@ -238,7 +238,8 @@ void main() {
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pumpAndSettle();
 
-      // checkPermission should NOT have been called again since _granted is true.
+      // checkPermission should NOT have been called again
+      // since _granted is true.
       expect(fake.checkPermissionCalled, isFalse);
     });
   });

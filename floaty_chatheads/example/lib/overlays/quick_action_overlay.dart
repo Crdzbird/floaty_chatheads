@@ -1,21 +1,12 @@
-import 'dart:async';
-
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
 
 /// Vertical strip of quick-action FABs that collapse/expand on chathead tap.
 ///
 /// Sends the action name back to the main app when tapped.
-class QuickActionOverlay extends StatefulWidget {
+/// Uses [FloatyOverlayBuilder] to eliminate all lifecycle boilerplate.
+class QuickActionOverlay extends StatelessWidget {
   const QuickActionOverlay({super.key});
-
-  @override
-  State<QuickActionOverlay> createState() => _QuickActionOverlayState();
-}
-
-class _QuickActionOverlayState extends State<QuickActionOverlay> {
-  bool _expanded = true;
-  late final StreamSubscription<String> _tapSub;
 
   static const _actions = [
     _Action(Icons.camera_alt, 'screenshot', Colors.blue),
@@ -25,67 +16,57 @@ class _QuickActionOverlayState extends State<QuickActionOverlay> {
   ];
 
   @override
-  void initState() {
-    super.initState();
-    FloatyOverlay.setUp();
-
-    _tapSub = FloatyOverlay.onTapped.listen((id) {
-      setState(() => _expanded = !_expanded);
-      if (_expanded) {
-        FloatyOverlay.resizeContent(200, 300);
-      } else {
-        FloatyOverlay.resizeContent(60, 60);
-      }
-    });
-  }
-
-  void _onAction(String action) {
-    FloatyOverlay.shareData({'action': action, 'timestamp': DateTime.now().millisecondsSinceEpoch});
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (!_expanded) {
-      return const SizedBox.shrink();
-    }
+    return FloatyOverlayBuilder<bool>(
+      initialState: true,
+      onData: (expanded, _) => expanded,
+      onTapped: (expanded, _) {
+        final next = !expanded;
+        if (next) {
+          FloatyOverlay.resizeContent(200, 300);
+        } else {
+          FloatyOverlay.resizeContent(60, 60);
+        }
+        return next;
+      },
+      builder: (context, expanded) {
+        if (!expanded) return const SizedBox.shrink();
 
-    return Material(
-      color: Colors.transparent,
-      child: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final action in _actions) ...[
-                  _ActionButton(
-                    icon: action.icon,
-                    color: action.color,
-                    label: action.name,
-                    onTap: () => _onAction(action.name),
-                  ),
-                  const SizedBox(height: 6),
-                ],
-                _ActionButton(
-                  icon: Icons.close,
-                  color: Colors.red,
-                  label: 'close',
-                  onTap: FloatyOverlay.closeOverlay,
+        return Material(
+          color: Colors.transparent,
+          child: Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final action in _actions) ...[
+                      _ActionButton(
+                        icon: action.icon,
+                        color: action.color,
+                        label: action.name,
+                        onTap: () => FloatyOverlay.shareData({
+                          'action': action.name,
+                          'timestamp': DateTime.now().millisecondsSinceEpoch,
+                        }),
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    _ActionButton(
+                      icon: Icons.close,
+                      color: Colors.red,
+                      label: 'close',
+                      onTap: FloatyOverlay.closeOverlay,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
-  }
-
-  @override
-  void dispose() {
-    _tapSub.cancel();
-    FloatyOverlay.dispose();
-    super.dispose();
   }
 }
 

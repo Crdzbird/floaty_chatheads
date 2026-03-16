@@ -1,50 +1,32 @@
-import 'dart:async';
-
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
 
 /// Badge overlay that displays a notification count.
 ///
 /// Receives count from main app, can send 'clear' action back.
-class NotificationCounterOverlay extends StatefulWidget {
+/// Uses [FloatyOverlayBuilder] to eliminate all lifecycle boilerplate.
+class NotificationCounterOverlay extends StatelessWidget {
   const NotificationCounterOverlay({super.key});
 
   @override
-  State<NotificationCounterOverlay> createState() =>
-      _NotificationCounterOverlayState();
+  Widget build(BuildContext context) {
+    return FloatyOverlayBuilder<int>(
+      initialState: 0,
+      onData: (count, data) =>
+          data is Map && data['count'] is int ? data['count'] as int : count,
+      onInit: () => FloatyOverlay.shareData({'action': 'requestState'}),
+      builder: (context, count) => _CounterBadge(count: count),
+    );
+  }
 }
 
-class _NotificationCounterOverlayState
-    extends State<NotificationCounterOverlay> {
-  int _count = 0;
-  late final StreamSubscription<Object?> _sub;
-
-  @override
-  void initState() {
-    super.initState();
-    FloatyOverlay.setUp();
-
-    _sub = FloatyOverlay.onData.listen((data) {
-      if (data is Map && mounted) {
-        final count = data['count'];
-        if (count is int) {
-          setState(() => _count = count);
-        }
-      }
-    });
-
-    // Request current count from main app.
-    FloatyOverlay.shareData({'action': 'requestState'});
-  }
-
-  void _clear() {
-    FloatyOverlay.shareData({'action': 'clear'});
-    setState(() => _count = 0);
-  }
+class _CounterBadge extends StatelessWidget {
+  const _CounterBadge({required this.count});
+  final int count;
 
   @override
   Widget build(BuildContext context) {
-    final hasNotifications = _count > 0;
+    final hasNotifications = count > 0;
 
     return Material(
       color: Colors.transparent,
@@ -72,7 +54,7 @@ class _NotificationCounterOverlayState
                 ),
                 child: Center(
                   child: Text(
-                    '$_count',
+                    '$count',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -89,42 +71,16 @@ class _NotificationCounterOverlayState
                 alignment: WrapAlignment.center,
                 children: [
                   if (hasNotifications)
-                    GestureDetector(
-                      onTap: _clear,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Text(
-                          'Clear',
-                          style: TextStyle(fontSize: 11, color: Colors.red),
-                        ),
-                      ),
+                    _PillButton(
+                      label: 'Clear',
+                      color: Colors.red,
+                      onTap: () =>
+                          FloatyOverlay.shareData({'action': 'clear'}),
                     ),
-                  GestureDetector(
+                  _PillButton(
+                    label: 'Close',
+                    color: Colors.grey.shade600,
                     onTap: FloatyOverlay.closeOverlay,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        'Close',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -134,11 +90,31 @@ class _NotificationCounterOverlayState
       ),
     );
   }
+}
+
+class _PillButton extends StatelessWidget {
+  const _PillButton({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
 
   @override
-  void dispose() {
-    _sub.cancel();
-    FloatyOverlay.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(label, style: TextStyle(fontSize: 11, color: color)),
+      ),
+    );
   }
 }

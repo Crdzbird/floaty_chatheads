@@ -50,7 +50,7 @@ void main() {
         contentHeight: 400,
         debugMode: true,
         sizePreset: ContentSizePreset.card,
-        snapEdge: SnapEdge.left,
+        snap: const SnapConfig(edge: SnapEdge.left),
       );
       final captured =
           verify(() => platform.showChatHead(captureAny())).captured;
@@ -60,7 +60,7 @@ void main() {
       expect(config.contentHeight, equals(400));
       expect(config.debugMode, isTrue);
       expect(config.sizePreset, equals(ContentSizePreset.card));
-      expect(config.snapEdge, equals(SnapEdge.left));
+      expect(config.snap?.edge, equals(SnapEdge.left));
     });
 
     test('closeChatHead delegates to platform', () async {
@@ -110,10 +110,10 @@ void main() {
     });
 
     test('onData returns broadcast stream', () {
-      final stream = FloatyChatheads.onData;
-      // Should be broadcast (allows multiple listeners).
-      stream.listen((_) {});
-      stream.listen((_) {});
+      FloatyChatheads.onData
+        // Should be broadcast (allows multiple listeners).
+        ..listen((_) {})
+        ..listen((_) {});
     });
 
     test('onData message handler forwards data', () async {
@@ -122,7 +122,8 @@ void main() {
 
       // Simulate overlay sending data via the messenger channel.
       final encoded = const JSONMessageCodec().encodeMessage('overlay-msg');
-      await ServicesBinding.instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,
