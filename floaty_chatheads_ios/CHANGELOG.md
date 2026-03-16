@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1
+
+### 🐛 Bug Fixes
+
+- Fixed content panel size leaking between chathead sessions. The
+  `contentSize` is now reset to defaults (300x400) before applying the
+  new config so previous session dimensions don't persist.
+
 ## 1.1.0
 
 ### 🚀 iOS Feature Parity

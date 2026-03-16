@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.2
+
+### 🐛 Bug Fixes
+
+- Fixed content panel dimensions and touch interaction leaking between
+  chathead sessions. The plugin now explicitly tears down stale windows
+  and calls `createWindow()` directly with fresh `Managment` values
+  instead of deferring to `onStartCommand()`.
+
 ## 1.0.1
 
 - Documentation and metadata updates.

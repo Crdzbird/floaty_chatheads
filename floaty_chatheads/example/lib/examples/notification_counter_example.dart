@@ -127,6 +127,7 @@ class _NotificationCounterExampleState
   @override
   void dispose() {
     _sub?.cancel();
+    FloatyChatheads.closeChatHead();
     FloatyChatheads.dispose();
     super.dispose();
   }

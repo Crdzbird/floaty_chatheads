@@ -186,6 +186,9 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
         engine.run(withEntrypoint: config.entryPoint)
         overlayEngine = engine
 
+        // Reset to defaults before applying config so previous session
+        // dimensions don't leak when the new config omits width/height.
+        contentSize = CGSize(width: 300, height: 400)
         if let w = config.contentWidth { contentSize.width = CGFloat(w) }
         if let h = config.contentHeight { contentSize.height = CGFloat(h) }
 

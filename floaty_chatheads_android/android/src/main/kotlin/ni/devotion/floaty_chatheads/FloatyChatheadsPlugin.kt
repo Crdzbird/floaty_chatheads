@@ -277,15 +277,24 @@ class FloatyChatheadsPlugin :
             appContext.startService(serviceIntent)
         }
 
-        // Tell the service to create the engine and persist config.
+        // Tell the service to create the engine and window.
         // Note: the service may not have started yet (async), so we
         // also pass the entry point via SharedPreferences and let
         // the service's onCreate handle it if needed.
         val service = FloatyContentJobService.instance
         if (service != null) {
+            // Tear down any stale window left over from a previous
+            // session (e.g. START_STICKY restart with wrong dimensions
+            // or a detached engine).  closeWindow(false) is a no-op
+            // when chatHeads is already null.
+            service.closeWindow(false)
             service.ensureOverlayEngine(config.entryPoint)
             service.persistConfig(config.entryPoint)
             service.onMainAppConnected()
+            // Create the window NOW with the current Managment values
+            // instead of relying on onStartCommand(), which skips
+            // createWindow() when chatHeads is already non-null.
+            service.createWindow()
         } else {
             // Service hasn't started yet — persist config so its
             // onCreate() can pick it up. The engine will be created

@@ -338,9 +338,35 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
             FloatyOverlayHostApi.setUp(engine.dartExecutor, this)
             overlayFlutterApi = FloatyOverlayFlutterApi(engine.dartExecutor)
             setupOverlayMessenger(engine)
+        } else if (FloatyChatheadsPlugin.activeInstance != null) {
+            // Plugin is active — Managment fields are already populated
+            // by the current showChatHead() call. Just read the entry
+            // point from SharedPreferences; do NOT call restoreConfig()
+            // because it would overwrite the in-memory Managment values
+            // with stale or incomplete SharedPreferences data.
+            val entryPoint = getPrefs().getString(
+                Constants.PREF_ENTRY_POINT, null,
+            )
+            if (entryPoint != null) {
+                Log.d(
+                    "FloatyDebug",
+                    "onCreate() plugin active, creating engine for '$entryPoint'",
+                )
+                ensureOverlayEngine(entryPoint)
+                val createdEngine = FlutterEngineCache.getInstance()
+                    .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
+                if (createdEngine != null) {
+                    FloatyOverlayHostApi.setUp(
+                        createdEngine.dartExecutor, this,
+                    )
+                    overlayFlutterApi = FloatyOverlayFlutterApi(
+                        createdEngine.dartExecutor,
+                    )
+                }
+            }
         } else {
-            // Engine is gone — likely restarted after app death via
-            // START_STICKY. Restore config and recreate the engine.
+            // No engine and no plugin — restarted after app death via
+            // START_STICKY. Restore config from SharedPreferences.
             val entryPoint = restoreConfig()
             if (entryPoint != null) {
                 Log.d(
@@ -399,30 +425,6 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         chatHeads = ChatHeads(this)
         chatHeads?.add(id = "default")
 
-        // Apply configured content dimensions.
-        //  • null  → keep default WRAP_CONTENT (small overlays)
-        //  • > 0   → explicit dp → px
-        //  • <= 0  → MATCH_PARENT (fullscreen overlays)
-        val cw = Managment.contentWidth
-        val ch = Managment.contentHeight
-        if (cw != null || ch != null) {
-            chatHeads?.content?.let { panel ->
-                val lp = panel.layoutParams ?: return@let
-                lp.width = when {
-                    cw == null -> ViewGroup.LayoutParams.WRAP_CONTENT
-                    cw <= 0    -> ViewGroup.LayoutParams.MATCH_PARENT
-                    else       -> WindowManagerHelper.dpToPx(cw.toFloat())
-                }
-                lp.height = when {
-                    ch == null -> ViewGroup.LayoutParams.WRAP_CONTENT
-                    ch == -2   -> WindowManagerHelper.getScreenSize().heightPixels / 2
-                    ch <= 0    -> ViewGroup.LayoutParams.MATCH_PARENT
-                    else       -> WindowManagerHelper.dpToPx(ch.toFloat())
-                }
-                panel.layoutParams = lp
-            }
-        }
-
         val engine = FlutterEngineCache.getInstance()
             .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
         Log.d(
@@ -434,28 +436,47 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         )
         if (engine != null) {
             // Re-register Pigeon APIs on the (possibly new) engine.
-            // When the plugin tears down and restarts the overlay, the Android
-            // service may be reused (onCreate not called again because stopSelf
-            // hasn't fully completed).  In that case overlayFlutterApi still
-            // points at the OLD destroyed engine.  Always re-bind here so the
-            // Kotlin → Dart callbacks reach the correct isolate.
             FloatyOverlayHostApi.setUp(engine.dartExecutor, this)
             overlayFlutterApi = FloatyOverlayFlutterApi(engine.dartExecutor)
 
             chatHeads?.content?.attachEngine(engine)
-            Log.d(
-                "FloatyDebug",
-                "createWindow() engine attached. " +
-                    "content.childCount=${chatHeads?.content?.childCount}, " +
-                    "content.lp.w=${chatHeads?.content?.layoutParams?.width}, " +
-                    "content.lp.h=${chatHeads?.content?.layoutParams?.height}",
-            )
         } else {
             Log.e(
                 "FloatyDebug",
                 "createWindow() ENGINE IS NULL — overlay will not render!",
             )
         }
+
+        // Apply configured content dimensions AFTER engine attachment
+        // so the FlutterView's addView() doesn't reset the layout params.
+        // Uses setContentSize() which stores the values and re-applies
+        // them in showContent() when the panel transitions from GONE to
+        // VISIBLE, guaranteeing the dimensions survive the layout cycle.
+        //  • null  → keep default (MATCH_PARENT from FrameLayout)
+        //  • > 0   → explicit dp → px
+        //  • <= 0  → MATCH_PARENT (fullscreen overlays)
+        val cw = Managment.contentWidth
+        val ch = Managment.contentHeight
+        if (cw != null || ch != null) {
+            val w = when {
+                cw == null -> ViewGroup.LayoutParams.WRAP_CONTENT
+                cw <= 0    -> ViewGroup.LayoutParams.MATCH_PARENT
+                else       -> WindowManagerHelper.dpToPx(cw.toFloat())
+            }
+            val h = when {
+                ch == null -> ViewGroup.LayoutParams.WRAP_CONTENT
+                ch == -2   -> WindowManagerHelper.getScreenSize().heightPixels / 2
+                ch <= 0    -> ViewGroup.LayoutParams.MATCH_PARENT
+                else       -> WindowManagerHelper.dpToPx(ch.toFloat())
+            }
+            chatHeads?.content?.setContentSize(w, h)
+        }
+        Log.d(
+            "FloatyDebug",
+            "createWindow() done. " +
+                "content.lp.w=${chatHeads?.content?.layoutParams?.width}, " +
+                "content.lp.h=${chatHeads?.content?.layoutParams?.height}",
+        )
     }
 
     fun addChatHead(id: String, icon: android.graphics.Bitmap?) {
@@ -554,22 +575,17 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
     override fun resizeContent(width: Long, height: Long) {
         chatHeads?.content?.let { panel ->
-            val params = panel.layoutParams ?: return@let
-            params.width = if (width <= 0) {
+            val w = if (width <= 0) {
                 ViewGroup.LayoutParams.MATCH_PARENT
             } else {
                 WindowManagerHelper.dpToPx(width.toFloat())
             }
-            params.height = if (height <= 0) {
+            val h = if (height <= 0) {
                 ViewGroup.LayoutParams.MATCH_PARENT
             } else {
                 WindowManagerHelper.dpToPx(height.toFloat())
             }
-            panel.layoutParams = params
-            // Force a layout pass so the FlutterView receives updated
-            // viewport metrics even if the panel is still GONE (awaiting
-            // showContent()).
-            panel.requestLayout()
+            panel.setContentSize(w, h)
         }
     }
 

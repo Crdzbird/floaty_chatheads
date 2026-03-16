@@ -146,6 +146,7 @@ class _TimerExampleState extends State<TimerExample> {
   @override
   void dispose() {
     _sub?.cancel();
+    FloatyChatheads.closeChatHead();
     FloatyChatheads.dispose();
     super.dispose();
   }

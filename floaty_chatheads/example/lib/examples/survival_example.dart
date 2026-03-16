@@ -272,6 +272,7 @@ class _SurvivalExampleState extends State<SurvivalExample> {
   @override
   void dispose() {
     _kit.dispose();
+    FloatyChatheads.closeChatHead();
     FloatyChatheads.dispose();
     super.dispose();
   }

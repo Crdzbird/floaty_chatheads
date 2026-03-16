@@ -199,6 +199,7 @@ class _ThemedExampleState extends State<ThemedExample> {
   @override
   void dispose() {
     _sub?.cancel();
+    FloatyChatheads.closeChatHead();
     FloatyChatheads.dispose();
     super.dispose();
   }

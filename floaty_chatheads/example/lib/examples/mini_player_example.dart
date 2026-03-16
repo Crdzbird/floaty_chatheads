@@ -193,6 +193,7 @@ class _MiniPlayerExampleState extends State<MiniPlayerExample> {
   @override
   void dispose() {
     _sub?.cancel();
+    FloatyChatheads.closeChatHead();
     FloatyChatheads.dispose();
     super.dispose();
   }

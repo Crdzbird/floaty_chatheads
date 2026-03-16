@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.1
+
+### 🐛 Bug Fixes
+
+- Fixed content panel dimensions leaking between chathead sessions on
+  Android. Switching from a larger overlay (e.g. 300x400) to a smaller
+  one (e.g. 220x220) no longer inherits the previous session's size.
+- Fixed missing touch interaction on the content panel after switching
+  between chathead sessions. The plugin now explicitly recreates the
+  overlay window with fresh dimensions instead of relying on
+  `onStartCommand()`, which could skip recreation when a stale window
+  from a `START_STICKY` restart was still present.
+- Fixed iOS content size not resetting between sessions — dimensions
+  now default to 300x400 before applying the new config.
+
 ## 1.2.0
 
 ### 🧩 Higher-Level Convenience Widgets

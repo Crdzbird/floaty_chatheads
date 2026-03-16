@@ -322,6 +322,7 @@ class _MapExampleState extends State<MapExample> {
     _stateChannel.dispose();
     _proxyHost.dispose();
     _mapController.dispose();
+    FloatyChatheads.closeChatHead();
     FloatyChatheads.dispose();
     super.dispose();
   }
