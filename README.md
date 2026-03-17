@@ -17,11 +17,15 @@ else you can dream up.
 <table>
   <tr>
     <th>Android</th>
+    <th>Android</th>
     <th>iOS</th>
   </tr>
   <tr>
     <td>
-      <img src="media/android_demo.gif" width="300" alt="Android demo" />
+      <img src="media/feat1_demo.gif" width="300" alt="Android demo 1" />
+    </td>
+    <td>
+      <img src="media/feat2_demo.gif" width="300" alt="Android demo 2" />
     </td>
     <td>
       <img src="media/ios_demo.gif" width="300" alt="iOS demo" />

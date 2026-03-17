@@ -14,6 +14,10 @@
   (basic chathead, messenger, mini player, etc.). Bumped
   `floaty_chatheads_android` to `^1.0.4`.
 
+### 📦 Metadata
+
+- Added `example/example.md` for the pub.dev example tab.
+
 ## 1.2.2
 
 ### ✨ Enhancements

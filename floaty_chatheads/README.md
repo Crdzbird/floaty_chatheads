@@ -17,11 +17,15 @@ else you can dream up.
 <table>
   <tr>
     <th>Android</th>
+    <th>Android</th>
     <th>iOS</th>
   </tr>
   <tr>
     <td>
-      <img src="https://raw.githubusercontent.com/Crdzbird/floaty_chatheads/main/media/android_demo.gif" width="300" alt="Android demo" />
+      <img src="https://raw.githubusercontent.com/Crdzbird/floaty_chatheads/main/media/feat1_demo.gif" width="300" alt="Android demo 1" />
+    </td>
+    <td>
+      <img src="https://raw.githubusercontent.com/Crdzbird/floaty_chatheads/main/media/feat2_demo.gif" width="300" alt="Android demo 2" />
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/Crdzbird/floaty_chatheads/main/media/ios_demo.gif" width="300" alt="iOS demo" />

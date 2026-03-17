@@ -14,8 +14,9 @@ pubspec_overrides.yaml
 # Pigeon source schemas (generated code is committed)
 pigeons/
 
-# Example app (published separately or too large)
+# Example app (too large to publish in full)
 example/
+!example/example.md
 
 # macOS
 .DS_Store

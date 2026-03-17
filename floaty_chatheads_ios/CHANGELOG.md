@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.3
+
+### 📦 Metadata
+
+- Shortened pubspec description to meet pub.dev 60–180 character guideline.
+- Added `example/example.md` for the pub.dev example tab.
+
 ## 1.1.2
 
 ### ✨ Enhancements

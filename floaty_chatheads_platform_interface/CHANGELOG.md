@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+### 📦 Metadata
+
+- Added `example/example.md` for the pub.dev example tab.
+
 ## 1.0.1
 
 - Documentation and metadata updates.
