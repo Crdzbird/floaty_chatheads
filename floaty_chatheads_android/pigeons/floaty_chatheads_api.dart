@@ -168,6 +168,9 @@ class ChatHeadConfig {
 
   /// Multi-source close background (takes precedence over [closeBackgroundAsset]).
   final IconSourceMessage? closeBackgroundSource;
+
+  /// Body text for the foreground-service notification.
+  final String? notificationDescription;
 }
 
 class OverlayPositionMessage {

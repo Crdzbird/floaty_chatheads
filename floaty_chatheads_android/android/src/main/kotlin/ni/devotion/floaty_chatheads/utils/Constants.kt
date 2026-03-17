@@ -17,6 +17,7 @@ object Constants {
     const val PREF_ENTRANCE_ANIMATION = "entrance_animation"
     const val PREF_DEBUG_MODE = "debug_mode"
     const val PREF_NOTIFICATION_TITLE = "notification_title"
+    const val PREF_NOTIFICATION_DESCRIPTION = "notification_description"
     const val PREF_BADGE_COLOR = "badge_color"
     const val PREF_BADGE_TEXT_COLOR = "badge_text_color"
     const val PREF_BUBBLE_BORDER_COLOR = "bubble_border_color"

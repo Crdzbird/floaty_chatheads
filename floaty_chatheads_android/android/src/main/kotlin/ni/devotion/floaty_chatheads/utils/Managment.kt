@@ -17,6 +17,7 @@ object Managment {
     var closeIcon: Bitmap? = null
     var backgroundCloseIcon: Bitmap? = null
     var notificationTitle: String = "Floaty Chathead"
+    var notificationDescription: String? = null
     var notificationIcon: Bitmap? = null
     var globalContext: Context? = null
     var activity: Activity? = null

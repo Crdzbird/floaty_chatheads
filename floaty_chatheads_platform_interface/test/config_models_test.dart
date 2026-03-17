@@ -69,10 +69,12 @@ void main() {
     test('constructor stores all fields', () {
       const config = NotificationConfig(
         title: 'My Overlay',
+        description: 'Overlay is active',
         iconAsset: 'assets/icon.png',
         visibility: NotificationVisibility.visibilityPrivate,
       );
       expect(config.title, 'My Overlay');
+      expect(config.description, 'Overlay is active');
       expect(config.iconAsset, 'assets/icon.png');
       expect(
         config.visibility,
@@ -80,9 +82,10 @@ void main() {
       );
     });
 
-    test('defaults to visibilityPublic', () {
+    test('defaults to visibilityPublic and null description', () {
       const config = NotificationConfig();
       expect(config.title, isNull);
+      expect(config.description, isNull);
       expect(config.iconAsset, isNull);
       expect(
         config.visibility,
@@ -172,16 +175,19 @@ void main() {
     test('grouped notification takes precedence', () {
       const config = ChatHeadConfig(
         notificationTitle: 'Old Title',
+        notificationDescription: 'Old Body',
         notificationIconAsset: 'old_notif.png',
         notificationVisibility: NotificationVisibility.visibilitySecret,
         notification: NotificationConfig(
           title: 'New Title',
+          description: 'New Body',
           iconAsset: 'new_notif.png',
           visibility: NotificationVisibility.visibilityPrivate,
         ),
       );
 
       expect(config.effectiveNotificationTitle, 'New Title');
+      expect(config.effectiveNotificationDescription, 'New Body');
       expect(config.effectiveNotificationIcon, 'new_notif.png');
       expect(
         config.effectiveNotificationVisibility,
@@ -192,16 +198,23 @@ void main() {
     test('individual notification fields used when no grouped config', () {
       const config = ChatHeadConfig(
         notificationTitle: 'Title',
+        notificationDescription: 'Body text',
         notificationIconAsset: 'notif.png',
         notificationVisibility: NotificationVisibility.visibilitySecret,
       );
 
       expect(config.effectiveNotificationTitle, 'Title');
+      expect(config.effectiveNotificationDescription, 'Body text');
       expect(config.effectiveNotificationIcon, 'notif.png');
       expect(
         config.effectiveNotificationVisibility,
         NotificationVisibility.visibilitySecret,
       );
+    });
+
+    test('effectiveNotificationDescription is null when neither is set', () {
+      const config = ChatHeadConfig();
+      expect(config.effectiveNotificationDescription, isNull);
     });
 
     test('grouped snap takes precedence', () {

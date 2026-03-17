@@ -40,6 +40,7 @@ class ChatHeadConfig {
     this.closeIconAsset,
     this.closeBackgroundAsset,
     this.notificationTitle,
+    this.notificationDescription,
     this.notificationIconAsset,
     this.flag = OverlayFlag.defaultFlag,
     this.enableDrag = true,
@@ -101,6 +102,13 @@ class ChatHeadConfig {
   /// Prefer using [notification] instead for grouped configuration.
   /// {@endtemplate}
   final String? notificationTitle;
+
+  /// {@template chat_head_config.notification_description}
+  /// Body text for the foreground-service notification (Android).
+  ///
+  /// Prefer using [notification] instead for grouped configuration.
+  /// {@endtemplate}
+  final String? notificationDescription;
 
   /// {@template chat_head_config.notification_icon_asset}
   /// Flutter asset path for the notification icon (Android).
@@ -269,6 +277,11 @@ class ChatHeadConfig {
   /// Resolved notification title: [notification] → [notificationTitle].
   String? get effectiveNotificationTitle =>
       notification?.title ?? notificationTitle;
+
+  /// Resolved notification description: [notification] →
+  /// [notificationDescription].
+  String? get effectiveNotificationDescription =>
+      notification?.description ?? notificationDescription;
 
   /// Resolved notification icon: [notification] → [notificationIconAsset].
   String? get effectiveNotificationIcon =>

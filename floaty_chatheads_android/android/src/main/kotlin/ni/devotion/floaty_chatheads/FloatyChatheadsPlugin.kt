@@ -225,6 +225,7 @@ class FloatyChatheadsPlugin :
         config.notificationIconAsset?.let { loadAssetBitmap(appContext, it) }
             ?.let { Managment.notificationIcon = it }
         config.notificationTitle?.let { Managment.notificationTitle = it }
+        Managment.notificationDescription = config.notificationDescription
         Managment.contentWidth = config.contentWidth?.toInt()
         Managment.contentHeight = config.contentHeight?.toInt()
 
@@ -355,6 +356,9 @@ class FloatyChatheadsPlugin :
                     Constants.PREF_NOTIFICATION_TITLE,
                     Managment.notificationTitle,
                 )
+                Managment.notificationDescription?.let {
+                    putString(Constants.PREF_NOTIFICATION_DESCRIPTION, it)
+                } ?: remove(Constants.PREF_NOTIFICATION_DESCRIPTION)
                 // ── Theme ─────────────────────────────────────────
                 putInt(Constants.PREF_BADGE_COLOR, Managment.badgeColor)
                 putInt(

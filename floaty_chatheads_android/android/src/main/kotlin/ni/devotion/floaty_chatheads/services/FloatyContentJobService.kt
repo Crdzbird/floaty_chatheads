@@ -171,6 +171,9 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
             )
             putBoolean(Constants.PREF_DEBUG_MODE, Managment.debugMode)
             putString(Constants.PREF_NOTIFICATION_TITLE, Managment.notificationTitle)
+            Managment.notificationDescription?.let {
+                putString(Constants.PREF_NOTIFICATION_DESCRIPTION, it)
+            } ?: remove(Constants.PREF_NOTIFICATION_DESCRIPTION)
             putInt(Constants.PREF_BADGE_COLOR, Managment.badgeColor)
             putInt(Constants.PREF_BADGE_TEXT_COLOR, Managment.badgeTextColor)
             Managment.bubbleBorderColor?.let {
@@ -231,6 +234,9 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         Managment.notificationTitle = prefs.getString(
             Constants.PREF_NOTIFICATION_TITLE, "Floaty Chathead",
         )!!
+        Managment.notificationDescription = prefs.getString(
+            Constants.PREF_NOTIFICATION_DESCRIPTION, null,
+        )
         Managment.badgeColor = prefs.getInt(
             Constants.PREF_BADGE_COLOR, Color.RED,
         )
@@ -687,7 +693,15 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         val builder = NotificationCompat.Builder(
             this, Constants.NOTIFICATION_CHANNEL_ID,
         )
-            .setContentTitle("${Managment.notificationTitle} is running")
+            .setContentTitle(
+                if (Managment.notificationDescription != null)
+                    Managment.notificationTitle
+                else
+                    "${Managment.notificationTitle} is running"
+            )
+            .apply {
+                Managment.notificationDescription?.let { setContentText(it) }
+            }
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
 

@@ -64,6 +64,7 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
         closeIconAsset: config.effectiveCloseIcon,
         closeBackgroundAsset: config.effectiveCloseBackground,
         notificationTitle: config.effectiveNotificationTitle,
+        notificationDescription: config.effectiveNotificationDescription,
         notificationIconAsset: config.effectiveNotificationIcon,
         flag: pigeon.OverlayFlagMessage.values[config.flag.index],
         enableDrag: config.enableDrag,
