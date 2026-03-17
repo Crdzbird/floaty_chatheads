@@ -17,7 +17,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_map: ^7.0.2
-  geolocator: ^13.0.2
+  geolocator: ^14.0.2
   latlong2: ^0.9.1
   shared_preferences: ^2.5.4
 
