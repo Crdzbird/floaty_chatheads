@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.2
+
+### ✨ Enhancements
+
+- **Upgraded Pigeon to 26.2.3.** Regenerated all Dart and Swift Pigeon
+  bindings. No API surface changes — the upgrade picks up codec and
+  code-generation improvements from the latest Pigeon release.
+
 ## 1.1.1
 
 ### 🐛 Bug Fixes

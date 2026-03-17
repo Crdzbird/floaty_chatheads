@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.2.3
+
+### 🐛 Bug Fixes
+
+- **Fixed overlay → main app communication broken on Android.** The
+  overlay `FlutterEngine` auto-registers all plugins, which overwrote
+  the shared `activeInstance` in `FloatyChatheadsPlugin` with the
+  overlay's instance. Messages sent from the overlay via `shareData()`
+  looped back to the overlay instead of reaching the main app's
+  `onData` stream. This affected all examples using raw
+  `FloatyOverlay.shareData` / `FloatyChatheads.onData` communication
+  (basic chathead, messenger, mini player, etc.). Bumped
+  `floaty_chatheads_android` to `^1.0.4`.
+
+## 1.2.2
+
+### ✨ Enhancements
+
+- **Upgraded Pigeon to 26.2.3.** Regenerated overlay Pigeon bindings
+  across all platform packages. No API surface changes.
+- **Updated Android demo GIF** in the media folder.
+
+### 🐛 Bug Fixes
+
+- **Fixed survival overlay counter adding +1 on every reconnection.**
+  The overlay's manual re-dispatch logic fired even though the
+  framework's automatic queue flush already delivered the queued
+  actions, causing every increment to be applied twice. Removed the
+  redundant re-dispatch — the queue flush is reliable on its own.
+- **Fixed counter race condition on app restart.** Queued actions
+  arriving via auto-flush before `SharedPreferences` restore could
+  increment from zero instead of the persisted value. Increment
+  actions are now buffered until the counter is restored.
+
 ## 1.2.1
 
 ### ✨ Enhancements

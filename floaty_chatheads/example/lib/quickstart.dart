@@ -141,7 +141,7 @@ class _QuickstartHomeState extends State<QuickstartHome> {
 
   @override
   void dispose() {
-    FloatyChatheads.dispose();
+    FloatyChatheads.closeChatHead();
     super.dispose();
   }
 }

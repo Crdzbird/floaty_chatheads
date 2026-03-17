@@ -225,7 +225,6 @@ class _MessengerExampleState extends State<MessengerExample> {
     _controller.dispose();
     _scrollController.dispose();
     FloatyChatheads.closeChatHead();
-    FloatyChatheads.dispose();
     super.dispose();
   }
 }

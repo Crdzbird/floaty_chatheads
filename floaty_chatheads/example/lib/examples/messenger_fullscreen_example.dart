@@ -190,7 +190,6 @@ class _MessengerFullscreenExampleState
     _sub?.cancel();
     _controller.dispose();
     FloatyChatheads.closeChatHead();
-    FloatyChatheads.dispose();
     super.dispose();
   }
 }

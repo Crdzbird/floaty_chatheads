@@ -265,7 +265,6 @@ class _FeaturesShowcaseExampleState extends State<FeaturesShowcaseExample> {
   void dispose() {
     _dataSub?.cancel();
     FloatyChatheads.closeChatHead();
-    FloatyChatheads.dispose();
     super.dispose();
   }
 }

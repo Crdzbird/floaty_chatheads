@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.0.4
+
+### 🐛 Bug Fixes
+
+- **Fixed overlay ↔ main app communication completely broken.** When
+  `FlutterEngineGroup.createAndRunEngine()` creates the overlay engine,
+  it auto-registers all plugins — including `FloatyChatheadsPlugin`.
+  This second `onAttachedToEngine` call overwrote the companion-object
+  `activeInstance` and `mainMessenger` with the overlay engine's
+  instances, causing all messages from the overlay to loop back to the
+  overlay instead of reaching the main Dart isolate. Added an
+  `activeInstance != null` guard in `onAttachedToEngine` to skip setup
+  on the overlay engine, and a matching `isMainEnginePlugin` guard in
+  `onDetachedFromEngine` to prevent the overlay engine from tearing
+  down the main engine's state.
+
+## 1.0.3
+
+### ✨ Enhancements
+
+- **Upgraded Pigeon to 26.2.3.** Regenerated all Dart and Kotlin Pigeon
+  bindings. No API surface changes — the upgrade picks up codec and
+  code-generation improvements from the latest Pigeon release.
+
 ## 1.0.2
 
 ### ✨ Enhancements

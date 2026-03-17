@@ -218,7 +218,6 @@ class _DashboardExampleState extends State<DashboardExample> {
     _titleController.dispose();
     _bodyController.dispose();
     FloatyChatheads.closeChatHead();
-    FloatyChatheads.dispose();
     super.dispose();
   }
 }

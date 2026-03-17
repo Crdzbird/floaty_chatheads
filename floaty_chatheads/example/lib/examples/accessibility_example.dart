@@ -156,7 +156,6 @@ class _AccessibilityExampleState extends State<AccessibilityExample> {
   void dispose() {
     _sub?.cancel();
     FloatyChatheads.closeChatHead();
-    FloatyChatheads.dispose();
     super.dispose();
   }
 }

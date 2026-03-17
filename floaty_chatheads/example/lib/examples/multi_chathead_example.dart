@@ -212,7 +212,6 @@ class _MultiChatheadExampleState extends State<MultiChatheadExample> {
   void dispose() {
     _dataSub?.cancel();
     FloatyChatheads.closeChatHead();
-    FloatyChatheads.dispose();
     super.dispose();
   }
 }

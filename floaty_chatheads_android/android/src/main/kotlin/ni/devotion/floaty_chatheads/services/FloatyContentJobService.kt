@@ -362,6 +362,11 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
                         createdEngine.dartExecutor,
                     )
                 }
+                // The main app plugin is active but showChatHead() couldn't
+                // call onMainAppConnected() because this service hadn't
+                // started yet. Set the flag now so overlay→main messages
+                // are forwarded instead of silently dropped.
+                onMainAppConnected()
             }
         } else {
             // No engine and no plugin — either restarted after app

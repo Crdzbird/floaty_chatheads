@@ -398,7 +398,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _sub?.cancel();
-    FloatyChatheads.dispose();
+    FloatyChatheads.closeChatHead();
     super.dispose();
   }
 }
@@ -417,12 +417,12 @@ class OverlayContent extends StatefulWidget {
 class _OverlayContentState extends State<OverlayContent> {
   String _lastReceived = 'No data yet';
   int _sendCount = 0;
+  StreamSubscription<Object?>? _dataSub;
 
   @override
   void initState() {
     super.initState();
-    FloatyOverlay.setUp();
-    FloatyOverlay.onData.listen((data) {
+    _dataSub = FloatyOverlay.onData.listen((data) {
       if (mounted) {
         setState(() => _lastReceived = '$data');
       }
@@ -510,6 +510,7 @@ class _OverlayContentState extends State<OverlayContent> {
 
   @override
   void dispose() {
+    _dataSub?.cancel();
     FloatyOverlay.dispose();
     super.dispose();
   }

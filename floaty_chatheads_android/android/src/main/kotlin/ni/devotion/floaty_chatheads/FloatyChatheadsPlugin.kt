@@ -59,7 +59,26 @@ class FloatyChatheadsPlugin :
     private var pendingPermissionResult: ((Result<Boolean>) -> Unit)? = null
     private var flutterPluginBinding: FlutterPlugin.FlutterPluginBinding? = null
 
+    /**
+     * True when this plugin instance is attached to the **main** engine.
+     * When [FlutterEngineGroup.createAndRunEngine] creates the overlay
+     * engine it auto-registers all plugins, including this one.  The
+     * overlay instance must NOT overwrite [activeInstance] or
+     * [mainMessenger] — doing so would cause overlay→main messages to
+     * loop back to the overlay instead of reaching the main Dart side.
+     */
+    private var isMainEnginePlugin = false
+
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        // Guard: FlutterEngineGroup auto-registers plugins on the
+        // overlay engine.  Only the first attachment (the main engine)
+        // should set up the messenger relay.
+        if (activeInstance != null) {
+            // This is the overlay engine — skip setup entirely.
+            return
+        }
+
+        isMainEnginePlugin = true
         flutterPluginBinding = binding
         context = binding.applicationContext
         activeInstance = this
@@ -91,11 +110,15 @@ class FloatyChatheadsPlugin :
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        // Only the main engine plugin should clean up shared state.
+        if (!isMainEnginePlugin) return
+
         FloatyHostApi.setUp(binding.binaryMessenger, null)
         mainMessenger?.setMessageHandler(null)
         mainMessenger = null
         activeInstance = null
         flutterPluginBinding = null
+        isMainEnginePlugin = false
 
         // Notify the service that the main app is disconnected, but
         // keep the overlay engine alive.
