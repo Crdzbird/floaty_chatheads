@@ -103,7 +103,10 @@ class _SurvivalOverlayContentState
   @override
   void didUpdateWidget(_SurvivalOverlayContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset optimistic delta when we receive a new state from host.
+
+    // Reset optimistic delta when the main app acknowledges with a
+    // counter update. The framework's automatic queue flush delivers
+    // queued actions reliably — no manual re-dispatch needed.
     if (oldWidget.state.counter != widget.state.counter) {
       _optimisticDelta = 0;
     }

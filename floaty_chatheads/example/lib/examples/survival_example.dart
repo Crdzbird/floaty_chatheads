@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/survival_actions.dart';
 import '../utils.dart';
@@ -34,8 +35,12 @@ class SurvivalExample extends StatefulWidget {
 }
 
 class _SurvivalExampleState extends State<SurvivalExample> {
+  static const _counterKey = 'survival_counter';
+
   bool _chatheadActive = false;
   int _counter = 0;
+  bool _counterRestored = false;
+  int _bufferedIncrements = 0;
   final _log = <String>[];
   static const _maxLogEntries = 50;
 
@@ -44,6 +49,16 @@ class _SurvivalExampleState extends State<SurvivalExample> {
   void _addLog(String entry) {
     _log.insert(0, entry);
     if (_log.length > _maxLogEntries) _log.removeLast();
+  }
+
+  Future<void> _persistCounter() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_counterKey, _counter);
+  }
+
+  Future<void> _restoreCounter() async {
+    final prefs = await SharedPreferences.getInstance();
+    _counter = prefs.getInt(_counterKey) ?? 0;
   }
 
   @override
@@ -62,10 +77,18 @@ class _SurvivalExampleState extends State<SurvivalExample> {
       fromJson: IncrementAction.fromJson,
       handler: (action) {
         if (!mounted) return;
+        // If the persisted counter hasn't been restored yet (race with
+        // auto-flush on reconnection), buffer the increment so it's
+        // applied on top of the correct persisted value.
+        if (!_counterRestored) {
+          _bufferedIncrements += action.amount;
+          return;
+        }
         setState(() {
           _counter += action.amount;
           _addLog('[+${action.amount}] counter = $_counter');
         });
+        unawaited(_persistCounter());
         // Sync updated counter back to overlay.
         unawaited(
           _kit.setState(SurvivalState(
@@ -97,6 +120,41 @@ class _SurvivalExampleState extends State<SurvivalExample> {
       }
       return null;
     });
+
+    // Restore persisted counter and detect a survived chathead.
+    _restoreAndReconnect();
+  }
+
+  Future<void> _restoreAndReconnect() async {
+    await _restoreCounter();
+    _counterRestored = true;
+
+    // Apply any increments that arrived (via queue flush) before the
+    // persisted counter was restored.
+    if (_bufferedIncrements > 0) {
+      _counter += _bufferedIncrements;
+      _bufferedIncrements = 0;
+      unawaited(_persistCounter());
+    }
+
+    if (!mounted) return;
+
+    final active = await FloatyChatheads.isActive();
+    if (!mounted) return;
+
+    if (active) {
+      setState(() {
+        _chatheadActive = true;
+        _addLog('[reconnected] counter restored to $_counter');
+      });
+      // Sync the persisted counter so the overlay knows where we left off.
+      await _kit.setState(SurvivalState(
+        counter: _counter,
+        label: 'Reconnected',
+      ));
+    } else {
+      if (_counter != 0) setState(() {});
+    }
   }
 
   Future<void> _launch() async {
@@ -125,12 +183,18 @@ class _SurvivalExampleState extends State<SurvivalExample> {
 
   void _close() {
     FloatyChatheads.closeChatHead();
-    setState(() => _chatheadActive = false);
+    setState(() {
+      _chatheadActive = false;
+      _counter = 0;
+      _addLog('[closed] overlay dismissed');
+    });
+    unawaited(_persistCounter());
   }
 
   void _incrementFromMain() {
     _counter++;
     setState(() => _addLog('[main +1] counter = $_counter'));
+    unawaited(_persistCounter());
     unawaited(
       _kit.setState(SurvivalState(
         counter: _counter,
@@ -272,8 +336,10 @@ class _SurvivalExampleState extends State<SurvivalExample> {
   @override
   void dispose() {
     _kit.dispose();
-    FloatyChatheads.closeChatHead();
-    FloatyChatheads.dispose();
+    // Do NOT close the chathead or dispose the global channel here.
+    // The whole point of this example is that the overlay survives
+    // page navigation and app death. Closing/disposing here would
+    // kill the overlay every time the user navigates away.
     super.dispose();
   }
 }
