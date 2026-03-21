@@ -430,19 +430,20 @@ class FloatyChatheadsPlugin :
      * This method never blocks the main/UI thread directly.
      */
     private fun loadBitmapFromNetwork(url: String): android.graphics.Bitmap? {
+        var connection: HttpURLConnection? = null
         return try {
-            val connection = URL(url).openConnection() as HttpURLConnection
+            connection = URL(url).openConnection() as HttpURLConnection
             connection.doInput = true
             connection.connectTimeout = NETWORK_CONNECT_TIMEOUT_MS
             connection.readTimeout = NETWORK_READ_TIMEOUT_MS
             connection.connect()
-            val input = connection.inputStream
-            val bitmap = BitmapFactory.decodeStream(input)
-            input.close()
-            connection.disconnect()
-            bitmap
+            connection.inputStream.use { input ->
+                BitmapFactory.decodeStream(input)
+            }
         } catch (_: Exception) {
             null
+        } finally {
+            connection?.disconnect()
         }
     }
 

@@ -11,8 +11,7 @@
 
 ### 🧪 Tests
 
-- Added 9 tests for `FloatyProxyStream`, bringing the total to **250
-  tests** across all packages.
+- Added 9 tests for `FloatyProxyStream`.
 
 ## 1.3.0
 
@@ -180,7 +179,7 @@
 ### 🧪 Tests
 
 - Added 10 new tests for `FloatyDataBuilder` (5) and `FloatyOverlayBuilder`
-  (5), bringing the total to **233 tests** across all packages.
+  (5).
 
 ## 1.1.0
 

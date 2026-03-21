@@ -320,6 +320,40 @@ void main() {
     });
   });
 
+  group('FloatyProxyStream duplicate name', () {
+    test('throws StateError when registering a duplicate name', () {
+      final first = FloatyProxyStream<Map<String, double>>(
+        name: 'dup',
+        toJson: (v) => v,
+      );
+
+      expect(
+        () => FloatyProxyStream<Map<String, double>>(
+          name: 'dup',
+          toJson: (v) => v,
+        ),
+        throwsStateError,
+      );
+
+      first.dispose();
+    });
+
+    test('allows re-registration after dispose', () {
+      final first = FloatyProxyStream<Map<String, double>>(
+        name: 'reuse',
+        toJson: (v) => v,
+      );
+      first.dispose();
+
+      // Should not throw — name was freed by dispose.
+      final second = FloatyProxyStream<Map<String, double>>(
+        name: 'reuse',
+        toJson: (v) => v,
+      );
+      second.dispose();
+    });
+  });
+
   group('FloatyProxyStream dispose', () {
     test('dispose unregisters handler', () async {
       final proxyStream = FloatyProxyStream<Map<String, double>>.overlay(

@@ -153,6 +153,13 @@ class _Registry {
   static bool _handlerRegistered = false;
 
   static void _register(FloatyProxyStream<dynamic> stream) {
+    if (_streams.containsKey(stream.name)) {
+      throw StateError(
+        'A FloatyProxyStream named "${stream.name}" is already registered. '
+        'Dispose the existing instance before creating a new one, or use a '
+        'different name.',
+      );
+    }
     _streams[stream.name] = stream;
     if (!_handlerRegistered) {
       FloatyChannel.registerHandler(
