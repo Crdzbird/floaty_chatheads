@@ -141,5 +141,104 @@ void main() {
       // Should not throw.
       FloatyChatheads.dispose();
     });
+
+    group('onClosed', () {
+      tearDown(FloatyChatheads.dispose);
+
+      test('returns a broadcast stream', () {
+        FloatyChatheads.onClosed
+          ..listen((_) {})
+          ..listen((_) {});
+      });
+
+      test('emits chathead ID from system envelope', () async {
+        final ids = <String>[];
+        FloatyChatheads.onClosed.listen(ids.add);
+
+        // Simulate the native side sending a closed event.
+        final encoded = const JSONMessageCodec().encodeMessage({
+          '__floaty__': '_floaty_closed',
+          '_floaty_closed': {'id': 'bubble1'},
+        });
+        await TestDefaultBinaryMessengerBinding
+            .instance.defaultBinaryMessenger
+            .handlePlatformMessage(
+          'ni.devotion.floaty_head/messenger',
+          encoded,
+          (data) {},
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(ids, ['bubble1']);
+      });
+
+      test('defaults to "default" when id is absent', () async {
+        final ids = <String>[];
+        FloatyChatheads.onClosed.listen(ids.add);
+
+        final encoded = const JSONMessageCodec().encodeMessage({
+          '__floaty__': '_floaty_closed',
+          '_floaty_closed': <String, dynamic>{},
+        });
+        await TestDefaultBinaryMessengerBinding
+            .instance.defaultBinaryMessenger
+            .handlePlatformMessage(
+          'ni.devotion.floaty_head/messenger',
+          encoded,
+          (data) {},
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(ids, ['default']);
+      });
+
+      test('dispose unregisters handler and stops emitting', () async {
+        final ids = <String>[];
+        FloatyChatheads.onClosed.listen(ids.add);
+
+        FloatyChatheads.dispose();
+
+        // Send another closed event — should NOT arrive.
+        final encoded = const JSONMessageCodec().encodeMessage({
+          '__floaty__': '_floaty_closed',
+          '_floaty_closed': {'id': 'bubble2'},
+        });
+        await TestDefaultBinaryMessengerBinding
+            .instance.defaultBinaryMessenger
+            .handlePlatformMessage(
+          'ni.devotion.floaty_head/messenger',
+          encoded,
+          (data) {},
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(ids, isEmpty);
+      });
+
+      test('re-attaches handler after dispose + re-access', () async {
+        // First access + dispose.
+        FloatyChatheads.onClosed;
+        FloatyChatheads.dispose();
+
+        // Re-access should re-attach.
+        final ids = <String>[];
+        FloatyChatheads.onClosed.listen(ids.add);
+
+        final encoded = const JSONMessageCodec().encodeMessage({
+          '__floaty__': '_floaty_closed',
+          '_floaty_closed': {'id': 'bubble3'},
+        });
+        await TestDefaultBinaryMessengerBinding
+            .instance.defaultBinaryMessenger
+            .handlePlatformMessage(
+          'ni.devotion.floaty_head/messenger',
+          encoded,
+          (data) {},
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(ids, ['bubble3']);
+      });
+    });
   });
 }

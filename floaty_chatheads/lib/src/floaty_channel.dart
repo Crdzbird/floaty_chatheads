@@ -26,9 +26,9 @@ final class FloatyChannel {
   /// The shared platform channel for main ↔ overlay communication.
   static const BasicMessageChannel<Object?> _messenger =
       BasicMessageChannel<Object?>(
-        'ni.devotion.floaty_head/messenger',
-        JSONMessageCodec(),
-      );
+    'ni.devotion.floaty_head/messenger',
+    JSONMessageCodec(),
+  );
 
   /// Prefix-keyed handlers. Each handler receives the inner value of the
   /// matched prefix key as a `Map<String, dynamic>`.
@@ -81,9 +81,7 @@ final class FloatyChannel {
     // Replay buffered messages that arrived before this handler existed.
     final buffered = _pending.remove(prefix);
     if (buffered != null && buffered.isNotEmpty) {
-      for (final data in buffered) {
-        handler(data);
-      }
+      buffered.forEach(handler);
     }
   }
 

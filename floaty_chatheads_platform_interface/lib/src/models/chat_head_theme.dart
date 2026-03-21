@@ -82,8 +82,11 @@ class ChatHeadTheme {
         bubbleBorderWidth,
         bubbleShadowColor,
         closeTintColor,
-        overlayPalette == null ? null : Object.hashAll(
-          overlayPalette!.entries.map((e) => Object.hash(e.key, e.value)),
-        ),
+        overlayPalette == null
+            ? null
+            : Object.hashAllUnordered(
+                overlayPalette!.entries
+                    .map((e) => Object.hash(e.key, e.value)),
+              ),
       );
 }
