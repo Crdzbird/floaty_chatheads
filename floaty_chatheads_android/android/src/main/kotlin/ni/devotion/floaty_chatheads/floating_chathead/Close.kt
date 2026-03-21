@@ -8,7 +8,7 @@ import android.widget.RelativeLayout
 import androidx.core.content.ContextCompat
 import com.facebook.rebound.*
 import ni.devotion.floaty_chatheads.R
-import ni.devotion.floaty_chatheads.utils.Managment
+import ni.devotion.floaty_chatheads.utils.OverlayConfig
 
 class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     private var params = WindowManager.LayoutParams(
@@ -53,17 +53,17 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     }
 
     init {
-        bitmapBg = Managment.backgroundCloseIcon ?: Bitmap.createScaledBitmap(BitmapFactory.decodeResource(Managment.globalContext!!.resources, R.drawable.close_bg), ChatHeads.CLOSE_SIZE, ChatHeads.CLOSE_SIZE, false)
-        Managment.backgroundCloseIcon?.let {
+        bitmapBg = OverlayConfig.backgroundCloseIcon ?: Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close_bg), ChatHeads.CLOSE_SIZE, ChatHeads.CLOSE_SIZE, false)
+        OverlayConfig.backgroundCloseIcon?.let {
             bitmapBg = Bitmap.createScaledBitmap(it, ChatHeads.CLOSE_SIZE, ChatHeads.CLOSE_SIZE, false)
         }
-        bitmapClose = Managment.closeIcon ?: Bitmap.createScaledBitmap(BitmapFactory.decodeResource(Managment.globalContext!!.resources, R.drawable.close), WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
-        Managment.closeIcon?.let {
+        bitmapClose = OverlayConfig.closeIcon ?: Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close), WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
+        OverlayConfig.closeIcon?.let {
             bitmapClose = Bitmap.createScaledBitmap(it, WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
         }
 
         // Apply close tint color from theme
-        Managment.closeTintColor?.let { tint ->
+        OverlayConfig.closeTintColor?.let { tint ->
             closePaint.colorFilter = PorterDuffColorFilter(tint, PorterDuff.Mode.SRC_IN)
         }
 
@@ -87,8 +87,8 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
         })
         springScale.addListener(object : SimpleSpringListener() {
             override fun onSpringUpdate(spring: Spring) {
-                bitmapBg = Managment.backgroundCloseIcon ?: Bitmap.createScaledBitmap(BitmapFactory.decodeResource(Managment.globalContext!!.resources, R.drawable.close_bg), (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt(), (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt(), false)
-                Managment.backgroundCloseIcon?.let {
+                bitmapBg = OverlayConfig.backgroundCloseIcon ?: Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close_bg), (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt(), (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt(), false)
+                OverlayConfig.backgroundCloseIcon?.let {
                     bitmapBg = Bitmap.createScaledBitmap(it, (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt(), (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt(), false)
                 }
                 invalidate()
@@ -124,7 +124,7 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
         }
         bitmapClose?.let {
             // Use closePaint if a tint is set, otherwise default paint
-            val drawPaint = if (Managment.closeTintColor != null) closePaint else paint
+            val drawPaint = if (OverlayConfig.closeTintColor != null) closePaint else paint
             canvas.drawBitmap(it, width / 2 - it.width.toFloat() / 2, height / 2 - it.height.toFloat() / 2, drawPaint)
         }
     }

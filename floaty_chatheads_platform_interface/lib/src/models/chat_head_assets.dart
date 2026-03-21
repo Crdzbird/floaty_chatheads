@@ -1,4 +1,5 @@
 import 'package:floaty_chatheads_platform_interface/src/models/icon_source.dart';
+import 'package:meta/meta.dart';
 
 /// {@template chat_head_assets}
 /// Groups the three icon sources needed by a chathead.
@@ -31,6 +32,7 @@ import 'package:floaty_chatheads_platform_interface/src/models/icon_source.dart'
 ///
 /// Use [ChatHeadAssets.defaults] for the conventional asset names.
 /// {@endtemplate}
+@immutable
 class ChatHeadAssets {
   /// {@macro chat_head_assets}
   const ChatHeadAssets({
@@ -57,4 +59,15 @@ class ChatHeadAssets {
 
   /// Icon source for the close-button background.
   final IconSource closeBackground;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChatHeadAssets &&
+          other.icon == icon &&
+          other.closeIcon == closeIcon &&
+          other.closeBackground == closeBackground;
+
+  @override
+  int get hashCode => Object.hash(icon, closeIcon, closeBackground);
 }

@@ -29,4 +29,10 @@ object Constants {
 
     // Connection state prefix for Dart channel.
     const val CONNECTION_PREFIX = "_floaty_connection"
+
+    // System envelope key used by FloatyChannel to distinguish system
+    // messages from raw user data.
+    const val SYSTEM_ENVELOPE = "__floaty__"
+    const val THEME_PREFIX = "_floaty_theme"
+    const val CLOSED_PREFIX = "_floaty_closed"
 }

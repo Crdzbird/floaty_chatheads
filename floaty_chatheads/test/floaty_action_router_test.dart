@@ -71,6 +71,7 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'ping',
           'payload': {'value': 'world'},
@@ -111,6 +112,7 @@ void main() {
       // After off, the handler should no longer be in the router's map.
       // Sending a 'ping' action should be silently ignored (no crash).
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'ping',
           'payload': {'value': 'ignored'},
@@ -131,6 +133,7 @@ void main() {
 
       // Send an action type that has no handler -- should not crash.
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'unknown_type',
           'payload': {'key': 'value'},
@@ -172,6 +175,7 @@ void main() {
 
       // Send a message where payload is not a Map.
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'ping',
           'payload': 'not-a-map',
@@ -192,6 +196,7 @@ void main() {
 
       // Send a message without 'type'.
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'payload': {'value': 'no-type'},
         },
@@ -208,6 +213,7 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'ping',
           'payload': {'value': 'from-overlay'},
@@ -232,6 +238,7 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'ping',
           'payload': {'value': 'after-dispose'},
@@ -253,6 +260,7 @@ void main() {
 
       // Should not throw.
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'ping',
           'payload': {'value': 'will-fail-parse'},
@@ -291,6 +299,7 @@ void main() {
 
       // Send action-prefixed message.
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'ping',
           'payload': {'value': 'world'},
@@ -319,6 +328,7 @@ void main() {
       () async {
         // Simulate disconnection.
         await _simulateMessage({
+          '__floaty__': '_floaty_connection',
           '_floaty_connection': {'connected': false},
         });
 
@@ -334,6 +344,7 @@ void main() {
     test('queueLength reflects queued actions', () async {
       // Simulate disconnection.
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
@@ -352,6 +363,7 @@ void main() {
       () async {
         // Simulate disconnection.
         await _simulateMessage({
+          '__floaty__': '_floaty_connection',
           '_floaty_connection': {'connected': false},
         });
 
@@ -366,6 +378,7 @@ void main() {
 
         // Reconnect — triggers flush.
         await _simulateMessage({
+          '__floaty__': '_floaty_connection',
           '_floaty_connection': {'connected': true},
         });
 
@@ -377,6 +390,7 @@ void main() {
     test('dropOldest overflow strategy works', () async {
       // Simulate disconnection.
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
@@ -396,6 +410,7 @@ void main() {
     test('dropNewest overflow strategy works', () async {
       // Simulate disconnection.
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
@@ -418,6 +433,7 @@ void main() {
       () async {
         // Simulate disconnection.
         await _simulateMessage({
+          '__floaty__': '_floaty_connection',
           '_floaty_connection': {'connected': false},
         });
 

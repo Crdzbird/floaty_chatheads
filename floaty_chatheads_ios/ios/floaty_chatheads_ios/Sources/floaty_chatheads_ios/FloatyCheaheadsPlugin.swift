@@ -76,11 +76,13 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
     }
 
     func addChatHead(config: AddChatHeadConfig) throws {
-        overlayFlutterApi?.onChatHeadTapped(id: config.id) { _ in }
+        // Multi-chathead is not supported on iOS.
+        // The overlay shows a single bubble managed by the UIWindow.
     }
 
     func removeChatHead(id: String) throws {
-        overlayFlutterApi?.onChatHeadClosed(id: id) { _ in }
+        // Multi-chathead is not supported on iOS.
+        // Use closeChatHead() to remove the single overlay.
     }
 
     func updateBadge(count: Int64) throws {
@@ -169,6 +171,15 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
         ]
     }
 
+    private var screenBounds: CGRect {
+        if let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first {
+            return scene.screen.bounds
+        }
+        return UIScreen.main.bounds
+    }
+
     // MARK: - Private — Window Lifecycle
 
     private func createOverlayWindow(config: ChatHeadConfig) {
@@ -183,7 +194,10 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
         currentDebugMode = config.debugMode
 
         let engine = FlutterEngine(name: "floaty_chatheads_overlay")
-        engine.run(withEntrypoint: config.entryPoint)
+        let started = engine.run(withEntrypoint: config.entryPoint)
+        if !started {
+            print("[FloatyChatheads] Failed to start overlay engine with entrypoint: \(config.entryPoint)")
+        }
         overlayEngine = engine
 
         // Reset to defaults before applying config so previous session
@@ -210,11 +224,11 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
 
         // Deliver theme palette to overlay isolate
         if let palette = config.theme?.overlayPalette {
-            let paletteDict: [String: Any] = ["_floaty_theme": palette]
+            let paletteDict: [String: Any] = ["__floaty__": "_floaty_theme", "_floaty_theme": palette]
             overlayMessenger?.sendMessage(paletteDict, reply: nil)
         }
 
-        let screenBounds = UIScreen.main.bounds
+        let screenBounds = self.screenBounds
 
         // Determine initial position
         var x: CGFloat
@@ -269,6 +283,8 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
     }
 
     private func destroyOverlayWindow() {
+        let closedId = currentChatHeadId
+
         overlayMessenger?.setMessageHandler(nil)
         overlayMessenger = nil
         overlayFlutterApi = nil
@@ -284,6 +300,12 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
         isOverlayActive = false
         isExpanded = false
         badgeCount = 0
+
+        // Notify the main app that the chathead was closed.
+        mainMessenger?.sendMessage([
+            "__floaty__": "_floaty_closed",
+            "_floaty_closed": ["id": closedId],
+        ])
     }
 
     // MARK: - Entrance Animations
@@ -311,7 +333,7 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
             )
 
         case .slideFromEdge:
-            let screenBounds = UIScreen.main.bounds
+            let screenBounds = self.screenBounds
             let targetX = window.frame.origin.x
             window.frame.origin.x = screenBounds.width + window.frame.width
             window.alpha = 1
@@ -340,7 +362,7 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
     // MARK: - Snap-to-Edge
 
     private func snapToEdge(window: UIWindow) {
-        let screen = UIScreen.main.bounds
+        let screen = screenBounds
         let margin = CGFloat(currentSnapMargin)
         var origin = window.frame.origin
 

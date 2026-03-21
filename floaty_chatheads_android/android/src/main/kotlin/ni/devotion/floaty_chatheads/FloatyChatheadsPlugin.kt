@@ -23,16 +23,15 @@ import ni.devotion.floaty_chatheads.generated.ChatHeadConfig
 import ni.devotion.floaty_chatheads.generated.FloatyHostApi
 import ni.devotion.floaty_chatheads.generated.IconSourceMessage
 import ni.devotion.floaty_chatheads.generated.IconSourceTypeMessage
+import ni.devotion.floaty_chatheads.services.ConfigPersistence
 import ni.devotion.floaty_chatheads.services.FloatyContentJobService
 import ni.devotion.floaty_chatheads.utils.Constants
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
-import ni.devotion.floaty_chatheads.utils.Managment
+import ni.devotion.floaty_chatheads.utils.OverlayConfig
 import ni.devotion.floaty_chatheads.utils.SnapEdge
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 
 class FloatyChatheadsPlugin :
     FlutterPlugin,
@@ -58,6 +57,13 @@ class FloatyChatheadsPlugin :
         private set
     private var pendingPermissionResult: ((Result<Boolean>) -> Unit)? = null
     private var flutterPluginBinding: FlutterPlugin.FlutterPluginBinding? = null
+
+    /**
+     * True when `onAttachedToEngine` detected an existing overlay and set
+     * up the relay, but deferred the `connected:true` signal.  Cleared
+     * when `isChatHeadActive()` triggers the actual signal.
+     */
+    private var pendingConnectionSignal = false
 
     /**
      * True when this plugin instance is attached to the **main** engine.
@@ -101,11 +107,20 @@ class FloatyChatheadsPlugin :
         }
 
         // If the service is already running (app restart / hot-restart),
-        // reconnect to the existing overlay.
+        // note that we need to reconnect but DON'T send `connected:true`
+        // to the overlay yet.  The overlay would flush its action queue
+        // immediately, but the main Dart side hasn't registered its
+        // channel handlers yet (widgets haven't built).  Instead, set up
+        // the relay now and defer the connection signal until
+        // `isChatHeadActive()` is called — that Pigeon call acts as an
+        // implicit "ready" signal from the Dart side.
         val service = FloatyContentJobService.instance
         if (service != null) {
             isServiceRunning = true
-            service.onMainAppConnected()
+            pendingConnectionSignal = true
+            // Set up the relay so main→overlay messages work, but
+            // do NOT notify the overlay of reconnection yet.
+            service.onMainAppRelay()
         }
     }
 
@@ -119,6 +134,7 @@ class FloatyChatheadsPlugin :
         activeInstance = null
         flutterPluginBinding = null
         isMainEnginePlugin = false
+        pendingConnectionSignal = false
 
         // Notify the service that the main app is disconnected, but
         // keep the overlay engine alive.
@@ -127,8 +143,6 @@ class FloatyChatheadsPlugin :
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
-        Managment.activity = binding.activity
-        Managment.globalContext = binding.activity.applicationContext
         binding.addActivityResultListener(this)
     }
 
@@ -140,7 +154,6 @@ class FloatyChatheadsPlugin :
         binding: ActivityPluginBinding,
     ) {
         activity = binding.activity
-        Managment.activity = binding.activity
         binding.addActivityResultListener(this)
     }
 
@@ -217,20 +230,20 @@ class FloatyChatheadsPlugin :
         // Load icons: new multi-source fields take precedence over legacy
         // asset-path strings.
         loadBitmapFromSource(appContext, config.chatheadIconSource, config.chatheadIconAsset)
-            ?.let { Managment.floatingIcon = it }
+            ?.let { OverlayConfig.floatingIcon = it }
         loadBitmapFromSource(appContext, config.closeIconSource, config.closeIconAsset)
-            ?.let { Managment.closeIcon = it }
+            ?.let { OverlayConfig.closeIcon = it }
         loadBitmapFromSource(appContext, config.closeBackgroundSource, config.closeBackgroundAsset)
-            ?.let { Managment.backgroundCloseIcon = it }
+            ?.let { OverlayConfig.backgroundCloseIcon = it }
         config.notificationIconAsset?.let { loadAssetBitmap(appContext, it) }
-            ?.let { Managment.notificationIcon = it }
-        config.notificationTitle?.let { Managment.notificationTitle = it }
-        Managment.notificationDescription = config.notificationDescription
-        Managment.contentWidth = config.contentWidth?.toInt()
-        Managment.contentHeight = config.contentHeight?.toInt()
+            ?.let { OverlayConfig.notificationIcon = it }
+        config.notificationTitle?.let { OverlayConfig.notificationTitle = it }
+        OverlayConfig.notificationDescription = config.notificationDescription
+        OverlayConfig.contentWidth = config.contentWidth?.toInt()
+        OverlayConfig.contentHeight = config.contentHeight?.toInt()
 
         // Snap behavior
-        Managment.snapEdge = when (config.snapEdge) {
+        OverlayConfig.snapEdge = when (config.snapEdge) {
             ni.devotion.floaty_chatheads.generated.SnapEdgeMessage.BOTH ->
                 SnapEdge.BOTH
             ni.devotion.floaty_chatheads.generated.SnapEdgeMessage.LEFT ->
@@ -240,13 +253,13 @@ class FloatyChatheadsPlugin :
             ni.devotion.floaty_chatheads.generated.SnapEdgeMessage.NONE ->
                 SnapEdge.NONE
         }
-        Managment.snapMargin = config.snapMargin.toFloat()
+        OverlayConfig.snapMargin = config.snapMargin.toFloat()
 
         // Persistent position
-        Managment.persistPosition = config.persistPosition
+        OverlayConfig.persistPosition = config.persistPosition
 
         // Entrance animation
-        Managment.entranceAnimation = when (config.entranceAnimation) {
+        OverlayConfig.entranceAnimation = when (config.entranceAnimation) {
             ni.devotion.floaty_chatheads.generated
                 .EntranceAnimationMessage.NONE ->
                 EntranceAnimation.NONE
@@ -262,28 +275,28 @@ class FloatyChatheadsPlugin :
         }
 
         // Debug mode
-        Managment.debugMode = config.debugMode
+        OverlayConfig.debugMode = config.debugMode
 
         // Theme
         config.theme?.let { theme ->
-            theme.badgeColor?.let { Managment.badgeColor = it.toInt() }
+            theme.badgeColor?.let { OverlayConfig.badgeColor = it.toInt() }
             theme.badgeTextColor?.let {
-                Managment.badgeTextColor = it.toInt()
+                OverlayConfig.badgeTextColor = it.toInt()
             }
             theme.bubbleBorderColor?.let {
-                Managment.bubbleBorderColor = it.toInt()
+                OverlayConfig.bubbleBorderColor = it.toInt()
             }
             theme.bubbleBorderWidth?.let {
-                Managment.bubbleBorderWidth = it.toFloat()
+                OverlayConfig.bubbleBorderWidth = it.toFloat()
             }
             theme.bubbleShadowColor?.let {
-                Managment.bubbleShadowColor = it.toInt()
+                OverlayConfig.bubbleShadowColor = it.toInt()
             }
             theme.closeTintColor?.let {
-                Managment.closeTintColor = it.toInt()
+                OverlayConfig.closeTintColor = it.toInt()
             }
             theme.overlayPalette?.let { palette ->
-                Managment.overlayPalette = palette
+                OverlayConfig.overlayPalette = palette
                     .filterKeys { it != null }
                     .filterValues { it != null }
                     .map { (k, v) -> k!! to v!!.toInt() }
@@ -314,81 +327,19 @@ class FloatyChatheadsPlugin :
             service.closeWindow(false)
             service.ensureOverlayEngine(config.entryPoint)
             service.persistConfig(config.entryPoint)
+            pendingConnectionSignal = false
             service.onMainAppConnected()
-            // Create the window NOW with the current Managment values
+            // Create the window NOW with the current OverlayConfig values
             // instead of relying on onStartCommand(), which skips
             // createWindow() when chatHeads is already non-null.
             service.createWindow()
         } else {
             // Service hasn't started yet — persist the FULL config so
-            // its onCreate() → restoreConfig() recovers all values
+            // its onCreate() -> restoreConfig() recovers all values
             // (especially content dimensions).  Previously only the
             // entry point was saved, causing dimensions to restore as
-            // null → MATCH_PARENT on every subsequent launch.
-            val prefs = appContext.getSharedPreferences(
-                Constants.PREFS_NAME, Context.MODE_PRIVATE,
-            )
-            prefs.edit().apply {
-                putBoolean(Constants.PREF_HAS_SAVED_CONFIG, true)
-                putString(Constants.PREF_ENTRY_POINT, config.entryPoint)
-                // ── Dimensions ────────────────────────────────────
-                Managment.contentWidth?.let {
-                    putInt(Constants.PREF_CONTENT_WIDTH, it)
-                } ?: remove(Constants.PREF_CONTENT_WIDTH)
-                Managment.contentHeight?.let {
-                    putInt(Constants.PREF_CONTENT_HEIGHT, it)
-                } ?: remove(Constants.PREF_CONTENT_HEIGHT)
-                // ── Snap / position ───────────────────────────────
-                putString(Constants.PREF_SNAP_EDGE, Managment.snapEdge.name)
-                putFloat(Constants.PREF_SNAP_MARGIN, Managment.snapMargin)
-                putBoolean(
-                    Constants.PREF_PERSIST_POSITION,
-                    Managment.persistPosition,
-                )
-                // ── Animation / debug ─────────────────────────────
-                putString(
-                    Constants.PREF_ENTRANCE_ANIMATION,
-                    Managment.entranceAnimation.name,
-                )
-                putBoolean(Constants.PREF_DEBUG_MODE, Managment.debugMode)
-                // ── Notification ──────────────────────────────────
-                putString(
-                    Constants.PREF_NOTIFICATION_TITLE,
-                    Managment.notificationTitle,
-                )
-                Managment.notificationDescription?.let {
-                    putString(Constants.PREF_NOTIFICATION_DESCRIPTION, it)
-                } ?: remove(Constants.PREF_NOTIFICATION_DESCRIPTION)
-                // ── Theme ─────────────────────────────────────────
-                putInt(Constants.PREF_BADGE_COLOR, Managment.badgeColor)
-                putInt(
-                    Constants.PREF_BADGE_TEXT_COLOR,
-                    Managment.badgeTextColor,
-                )
-                Managment.bubbleBorderColor?.let {
-                    putInt(Constants.PREF_BUBBLE_BORDER_COLOR, it)
-                } ?: remove(Constants.PREF_BUBBLE_BORDER_COLOR)
-                putFloat(
-                    Constants.PREF_BUBBLE_BORDER_WIDTH,
-                    Managment.bubbleBorderWidth,
-                )
-                putInt(
-                    Constants.PREF_BUBBLE_SHADOW_COLOR,
-                    Managment.bubbleShadowColor,
-                )
-                Managment.closeTintColor?.let {
-                    putInt(Constants.PREF_CLOSE_TINT_COLOR, it)
-                } ?: remove(Constants.PREF_CLOSE_TINT_COLOR)
-                Managment.overlayPalette?.let { palette ->
-                    putString(
-                        Constants.PREF_OVERLAY_PALETTE,
-                        org.json.JSONObject(
-                            palette.mapValues { it.value },
-                        ).toString(),
-                    )
-                } ?: remove(Constants.PREF_OVERLAY_PALETTE)
-                apply()
-            }
+            // null -> MATCH_PARENT on every subsequent launch.
+            ConfigPersistence(appContext).persist(config.entryPoint)
         }
 
         isServiceRunning = true
@@ -399,7 +350,18 @@ class FloatyChatheadsPlugin :
         isServiceRunning = false
     }
 
-    override fun isChatHeadActive(): Boolean = isServiceRunning
+    override fun isChatHeadActive(): Boolean {
+        // This Pigeon call from the Dart side confirms that the main
+        // app's widget tree is built and channel handlers are registered.
+        // If the overlay relay was set up during onAttachedToEngine
+        // (deferred connection), now is the time to send `connected:true`
+        // so the overlay flushes its action queue.
+        if (isServiceRunning && pendingConnectionSignal) {
+            pendingConnectionSignal = false
+            FloatyContentJobService.instance?.onMainAppConnected()
+        }
+        return isServiceRunning
+    }
 
     override fun addChatHead(config: AddChatHeadConfig) {
         val icon = loadBitmapFromSource(context!!, config.iconSource, config.iconAsset)
@@ -441,21 +403,26 @@ class FloatyChatheadsPlugin :
     }
 
     private fun loadBitmapFromNetwork(url: String): android.graphics.Bitmap? {
-        return runBlocking(Dispatchers.IO) {
+        val future = java.util.concurrent.CompletableFuture.supplyAsync {
             try {
                 val connection = URL(url).openConnection() as HttpURLConnection
                 connection.doInput = true
-                connection.connectTimeout = 10_000
-                connection.readTimeout = 10_000
+                connection.connectTimeout = 5_000
+                connection.readTimeout = 5_000
                 connection.connect()
                 val input = connection.inputStream
                 val bitmap = BitmapFactory.decodeStream(input)
                 input.close()
                 connection.disconnect()
                 bitmap
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
+        }
+        return try {
+            future.get(6, java.util.concurrent.TimeUnit.SECONDS)
+        } catch (_: Exception) {
+            null
         }
     }
 
@@ -467,7 +434,7 @@ class FloatyChatheadsPlugin :
         legacyAsset: String?,
     ): android.graphics.Bitmap? {
         if (source != null) {
-            return when (source.type) {
+            val bitmap = when (source.type) {
                 IconSourceTypeMessage.ASSET ->
                     source.path?.let { loadAssetBitmap(context, it) }
                 IconSourceTypeMessage.NETWORK ->
@@ -475,7 +442,15 @@ class FloatyChatheadsPlugin :
                 IconSourceTypeMessage.BYTES ->
                     source.bytes?.let { loadBitmapFromBytes(it) }
             }
+            if (bitmap == null) {
+                OverlayConfig.logW("Failed to load icon from ${source.type}: ${source.path ?: "bytes"}")
+            }
+            return bitmap
         }
-        return legacyAsset?.let { loadAssetBitmap(context, it) }
+        val bitmap = legacyAsset?.let { loadAssetBitmap(context, it) }
+        if (legacyAsset != null && bitmap == null) {
+            OverlayConfig.logW("Failed to load asset icon: $legacyAsset")
+        }
+        return bitmap
     }
 }

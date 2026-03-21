@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:floaty_chatheads/src/floaty_channel.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
 
@@ -10,7 +12,7 @@ import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
 /// ```dart
 /// await FloatyChatheads.showChatHead(
 ///   entryPoint: 'overlayMain',
-///   chatheadIconAsset: 'assets/chatheadIcon.png',
+///   assets: ChatHeadAssets.defaults(),
 /// );
 /// ```
 /// {@endtemplate}
@@ -19,6 +21,34 @@ final class FloatyChatheads {
 
   static FloatyChatheadsPlatform get _platform =>
       FloatyChatheadsPlatform.instance;
+
+  static const _closedPrefixKey = '_floaty_closed';
+  static final StreamController<String> _closeController =
+      StreamController<String>.broadcast();
+  static bool _closedHandlerRegistered = false;
+
+  static void _ensureClosedHandler() {
+    if (!_closedHandlerRegistered) {
+      FloatyChannel.registerHandler(_closedPrefixKey, (data) {
+        final id = data['id'] as String? ?? 'default';
+        _closeController.add(id);
+      });
+      _closedHandlerRegistered = true;
+    }
+  }
+
+  /// {@template floaty_chatheads.on_closed}
+  /// Stream that emits the chathead ID when the overlay is closed
+  /// by the native gesture (drag-to-close) or from the overlay itself.
+  ///
+  /// Use this to update your UI state when the chathead is dismissed
+  /// without the main app explicitly calling [closeChatHead].
+  /// {@endtemplate}
+  static Stream<String> get onClosed {
+    _ensureClosedHandler();
+    FloatyChannel.ensureListening();
+    return _closeController.stream;
+  }
 
   /// {@template floaty_chatheads.on_data}
   /// Stream of messages sent from the overlay isolate.
@@ -37,26 +67,15 @@ final class FloatyChatheads {
   ///
   /// See [ChatHeadConfig] for the full list of configuration options.
   ///
-  /// Prefer [assets], [notification], and [snap] over their individual
-  /// counterparts — the flat parameters are deprecated and will be
-  /// removed in the next major version.
+  /// When [debugMode] is `true`, icon loading failures and other native-side
+  /// issues are logged to the platform debug console (Logcat on Android,
+  /// Xcode console on iOS).
   static Future<void> showChatHead({
     String entryPoint = 'overlayMain',
     int? contentWidth,
     int? contentHeight,
-    @Deprecated('Use assets instead') String? chatheadIconAsset,
-    @Deprecated('Use assets instead') String? closeIconAsset,
-    @Deprecated('Use assets instead') String? closeBackgroundAsset,
-    @Deprecated('Use notification instead') String? notificationTitle,
-    @Deprecated('Use notification instead') String? notificationIconAsset,
     OverlayFlag flag = OverlayFlag.defaultFlag,
     bool enableDrag = true,
-    @Deprecated('Use notification instead')
-    NotificationVisibility notificationVisibility =
-        NotificationVisibility.visibilityPublic,
-    @Deprecated('Use snap instead') SnapEdge snapEdge = SnapEdge.both,
-    @Deprecated('Use snap instead') double snapMargin = -10,
-    @Deprecated('Use snap instead') bool persistPosition = false,
     EntranceAnimation entranceAnimation = EntranceAnimation.none,
     ChatHeadTheme? theme,
     ContentSizePreset? sizePreset,
@@ -70,17 +89,8 @@ final class FloatyChatheads {
         entryPoint: entryPoint,
         contentWidth: contentWidth,
         contentHeight: contentHeight,
-        chatheadIconAsset: chatheadIconAsset,
-        closeIconAsset: closeIconAsset,
-        closeBackgroundAsset: closeBackgroundAsset,
-        notificationTitle: notificationTitle,
-        notificationIconAsset: notificationIconAsset,
         flag: flag,
         enableDrag: enableDrag,
-        notificationVisibility: notificationVisibility,
-        snapEdge: snapEdge,
-        snapMargin: snapMargin,
-        persistPosition: persistPosition,
         entranceAnimation: entranceAnimation,
         theme: theme,
         sizePreset: sizePreset,
@@ -102,16 +112,13 @@ final class FloatyChatheads {
   ///
   /// [id] uniquely identifies this bubble. [iconSource] provides the
   /// bubble's icon from any supported source (asset, network, bytes).
-  /// The deprecated [iconAsset] is kept for backward compatibility.
   static Future<void> addChatHead({
     required String id,
-    @Deprecated('Use iconSource instead') String? iconAsset,
     IconSource? iconSource,
   }) =>
       _platform.addChatHead(
         AddChatHeadConfig(
           id: id,
-          iconAsset: iconAsset,
           iconSource: iconSource,
         ),
       );
@@ -144,6 +151,8 @@ final class FloatyChatheads {
   /// re-attach the handler automatically on the next access.
   /// {@endtemplate}
   static void dispose() {
+    FloatyChannel.unregisterHandler(_closedPrefixKey);
+    _closedHandlerRegistered = false;
     FloatyChannel.dispose();
   }
 }

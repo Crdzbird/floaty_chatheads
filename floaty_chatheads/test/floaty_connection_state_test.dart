@@ -38,6 +38,7 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': true},
       });
 
@@ -60,6 +61,7 @@ void main() {
         );
 
         await _simulateMessage({
+          '__floaty__': '_floaty_connection',
           '_floaty_connection': {'connected': false},
         });
 
@@ -84,11 +86,13 @@ void main() {
 
         // First disconnect.
         await _simulateMessage({
+          '__floaty__': '_floaty_connection',
           '_floaty_connection': {'connected': false},
         });
 
         // Then reconnect.
         await _simulateMessage({
+          '__floaty__': '_floaty_connection',
           '_floaty_connection': {'connected': true},
         });
 
@@ -110,6 +114,7 @@ void main() {
 
       // Default is true; sending true again should not emit.
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': true},
       });
 
@@ -117,11 +122,13 @@ void main() {
 
       // Now change to false — should emit once.
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
       // Sending false again should not emit.
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
@@ -133,6 +140,7 @@ void main() {
 
       // Disconnect first.
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
@@ -161,6 +169,7 @@ void main() {
       );
 
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 

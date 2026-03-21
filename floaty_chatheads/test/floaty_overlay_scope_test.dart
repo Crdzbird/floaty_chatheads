@@ -97,6 +97,7 @@ void main() {
 
       // Simulate a state update from the host.
       await _simulateMessage({
+        '__floaty__': '_floaty_state',
         '_floaty_state': {
           'full': true,
           'data': {'counter': 42, 'label': 'updated'},
@@ -223,6 +224,7 @@ void main() {
 
       // Simulate a disconnection message.
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
       await tester.pump();
@@ -231,6 +233,7 @@ void main() {
 
       // Simulate a reconnection message.
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': true},
       });
       await tester.pump();

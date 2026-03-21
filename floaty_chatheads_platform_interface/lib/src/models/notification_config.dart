@@ -1,4 +1,5 @@
 import 'package:floaty_chatheads_platform_interface/src/models/notification_visibility.dart';
+import 'package:meta/meta.dart';
 
 /// {@template notification_config}
 /// Groups notification-related parameters for the chathead service.
@@ -12,6 +13,7 @@ import 'package:floaty_chatheads_platform_interface/src/models/notification_visi
 /// ),
 /// ```
 /// {@endtemplate}
+@immutable
 class NotificationConfig {
   /// {@macro notification_config}
   const NotificationConfig({
@@ -38,4 +40,16 @@ class NotificationConfig {
   ///
   /// Defaults to [NotificationVisibility.visibilityPublic].
   final NotificationVisibility visibility;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NotificationConfig &&
+          other.title == title &&
+          other.description == description &&
+          other.iconAsset == iconAsset &&
+          other.visibility == visibility;
+
+  @override
+  int get hashCode => Object.hash(title, description, iconAsset, visibility);
 }

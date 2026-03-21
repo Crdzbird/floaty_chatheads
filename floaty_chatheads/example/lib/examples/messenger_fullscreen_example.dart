@@ -20,11 +20,15 @@ class _MessengerFullscreenExampleState
   final _controller = TextEditingController();
   final _log = <String>[];
   StreamSubscription<Object?>? _sub;
+  StreamSubscription<String>? _closeSub;
   bool _chatheadActive = false;
 
   @override
   void initState() {
     super.initState();
+    _closeSub = FloatyChatheads.onClosed.listen((_) {
+      if (mounted) setState(() => _chatheadActive = false);
+    });
     _sub = FloatyChatheads.onData.listen((data) {
       if (data is Map && mounted) {
         final sender = data['sender'] ?? 'overlay';
@@ -187,6 +191,7 @@ class _MessengerFullscreenExampleState
 
   @override
   void dispose() {
+    _closeSub?.cancel();
     _sub?.cancel();
     _controller.dispose();
     FloatyChatheads.closeChatHead();

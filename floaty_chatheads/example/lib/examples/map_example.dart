@@ -39,6 +39,7 @@ class _MapExampleState extends State<MapExample> {
   // Live-location state
   late final LocationService _locationService;
   StreamSubscription<LatLng>? _locationSub;
+  StreamSubscription<String>? _closeSub;
   LatLng? _currentLocation;
   bool _useSimulation = false;
 
@@ -109,6 +110,11 @@ class _MapExampleState extends State<MapExample> {
         return null;
       }
       return null;
+    });
+
+    // Listen for native close events (drag-to-close, overlay X button).
+    _closeSub = FloatyChatheads.onClosed.listen((_) {
+      if (mounted) setState(() => _chatheadActive = false);
     });
 
     // Live-location tracking.
@@ -316,6 +322,7 @@ class _MapExampleState extends State<MapExample> {
 
   @override
   void dispose() {
+    _closeSub?.cancel();
     _locationSub?.cancel();
     _locationService.dispose();
     _router.dispose();

@@ -57,6 +57,7 @@ void main() {
 
       // Send a request to the host.
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': 'req-1',
           'type': 'request',
@@ -79,6 +80,7 @@ void main() {
 
       // No services registered; send a request.
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': 'req-2',
           'type': 'request',
@@ -99,6 +101,7 @@ void main() {
       });
 
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': 'req-3',
           'type': 'request',
@@ -117,6 +120,7 @@ void main() {
 
       // Send a response message (host should only handle requests).
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': 'req-4',
           'type': 'response',
@@ -146,6 +150,7 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': 'req-5',
           'type': 'request',
@@ -171,6 +176,7 @@ void main() {
       // Simulate a response from the host.
       // The client's first request ID is '0'.
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': '0',
           'type': 'response',
@@ -204,6 +210,7 @@ void main() {
       );
 
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': '0',
           'type': 'response',
@@ -257,6 +264,7 @@ void main() {
 
       // Respond out of order.
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': '2',
           'type': 'response',
@@ -266,6 +274,7 @@ void main() {
       });
 
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': '0',
           'type': 'response',
@@ -275,6 +284,7 @@ void main() {
       });
 
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': '1',
           'type': 'response',
@@ -297,6 +307,7 @@ void main() {
 
       // Send a response for a non-existent request ID.
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': 'nonexistent',
           'type': 'response',
@@ -316,6 +327,7 @@ void main() {
 
       // Send a request message (client should only handle responses).
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': '99',
           'type': 'request',
@@ -355,6 +367,7 @@ void main() {
       () async {
         // Simulate disconnection.
         await _simulateMessage({
+          '__floaty__': '_floaty_connection',
           '_floaty_connection': {'connected': false},
         });
 
@@ -375,6 +388,7 @@ void main() {
       () async {
         // Simulate disconnection.
         await _simulateMessage({
+          '__floaty__': '_floaty_connection',
           '_floaty_connection': {'connected': false},
         });
 
@@ -404,6 +418,7 @@ void main() {
 
       // Simulate a response.
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'id': '0',
           'type': 'response',

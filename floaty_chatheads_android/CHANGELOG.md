@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.0.5
+
+### 🐛 Bug Fixes
+
+- **Fixed chathead close crash when GPS streaming is active.** Removing
+  the `FlutterView` from its parent during the drag-to-close gesture
+  while the overlay engine was still processing GPS data caused a 300ms
+  window of orphaned rendering. The redundant `content.removeAllViews()`
+  call was removed — `closeWindow(true)` already handles cleanup via
+  `detachEngine()`.
+- **Fixed foreground service not stopping after chathead close.** The
+  `destroyEngine()` call threw an exception (self-destructing engine
+  from Pigeon handler), preventing `stopSelf()` from being reached.
+  Reordered service teardown so `stopForeground()` and `stopSelf()`
+  execute before `destroyEngine()`, with the latter wrapped in a
+  try/catch.
+- **Fixed NPE in `hideChatHeads` delayed callback.** Replaced
+  `FloatyContentJobService.instance!!` force-unwrap with safe call `?.`
+  to handle cases where the service is already destroyed.
+
+### ✨ Enhancements
+
+- **Deferred connection signal on app restart.** `onAttachedToEngine`
+  no longer sends `connected:true` to the overlay immediately when an
+  existing service is detected. Instead it sets up the message relay
+  via `onMainAppRelay()` and defers the connection signal until
+  `isChatHeadActive()` is called from the Dart side — acting as an
+  implicit "ready" signal that guarantees channel handlers are
+  registered before the overlay flushes its action queue.
+- **Native close notification to main app.** When the chathead is
+  closed via drag-to-close or the overlay's close button, the native
+  layer now sends a system envelope message to the main Dart isolate
+  so `FloatyChatheads.onClosed` fires reliably.
+- **Extracted magic delay constants.** Replaced inline delay numbers
+  with named companion-object constants (`CLOSE_DELAY_MS`,
+  `HIDE_DELAY_MS`, `EXPAND_CONTENT_DELAY_MS`).
+- **Improved null safety in `onSpringUpdate`.** Replaced ~10
+  `topChatHead!!` force-unwraps with a safe local binding.
+- **DRY: consolidated `hideChatHeads()`.** Merged two near-identical
+  branches into a single method with an `isClosed` parameter.
+- **DRY: extracted `notifyOverlay()` helper.** Consolidated 5
+  repeated Pigeon notification methods into a single inline function.
+- **Added `NotificationConfig.description` support.** The foreground
+  notification now shows a custom title and body text when
+  `description` is provided.
+
 ## 1.0.4
 
 ### 🐛 Bug Fixes

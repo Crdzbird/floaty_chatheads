@@ -25,7 +25,7 @@ class ImageHelper {
             return Bitmap.createScaledBitmap(output, ChatHeads.CHAT_HEAD_SIZE, ChatHeads.CHAT_HEAD_SIZE, true)
         }
 
-        fun addShadow(src: Bitmap, shadowColor: Int = Managment.bubbleShadowColor): Bitmap {
+        fun addShadow(src: Bitmap, shadowColor: Int = OverlayConfig.bubbleShadowColor): Bitmap {
             val bmOut = Bitmap.createBitmap(src.width + 10, src.height + 20, Bitmap.Config.ARGB_8888)
             val centerX = (bmOut.width / 2 - src.width / 2).toFloat()
             val centerY = (bmOut.height / 2 - src.height / 2).toFloat()

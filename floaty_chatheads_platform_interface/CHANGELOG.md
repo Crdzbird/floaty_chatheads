@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.3
+
+### ✨ Enhancements
+
+- **Added `NotificationConfig.description` field.** When set, the
+  foreground-service notification uses a custom title and body instead
+  of the default `"<title> is running"` format.
+
 ## 1.0.2
 
 ### 📦 Metadata

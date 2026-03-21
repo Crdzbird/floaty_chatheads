@@ -15,6 +15,10 @@ Future<void> _simulateMessage(Object? data) async {
   await Future<void>.delayed(Duration.zero);
 }
 
+/// Wraps a prefixed payload in the system envelope used by [FloatyChannel].
+Map<String, Object?> _sys(String prefix, Map<String, dynamic> payload) =>
+    <String, Object?>{'__floaty__': prefix, prefix: payload};
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -37,9 +41,9 @@ void main() {
       final rawReceived = <Object?>[];
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
-      await _simulateMessage({
-        '_floaty_state': {'full': true, 'data': {'count': 1}},
-      });
+      await _simulateMessage(
+        _sys('_floaty_state', {'full': true, 'data': {'count': 1}}),
+      );
 
       expect(received, hasLength(1));
       expect(received.first['full'], true);
@@ -58,9 +62,12 @@ void main() {
       final rawReceived = <Object?>[];
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
-      await _simulateMessage({
-        '_floaty_action': {'type': 'ping', 'payload': <String, dynamic>{}},
-      });
+      await _simulateMessage(
+        _sys(
+          '_floaty_action',
+          {'type': 'ping', 'payload': <String, dynamic>{}},
+        ),
+      );
 
       expect(received, hasLength(1));
       expect(received.first['type'], 'ping');
@@ -79,9 +86,9 @@ void main() {
       final rawReceived = <Object?>[];
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
-      await _simulateMessage({
-        '_floaty_proxy': {'id': '0', 'type': 'request'},
-      });
+      await _simulateMessage(
+        _sys('_floaty_proxy', {'id': '0', 'type': 'request'}),
+      );
 
       expect(received, hasLength(1));
       expect(received.first['type'], 'request');
@@ -109,9 +116,9 @@ void main() {
       );
       FloatyChannel.ensureListening();
 
-      await _simulateMessage({
-        '_floaty_state': {'full': true, 'data': <String, dynamic>{}},
-      });
+      await _simulateMessage(
+        _sys('_floaty_state', {'full': true, 'data': <String, dynamic>{}}),
+      );
       expect(received, hasLength(1));
 
       // Unregister the handler.
@@ -120,9 +127,9 @@ void main() {
       final rawReceived = <Object?>[];
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
-      await _simulateMessage({
-        '_floaty_state': {'full': true, 'data': <String, dynamic>{}},
-      });
+      await _simulateMessage(
+        _sys('_floaty_state', {'full': true, 'data': <String, dynamic>{}}),
+      );
 
       // After unregistering, message should go to raw stream.
       expect(received, hasLength(1)); // no additional calls
@@ -146,9 +153,9 @@ void main() {
       );
       FloatyChannel.ensureListening();
 
-      await _simulateMessage({
-        '_floaty_state': {'key': 'value'},
-      });
+      await _simulateMessage(
+        _sys('_floaty_state', {'key': 'value'}),
+      );
 
       expect(received, hasLength(1));
     });
@@ -172,15 +179,24 @@ void main() {
       );
       FloatyChannel.ensureListening();
 
-      await _simulateMessage({
-        '_floaty_state': {'full': true, 'data': <String, dynamic>{}},
-      });
-      await _simulateMessage({
-        '_floaty_action': {'type': 'ping', 'payload': <String, dynamic>{}},
-      });
-      await _simulateMessage({
-        '_floaty_proxy': {'id': '0', 'type': 'request'},
-      });
+      await _simulateMessage(
+        _sys(
+          '_floaty_state',
+          {'full': true, 'data': <String, dynamic>{}},
+        ),
+      );
+      await _simulateMessage(
+        _sys(
+          '_floaty_action',
+          {'type': 'ping', 'payload': <String, dynamic>{}},
+        ),
+      );
+      await _simulateMessage(
+        _sys(
+          '_floaty_proxy',
+          {'id': '0', 'type': 'request'},
+        ),
+      );
 
       expect(stateReceived, hasLength(1));
       expect(actionReceived, hasLength(1));
@@ -219,7 +235,23 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       // The value for _floaty_state is a string, not a Map.
-      await _simulateMessage({'_floaty_state': 'not-a-map'});
+      await _simulateMessage(
+        {'__floaty__': '_floaty_state', '_floaty_state': 'not-a-map'},
+      );
+
+      expect(rawReceived, hasLength(1));
+    });
+
+    test('map without system envelope goes to raw stream even with prefix key',
+        () async {
+      FloatyChannel.registerHandler('_floaty_state', (_) {});
+      FloatyChannel.ensureListening();
+
+      final rawReceived = <Object?>[];
+      FloatyChannel.rawMessages.listen(rawReceived.add);
+
+      // User data that happens to contain a prefix key but no envelope.
+      await _simulateMessage({'_floaty_state': {'full': true}});
 
       expect(rawReceived, hasLength(1));
     });
@@ -234,6 +266,11 @@ void main() {
     test('send transmits data through the channel', () async {
       // send should not throw even without a native handler.
       await FloatyChannel.send({'key': 'value'});
+    });
+
+    test('sendSystem wraps payload in system envelope', () async {
+      // sendSystem should not throw even without a native handler.
+      await FloatyChannel.sendSystem('_floaty_state', {'key': 'value'});
     });
   });
 }

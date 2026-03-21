@@ -114,12 +114,9 @@ void main() {
     });
   });
 
-  group('ChatHeadConfig effective getters', () {
-    test('grouped assets take precedence over individual fields', () {
+  group('ChatHeadConfig grouped configs', () {
+    test('assets are stored correctly', () {
       const config = ChatHeadConfig(
-        chatheadIconAsset: 'old_icon.png',
-        closeIconAsset: 'old_close.png',
-        closeBackgroundAsset: 'old_bg.png',
         assets: ChatHeadAssets(
           icon: IconSource.asset('new_icon.png'),
           closeIcon: IconSource.asset('new_close.png'),
@@ -127,24 +124,21 @@ void main() {
         ),
       );
 
-      expect(config.effectiveChatheadIcon, 'new_icon.png');
-      expect(config.effectiveCloseIcon, 'new_close.png');
-      expect(config.effectiveCloseBackground, 'new_bg.png');
-    });
-
-    test('individual fields used when no grouped config', () {
-      const config = ChatHeadConfig(
-        chatheadIconAsset: 'icon.png',
-        closeIconAsset: 'close.png',
-        closeBackgroundAsset: 'bg.png',
+      expect(
+        (config.assets!.icon as AssetIconSource).path,
+        'new_icon.png',
       );
-
-      expect(config.effectiveChatheadIcon, 'icon.png');
-      expect(config.effectiveCloseIcon, 'close.png');
-      expect(config.effectiveCloseBackground, 'bg.png');
+      expect(
+        (config.assets!.closeIcon as AssetIconSource).path,
+        'new_close.png',
+      );
+      expect(
+        (config.assets!.closeBackground as AssetIconSource).path,
+        'new_bg.png',
+      );
     });
 
-    test('effectiveIconSource resolves network icons', () {
+    test('assets support network icons', () {
       const config = ChatHeadConfig(
         assets: ChatHeadAssets(
           icon: IconSource.network('https://example.com/icon.png'),
@@ -153,31 +147,15 @@ void main() {
         ),
       );
 
-      expect(config.effectiveChatheadIconSource, isA<NetworkIconSource>());
+      expect(config.assets!.icon, isA<NetworkIconSource>());
       expect(
-        (config.effectiveChatheadIconSource! as NetworkIconSource).url,
+        (config.assets!.icon as NetworkIconSource).url,
         'https://example.com/icon.png',
       );
-      // String getter falls back to null for non-asset sources.
-      expect(config.effectiveChatheadIcon, isNull);
     });
 
-    test('effectiveIconSource wraps legacy string in AssetIconSource', () {
+    test('notification config is stored correctly', () {
       const config = ChatHeadConfig(
-        chatheadIconAsset: 'legacy.png',
-      );
-
-      final source = config.effectiveChatheadIconSource;
-      expect(source, isA<AssetIconSource>());
-      expect((source! as AssetIconSource).path, 'legacy.png');
-    });
-
-    test('grouped notification takes precedence', () {
-      const config = ChatHeadConfig(
-        notificationTitle: 'Old Title',
-        notificationDescription: 'Old Body',
-        notificationIconAsset: 'old_notif.png',
-        notificationVisibility: NotificationVisibility.visibilitySecret,
         notification: NotificationConfig(
           title: 'New Title',
           description: 'New Body',
@@ -186,73 +164,52 @@ void main() {
         ),
       );
 
-      expect(config.effectiveNotificationTitle, 'New Title');
-      expect(config.effectiveNotificationDescription, 'New Body');
-      expect(config.effectiveNotificationIcon, 'new_notif.png');
+      expect(config.notification!.title, 'New Title');
+      expect(config.notification!.description, 'New Body');
+      expect(config.notification!.iconAsset, 'new_notif.png');
       expect(
-        config.effectiveNotificationVisibility,
+        config.notification!.visibility,
         NotificationVisibility.visibilityPrivate,
       );
     });
 
-    test('individual notification fields used when no grouped config', () {
+    test('snap config is stored correctly', () {
       const config = ChatHeadConfig(
-        notificationTitle: 'Title',
-        notificationDescription: 'Body text',
-        notificationIconAsset: 'notif.png',
-        notificationVisibility: NotificationVisibility.visibilitySecret,
-      );
-
-      expect(config.effectiveNotificationTitle, 'Title');
-      expect(config.effectiveNotificationDescription, 'Body text');
-      expect(config.effectiveNotificationIcon, 'notif.png');
-      expect(
-        config.effectiveNotificationVisibility,
-        NotificationVisibility.visibilitySecret,
-      );
-    });
-
-    test('effectiveNotificationDescription is null when neither is set', () {
-      const config = ChatHeadConfig();
-      expect(config.effectiveNotificationDescription, isNull);
-    });
-
-    test('grouped snap takes precedence', () {
-      const config = ChatHeadConfig(
-        snapEdge: SnapEdge.left,
-        snapMargin: 5,
-        persistPosition: true,
         snap: SnapConfig(
           edge: SnapEdge.right,
           margin: 10,
         ),
       );
 
-      expect(config.effectiveSnapEdge, SnapEdge.right);
-      expect(config.effectiveSnapMargin, 10);
-      expect(config.effectivePersistPosition, isFalse);
+      expect(config.snap!.edge, SnapEdge.right);
+      expect(config.snap!.margin, 10);
+      expect(config.snap!.persistPosition, isFalse);
     });
 
-    test('individual snap fields used when no grouped config', () {
-      const config = ChatHeadConfig(
-        snapEdge: SnapEdge.left,
-        snapMargin: 5,
-        persistPosition: true,
-      );
-
-      expect(config.effectiveSnapEdge, SnapEdge.left);
-      expect(config.effectiveSnapMargin, 5);
-      expect(config.effectivePersistPosition, isTrue);
-    });
-
-    test('ChatHeadAssets.defaults() resolves through effective getters', () {
+    test('ChatHeadAssets.defaults() resolves correctly', () {
       const config = ChatHeadConfig(
         assets: ChatHeadAssets.defaults(),
       );
 
-      expect(config.effectiveChatheadIcon, 'assets/chatheadIcon.png');
-      expect(config.effectiveCloseIcon, 'assets/close.png');
-      expect(config.effectiveCloseBackground, 'assets/closeBg.png');
+      expect(
+        (config.assets!.icon as AssetIconSource).path,
+        'assets/chatheadIcon.png',
+      );
+      expect(
+        (config.assets!.closeIcon as AssetIconSource).path,
+        'assets/close.png',
+      );
+      expect(
+        (config.assets!.closeBackground as AssetIconSource).path,
+        'assets/closeBg.png',
+      );
+    });
+
+    test('defaults have null grouped configs', () {
+      const config = ChatHeadConfig();
+      expect(config.assets, isNull);
+      expect(config.notification, isNull);
+      expect(config.snap, isNull);
     });
   });
 }

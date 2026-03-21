@@ -1,5 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show listEquals;
+import 'package:meta/meta.dart';
+
 /// {@template icon_source}
 /// Describes where to load an icon image from.
 ///
@@ -20,6 +23,7 @@ import 'dart:typed_data';
 /// which means they can be used in `const` contexts (e.g.
 /// `ChatHeadAssets.defaults()`).
 /// {@endtemplate}
+@immutable
 sealed class IconSource {
   /// {@macro icon_source}
   const IconSource._();
@@ -53,6 +57,14 @@ final class AssetIconSource extends IconSource {
 
   /// Flutter asset path (e.g. `'assets/chatheadIcon.png'`).
   final String path;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AssetIconSource && other.path == path;
+
+  @override
+  int get hashCode => path.hashCode;
 }
 
 /// {@template network_icon_source}
@@ -64,6 +76,14 @@ final class NetworkIconSource extends IconSource {
 
   /// Fully-qualified URL of the image to download.
   final String url;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NetworkIconSource && other.url == url;
+
+  @override
+  int get hashCode => url.hashCode;
 }
 
 /// {@template bytes_icon_source}
@@ -71,8 +91,18 @@ final class NetworkIconSource extends IconSource {
 /// {@endtemplate}
 final class BytesIconSource extends IconSource {
   /// {@macro bytes_icon_source}
+  // Uint8List is not const-constructible.
+  // ignore: prefer_const_constructors_in_immutables
   BytesIconSource(this.data) : super._();
 
   /// Raw image bytes (PNG, JPEG, WebP, etc.).
   final Uint8List data;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BytesIconSource && listEquals(other.data, data);
+
+  @override
+  int get hashCode => Object.hashAll(data);
 }

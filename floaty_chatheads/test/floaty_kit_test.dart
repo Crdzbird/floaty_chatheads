@@ -81,6 +81,7 @@ void main() {
       );
 
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'increment',
           'payload': {'amount': 1},
@@ -94,6 +95,7 @@ void main() {
       received = false;
 
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'increment',
           'payload': {'amount': 2},
@@ -117,6 +119,7 @@ void main() {
       kit.onStateChanged.listen(states.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_state',
         '_floaty_state': {
           'full': true,
           'data': {'counter': 7, 'label': 'remote'},
@@ -142,6 +145,7 @@ void main() {
 
       // Simulate a proxy request from the overlay.
       await _simulateMessage({
+        '__floaty__': '_floaty_proxy',
         '_floaty_proxy': {
           'type': 'request',
           'id': '42',
@@ -179,6 +183,7 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'increment',
           'payload': {'amount': 1},
@@ -223,6 +228,7 @@ void main() {
 
       // Simulate disconnect.
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
@@ -241,6 +247,7 @@ void main() {
       kit.onConnectionChanged.listen(events.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
@@ -249,6 +256,7 @@ void main() {
 
     test('dispatch queues when disconnected', () async {
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
@@ -267,6 +275,7 @@ void main() {
 
     test('callService returns fallback when disconnected', () async {
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
@@ -288,6 +297,7 @@ void main() {
 
     test('callService throws when disconnected without fallback', () async {
       await _simulateMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
 
@@ -318,6 +328,7 @@ void main() {
       kit.onStateChanged.listen(states.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_state',
         '_floaty_state': {
           'full': true,
           'data': {'counter': 99, 'label': 'synced'},
@@ -345,6 +356,7 @@ void main() {
       );
 
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'increment',
           'payload': {'amount': 1},
@@ -358,6 +370,7 @@ void main() {
       received = false;
 
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'increment',
           'payload': {'amount': 2},
@@ -410,6 +423,7 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_action',
         '_floaty_action': {
           'type': 'increment',
           'payload': {'amount': 1},
