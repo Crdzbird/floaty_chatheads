@@ -1,5 +1,62 @@
 # Changelog
 
+## 1.3.0
+
+### ✨ Enhancements
+
+- **Added `FloatyChatheads.onClosed` stream.** A broadcast stream that
+  emits the chathead ID when the overlay is closed by the native
+  drag-to-close gesture or from the overlay itself. This lets the main
+  app update its UI state without polling `isActive()`.
+- **Added `FloatyProxyStream<T>`.** A typed, reactive stream that
+  bridges main app state to the overlay. The overlay subscribes once
+  and receives automatic updates whenever the main app pushes new
+  values — useful for GPS coordinates, sensor data, or any
+  high-frequency state.
+- **Added `NotificationConfig.description`.** Custom body text for the
+  Android foreground-service notification. When set, the notification
+  displays a separate title and body instead of the default
+  `"<title> is running"` format.
+- **Added `FloatyChannel` message buffering for reconnection
+  reliability.** System messages arriving before their handler is
+  registered are now buffered (up to 200 per prefix) and replayed in
+  order when the handler attaches. A `_everRegistered` set ensures
+  messages for intentionally-removed handlers still flow to the raw
+  stream.
+- **New examples**: Grouping, Move Tracking, Notification Actions,
+  Proxy Stream, Resizable Panel, and **Todo Survival** examples added
+  to the gallery app. The Todo Survival example demonstrates add /
+  toggle / remove actions, optimistic local updates, proxy fallback,
+  and full queue-flush reliability after app death.
+
+### 🐛 Bug Fixes
+
+- **Fixed queued actions lost on reconnection.** When the main app
+  restarted, the overlay flushed its action queue before the Dart side
+  had registered channel handlers, silently dropping every message.
+  `FloatyChannel` now buffers system messages for not-yet-registered
+  prefixes and replays them in order when `registerHandler()` is called.
+  Bumped `floaty_chatheads_android` to `^1.0.5`.
+- **Fixed counter survival replaying all queued increments as a single
+  value.** Buffered actions are now stored as individual objects and
+  replayed one-by-one with per-action log entries.
+- **Fixed chathead close crash when GPS is streaming (Android).** The
+  overlay `FlutterView` was removed from its parent while the engine
+  was still processing GPS data, causing an orphaned rendering window.
+  Bumped `floaty_chatheads_android` to `^1.0.5`.
+- **Fixed foreground service persisting after chathead close
+  (Android).** The service teardown now completes before the overlay
+  engine is destroyed. Bumped `floaty_chatheads_android` to `^1.0.5`.
+- **Fixed example UI state not updating on drag-to-close.** All
+  example screens now listen to `FloatyChatheads.onClosed` to
+  update `_chatheadActive` when the chathead is dismissed via the
+  native close gesture.
+
+### 🧪 Tests
+
+- Added tests for `FloatyProxyStream`, bringing the total to **271
+  tests** across all packages.
+
 ## 1.2.3
 
 ### 🐛 Bug Fixes

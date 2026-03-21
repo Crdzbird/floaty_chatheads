@@ -81,6 +81,7 @@ void main() {
       );
 
       await _simulateMessage({
+        '__floaty__': '_floaty_state',
         '_floaty_state': {
           'full': true,
           'data': {'count': 42, 'label': 'received'},
@@ -103,6 +104,7 @@ void main() {
 
       // Partial update: only change label.
       await _simulateMessage({
+        '__floaty__': '_floaty_state',
         '_floaty_state': {
           'full': false,
           'data': {'label': 'updated'},
@@ -126,6 +128,7 @@ void main() {
       channel.onStateChanged.listen(states.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_state',
         '_floaty_state': {
           'full': true,
           'data': {'count': 1, 'label': 'first'},
@@ -133,6 +136,7 @@ void main() {
       });
 
       await _simulateMessage({
+        '__floaty__': '_floaty_state',
         '_floaty_state': {
           'full': true,
           'data': {'count': 2, 'label': 'second'},
@@ -182,6 +186,7 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       await _simulateMessage({
+        '__floaty__': '_floaty_state',
         '_floaty_state': {
           'full': true,
           'data': {'count': 99, 'label': 'after-dispose'},
@@ -206,6 +211,7 @@ void main() {
 
       // Send a message where 'data' is not a Map.
       await _simulateMessage({
+        '__floaty__': '_floaty_state',
         '_floaty_state': {
           'full': true,
           'data': 'not-a-map',

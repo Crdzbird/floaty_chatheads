@@ -28,7 +28,7 @@ void main() {
       expect(fake.showChatHeadCalled, isTrue);
       expect(fake.lastConfig?.entryPoint, equals('testOverlay'));
       expect(
-        fake.lastConfig?.effectiveChatheadIcon,
+        (fake.lastConfig?.assets?.icon as AssetIconSource?)?.path,
         equals('assets/icon.png'),
       );
     });

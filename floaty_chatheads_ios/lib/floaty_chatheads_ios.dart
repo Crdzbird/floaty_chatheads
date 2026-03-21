@@ -60,18 +60,19 @@ class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
         entryPoint: config.entryPoint,
         contentWidth: effectiveWidth,
         contentHeight: effectiveHeight,
-        chatheadIconAsset: config.chatheadIconAsset,
-        closeIconAsset: config.closeIconAsset,
-        closeBackgroundAsset: config.closeBackgroundAsset,
-        notificationTitle: config.notificationTitle,
-        notificationIconAsset: config.notificationIconAsset,
+        notificationTitle: config.notification?.title,
+        notificationIconAsset: config.notification?.iconAsset,
         flag: pigeon.OverlayFlagMessage.values[config.flag.index],
         enableDrag: config.enableDrag,
-        notificationVisibility: pigeon.NotificationVisibilityMessage
-            .values[config.notificationVisibility.index],
-        snapEdge: pigeon.SnapEdgeMessage.values[config.snapEdge.index],
-        snapMargin: config.snapMargin,
-        persistPosition: config.persistPosition,
+        notificationVisibility:
+            pigeon.NotificationVisibilityMessage.values[
+                (config.notification?.visibility ??
+                        NotificationVisibility.visibilityPublic)
+                    .index],
+        snapEdge: pigeon.SnapEdgeMessage
+            .values[(config.snap?.edge ?? SnapEdge.both).index],
+        snapMargin: config.snap?.margin ?? -10,
+        persistPosition: config.snap?.persistPosition ?? false,
         entranceAnimation: pigeon.EntranceAnimationMessage
             .values[config.entranceAnimation.index],
         theme: themeMsg,

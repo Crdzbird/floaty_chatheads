@@ -290,7 +290,9 @@ data class ChatHeadConfig (
   /** Multi-source close icon (takes precedence over [closeIconAsset]). */
   val closeIconSource: IconSourceMessage? = null,
   /** Multi-source close background (takes precedence over [closeBackgroundAsset]). */
-  val closeBackgroundSource: IconSourceMessage? = null
+  val closeBackgroundSource: IconSourceMessage? = null,
+  /** Body text for the foreground-service notification. */
+  val notificationDescription: String? = null
 )
  {
   companion object {
@@ -315,7 +317,8 @@ data class ChatHeadConfig (
       val chatheadIconSource = pigeonVar_list[17] as IconSourceMessage?
       val closeIconSource = pigeonVar_list[18] as IconSourceMessage?
       val closeBackgroundSource = pigeonVar_list[19] as IconSourceMessage?
-      return ChatHeadConfig(entryPoint, contentWidth, contentHeight, chatheadIconAsset, closeIconAsset, closeBackgroundAsset, notificationTitle, notificationIconAsset, flag, enableDrag, notificationVisibility, snapEdge, snapMargin, persistPosition, entranceAnimation, theme, debugMode, chatheadIconSource, closeIconSource, closeBackgroundSource)
+      val notificationDescription = pigeonVar_list[20] as String?
+      return ChatHeadConfig(entryPoint, contentWidth, contentHeight, chatheadIconAsset, closeIconAsset, closeBackgroundAsset, notificationTitle, notificationIconAsset, flag, enableDrag, notificationVisibility, snapEdge, snapMargin, persistPosition, entranceAnimation, theme, debugMode, chatheadIconSource, closeIconSource, closeBackgroundSource, notificationDescription)
     }
   }
   fun toList(): List<Any?> {
@@ -340,6 +343,7 @@ data class ChatHeadConfig (
       chatheadIconSource,
       closeIconSource,
       closeBackgroundSource,
+      notificationDescription,
     )
   }
   override fun equals(other: Any?): Boolean {

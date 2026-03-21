@@ -16,6 +16,7 @@ import 'examples/quick_action_example.dart';
 import 'examples/survival_example.dart';
 import 'examples/themed_example.dart';
 import 'examples/timer_example.dart';
+import 'examples/todo_survival_example.dart';
 import 'overlays/accessibility_overlay.dart';
 import 'overlays/dashboard_overlay.dart';
 import 'overlays/features_showcase_overlay.dart';
@@ -29,6 +30,7 @@ import 'overlays/quick_action_overlay.dart';
 import 'overlays/survival_overlay.dart';
 import 'overlays/themed_overlay.dart';
 import 'overlays/timer_overlay.dart';
+import 'overlays/todo_survival_overlay.dart';
 import 'utils.dart';
 
 void main() => runApp(const MaterialApp(home: GalleryPage()));
@@ -88,6 +90,10 @@ void accessibilityOverlayMain() =>
 @pragma('vm:entry-point')
 void survivalOverlayMain() =>
     FloatyOverlayApp.run(const SurvivalOverlay());
+
+@pragma('vm:entry-point')
+void todoSurvivalOverlayMain() =>
+    FloatyOverlayApp.run(const TodoSurvivalOverlay());
 
 // ---------------------------------------------------------------------------
 // Gallery — lists all examples
@@ -187,6 +193,13 @@ class GalleryPage extends StatelessWidget {
       icon: Icons.shield,
       color: Colors.deepOrange,
     ),
+    _ExampleInfo(
+      title: 'Todo Survival',
+      description:
+          'Todo list that survives app death — add, toggle, remove while offline.',
+      icon: Icons.checklist,
+      color: Colors.teal,
+    ),
   ];
 
   Widget _buildRoute(int index) {
@@ -205,6 +218,7 @@ class GalleryPage extends StatelessWidget {
       11 => const AccessibilityExample(),
       12 => const MapExample(),
       13 => const SurvivalExample(),
+      14 => const TodoSurvivalExample(),
       _ => const HomePage(),
     };
   }

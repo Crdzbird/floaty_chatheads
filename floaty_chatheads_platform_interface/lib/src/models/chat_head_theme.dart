@@ -1,9 +1,13 @@
+import 'package:flutter/foundation.dart' show mapEquals;
+import 'package:meta/meta.dart';
+
 /// {@template chat_head_theme}
 /// Theming configuration for the floating chathead.
 ///
 /// All color values are ARGB integers (e.g. `0xFFFF0000` for opaque red).
 /// Pass `null` to keep the platform default.
 /// {@endtemplate}
+@immutable
 class ChatHeadTheme {
   /// {@macro chat_head_theme}
   const ChatHeadTheme({
@@ -57,4 +61,29 @@ class ChatHeadTheme {
   /// Values are ARGB integers.
   /// {@endtemplate}
   final Map<String, int>? overlayPalette;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChatHeadTheme &&
+          other.badgeColor == badgeColor &&
+          other.badgeTextColor == badgeTextColor &&
+          other.bubbleBorderColor == bubbleBorderColor &&
+          other.bubbleBorderWidth == bubbleBorderWidth &&
+          other.bubbleShadowColor == bubbleShadowColor &&
+          other.closeTintColor == closeTintColor &&
+          mapEquals(other.overlayPalette, overlayPalette);
+
+  @override
+  int get hashCode => Object.hash(
+        badgeColor,
+        badgeTextColor,
+        bubbleBorderColor,
+        bubbleBorderWidth,
+        bubbleShadowColor,
+        closeTintColor,
+        overlayPalette == null ? null : Object.hashAll(
+          overlayPalette!.entries.map((e) => Object.hash(e.key, e.value)),
+        ),
+      );
 }

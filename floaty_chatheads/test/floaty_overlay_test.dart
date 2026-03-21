@@ -120,6 +120,7 @@ void main() {
 
       // Simulate native sending a palette.
       final paletteMessage = {
+        '__floaty__': '_floaty_theme',
         '_floaty_theme': {
           'primary': 0xFF6200EE,
           'surface': 0xFFFFFFFF,
@@ -285,6 +286,7 @@ void main() {
       FloatyOverlay.onPaletteChanged.listen(completer.complete);
 
       final paletteMessage = {
+        '__floaty__': '_floaty_theme',
         '_floaty_theme': {
           'primary': 0xFF6200EE,
           'secondary': 0xFF03DAC6,

@@ -19,6 +19,7 @@ class DashboardExample extends StatefulWidget {
 class _DashboardExampleState extends State<DashboardExample> {
   final _log = <String>[];
   StreamSubscription<Object?>? _sub;
+  StreamSubscription<String>? _closeSub;
   bool _chatheadActive = false;
   final _titleController = TextEditingController();
   final _bodyController = TextEditingController();
@@ -26,6 +27,9 @@ class _DashboardExampleState extends State<DashboardExample> {
   @override
   void initState() {
     super.initState();
+    _closeSub = FloatyChatheads.onClosed.listen((_) {
+      if (mounted) setState(() => _chatheadActive = false);
+    });
     _sub = FloatyChatheads.onData.listen((data) {
       if (data is Map && mounted) {
         final event = data['event'] ?? 'unknown';
@@ -214,6 +218,7 @@ class _DashboardExampleState extends State<DashboardExample> {
 
   @override
   void dispose() {
+    _closeSub?.cancel();
     _sub?.cancel();
     _titleController.dispose();
     _bodyController.dispose();

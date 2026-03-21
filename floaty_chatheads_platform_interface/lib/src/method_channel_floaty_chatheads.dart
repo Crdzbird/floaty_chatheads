@@ -41,27 +41,27 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
       'entryPoint': config.entryPoint,
       'contentWidth': effectiveWidth,
       'contentHeight': effectiveHeight,
-      'chatheadIconAsset': config.effectiveChatheadIcon,
-      'closeIconAsset': config.effectiveCloseIcon,
-      'closeBackgroundAsset': config.effectiveCloseBackground,
-      if (config.effectiveChatheadIconSource != null)
+      if (config.assets?.icon != null)
         'chatheadIconSource':
-            _serializeIconSource(config.effectiveChatheadIconSource!),
-      if (config.effectiveCloseIconSource != null)
+            _serializeIconSource(config.assets!.icon),
+      if (config.assets?.closeIcon != null)
         'closeIconSource':
-            _serializeIconSource(config.effectiveCloseIconSource!),
-      if (config.effectiveCloseBackgroundSource != null)
+            _serializeIconSource(config.assets!.closeIcon),
+      if (config.assets?.closeBackground != null)
         'closeBackgroundSource':
-            _serializeIconSource(config.effectiveCloseBackgroundSource!),
-      'notificationTitle': config.effectiveNotificationTitle,
-      'notificationIconAsset': config.effectiveNotificationIcon,
+            _serializeIconSource(config.assets!.closeBackground),
+      'notificationTitle': config.notification?.title,
+      'notificationDescription': config.notification?.description,
+      'notificationIconAsset': config.notification?.iconAsset,
       'flag': config.flag.index,
       'enableDrag': config.enableDrag,
       'notificationVisibility':
-          config.effectiveNotificationVisibility.index,
-      'snapEdge': config.effectiveSnapEdge.index,
-      'snapMargin': config.effectiveSnapMargin,
-      'persistPosition': config.effectivePersistPosition,
+          (config.notification?.visibility ??
+              NotificationVisibility.visibilityPublic)
+              .index,
+      'snapEdge': (config.snap?.edge ?? SnapEdge.both).index,
+      'snapMargin': config.snap?.margin ?? -10,
+      'persistPosition': config.snap?.persistPosition ?? false,
       'entranceAnimation': config.entranceAnimation.index,
       'debugMode': config.debugMode,
       if (config.theme != null)

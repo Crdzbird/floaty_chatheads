@@ -312,6 +312,7 @@ void main() {
       );
 
       final paletteMessage = {
+        '__floaty__': '_floaty_theme',
         '_floaty_theme': {'primary': 0xFF6200EE},
       };
       final encoded = const JSONMessageCodec().encodeMessage(paletteMessage);
@@ -346,6 +347,7 @@ void main() {
 
       // Simulate a disconnect.
       final encoded = const JSONMessageCodec().encodeMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': false},
       });
       await TestDefaultBinaryMessengerBinding
@@ -360,6 +362,7 @@ void main() {
 
       // Simulate a reconnect.
       final encoded2 = const JSONMessageCodec().encodeMessage({
+        '__floaty__': '_floaty_connection',
         '_floaty_connection': {'connected': true},
       });
       await TestDefaultBinaryMessengerBinding

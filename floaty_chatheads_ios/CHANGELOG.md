@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.4
+
+### ✨ Enhancements
+
+- **Native close notification to main app.** When the overlay is
+  destroyed (drag-to-close or programmatic close), the iOS layer now
+  sends a system envelope message to the main Dart isolate so
+  `FloatyChatheads.onClosed` fires reliably.
+
 ## 1.1.3
 
 ### 📦 Metadata

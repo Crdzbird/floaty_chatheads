@@ -61,7 +61,5 @@ export 'src/floaty_permission_gate.dart';
 export 'src/floaty_proxy.dart';
 export 'src/floaty_scope.dart';
 export 'src/floaty_state_channel.dart';
-export 'src/generated/floaty_chatheads_overlay_api.g.dart'
-    show OverlayFlagMessage, OverlayPositionMessage;
 export 'src/widgets/floaty_mini_player.dart';
 export 'src/widgets/floaty_notification_card.dart';

@@ -38,9 +38,10 @@ class _SurvivalExampleState extends State<SurvivalExample> {
   static const _counterKey = 'survival_counter';
 
   bool _chatheadActive = false;
+  StreamSubscription<String>? _closeSub;
   int _counter = 0;
   bool _counterRestored = false;
-  int _bufferedIncrements = 0;
+  final _bufferedActions = <IncrementAction>[];
   final _log = <String>[];
   static const _maxLogEntries = 50;
 
@@ -65,6 +66,10 @@ class _SurvivalExampleState extends State<SurvivalExample> {
   void initState() {
     super.initState();
 
+    _closeSub = FloatyChatheads.onClosed.listen((_) {
+      if (mounted) setState(() => _chatheadActive = false);
+    });
+
     _kit = FloatyHostKit<SurvivalState>(
       stateToJson: (s) => s.toJson(),
       stateFromJson: SurvivalState.fromJson,
@@ -78,10 +83,10 @@ class _SurvivalExampleState extends State<SurvivalExample> {
       handler: (action) {
         if (!mounted) return;
         // If the persisted counter hasn't been restored yet (race with
-        // auto-flush on reconnection), buffer the increment so it's
-        // applied on top of the correct persisted value.
+        // auto-flush on reconnection), buffer the action so each
+        // increment is replayed individually after restoration.
         if (!_counterRestored) {
-          _bufferedIncrements += action.amount;
+          _bufferedActions.add(action);
           return;
         }
         setState(() {
@@ -129,13 +134,16 @@ class _SurvivalExampleState extends State<SurvivalExample> {
     await _restoreCounter();
     _counterRestored = true;
 
-    // Apply any increments that arrived (via queue flush) before the
-    // persisted counter was restored.
-    if (_bufferedIncrements > 0) {
-      _counter += _bufferedIncrements;
-      _bufferedIncrements = 0;
-      unawaited(_persistCounter());
+    // Replay any actions that arrived (via queue flush) before the
+    // persisted counter was restored — each one individually so they
+    // appear in the log and sync back to the overlay.
+    final hadBuffered = _bufferedActions.isNotEmpty;
+    for (final action in _bufferedActions) {
+      _counter += action.amount;
+      _addLog('[queued +${action.amount}] counter = $_counter');
     }
+    _bufferedActions.clear();
+    if (hadBuffered) unawaited(_persistCounter());
 
     if (!mounted) return;
 
@@ -145,7 +153,7 @@ class _SurvivalExampleState extends State<SurvivalExample> {
     if (active) {
       setState(() {
         _chatheadActive = true;
-        _addLog('[reconnected] counter restored to $_counter');
+        _addLog('[reconnected] counter = $_counter');
       });
       // Sync the persisted counter so the overlay knows where we left off.
       await _kit.setState(SurvivalState(
@@ -335,6 +343,7 @@ class _SurvivalExampleState extends State<SurvivalExample> {
 
   @override
   void dispose() {
+    _closeSub?.cancel();
     _kit.dispose();
     // Do NOT close the chathead or dispose the global channel here.
     // The whole point of this example is that the overlay survives

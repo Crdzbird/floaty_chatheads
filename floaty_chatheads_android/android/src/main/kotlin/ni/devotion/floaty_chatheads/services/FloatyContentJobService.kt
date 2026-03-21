@@ -6,21 +6,14 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
 
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
-import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
-import io.flutter.embedding.engine.FlutterEngineGroup
-import io.flutter.embedding.engine.dart.DartExecutor
-import io.flutter.FlutterInjector
 import io.flutter.plugin.common.BasicMessageChannel
-import io.flutter.plugin.common.JSONMessageCodec
 import ni.devotion.floaty_chatheads.FloatyChatheadsPlugin
 import ni.devotion.floaty_chatheads.R
 import ni.devotion.floaty_chatheads.floating_chathead.ChatHeads
@@ -30,10 +23,7 @@ import ni.devotion.floaty_chatheads.generated.FloatyOverlayHostApi
 import ni.devotion.floaty_chatheads.generated.OverlayFlagMessage
 import ni.devotion.floaty_chatheads.generated.OverlayPositionMessage
 import ni.devotion.floaty_chatheads.utils.Constants
-import ni.devotion.floaty_chatheads.utils.EntranceAnimation
-import ni.devotion.floaty_chatheads.utils.Managment
-import ni.devotion.floaty_chatheads.utils.SnapEdge
-import org.json.JSONObject
+import ni.devotion.floaty_chatheads.utils.OverlayConfig
 
 class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
@@ -46,19 +36,22 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     var chatHeads: ChatHeads? = null
     private var overlayFlutterApi: FloatyOverlayFlutterApi? = null
 
-    /// The overlay-side messenger owned by the service.
-    var overlayMessenger: BasicMessageChannel<Any?>? = null
-        private set
+    private lateinit var configPersistence: ConfigPersistence
+    private lateinit var engineManager: OverlayEngineManager
 
-    /// Whether the main app plugin is currently attached.
-    var mainAppConnected: Boolean = false
-        private set
+    /// The overlay-side messenger owned by the service (delegated).
+    val overlayMessenger: BasicMessageChannel<Any?>?
+        get() = engineManager.overlayMessenger
+
+    /// Whether the main app plugin is currently attached (delegated).
+    val mainAppConnected: Boolean
+        get() = engineManager.mainAppConnected
 
     // ── Debug: Pigeon message log ────────────────────────────────────
     private val debugMessageLog = ArrayDeque<Map<String, Any?>>(DEBUG_LOG_MAX_SIZE)
 
     private fun logPigeonCall(method: String, args: Map<String, Any?> = emptyMap()) {
-        if (!Managment.debugMode) return
+        if (!OverlayConfig.debugMode) return
         val entry = mapOf(
             "timestamp" to System.currentTimeMillis(),
             "method" to method,
@@ -72,286 +65,73 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         }
     }
 
-    private fun getPrefs(): SharedPreferences {
-        return getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
-    }
+    // ── Public delegating methods (called by FloatyChatheadsPlugin) ──
 
-    // ── Engine lifecycle (owned by the service) ─────────────────────
-
-    /**
-     * Creates a new overlay Flutter engine, caches it, and sets up the
-     * overlay-side messenger. This is the single source of truth for
-     * engine creation — the plugin delegates to the service.
-     */
     fun ensureOverlayEngine(entryPoint: String) {
-        // If the engine already exists, skip recreation.
-        val existing = FlutterEngineCache.getInstance()
-            .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-        if (existing != null) {
-            Managment.logD("ensureOverlayEngine: engine already cached")
-            setupOverlayMessenger(existing)
-            return
-        }
-
-        Managment.logD("ensureOverlayEngine: creating engine for '$entryPoint'")
-        val engineGroup = FlutterEngineGroup(this)
-        val dartEntrypoint = DartExecutor.DartEntrypoint(
-            FlutterInjector.instance().flutterLoader().findAppBundlePath(),
-            entryPoint,
-        )
-        val engine = engineGroup.createAndRunEngine(this, dartEntrypoint)
-        FlutterEngineCache.getInstance()
-            .put(Constants.OVERLAY_ENGINE_CACHE_TAG, engine)
-
-        setupOverlayMessenger(engine)
-
-        // Send theme palette to overlay isolate if configured.
-        Managment.overlayPalette?.let { palette ->
-            overlayMessenger?.send(mapOf("_floaty_theme" to palette))
-        }
+        engineManager.ensureEngine(entryPoint)
     }
 
-    /**
-     * Sets up the overlay-side BasicMessageChannel on the given engine.
-     * Messages from the overlay are forwarded to the main app's plugin
-     * when connected; otherwise replies are null.
-     */
-    private fun setupOverlayMessenger(engine: FlutterEngine) {
-        overlayMessenger = BasicMessageChannel(
-            engine.dartExecutor,
-            Constants.MESSENGER_TAG,
-            JSONMessageCodec.INSTANCE,
-        )
-        overlayMessenger?.setMessageHandler { message, reply ->
-            val plugin = FloatyChatheadsPlugin.activeInstance
-            if (plugin != null && mainAppConnected) {
-                plugin.mainMessenger?.send(message, reply)
-            } else {
-                reply.reply(null)
-            }
-        }
-    }
-
-    /**
-     * Destroys the overlay engine and cleans up the messenger.
-     */
     fun destroyOverlayEngine() {
-        overlayMessenger?.setMessageHandler(null)
-        overlayMessenger = null
-
-        val engine = FlutterEngineCache.getInstance()
-            .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-        if (engine != null) {
-            FlutterEngineCache.getInstance()
-                .remove(Constants.OVERLAY_ENGINE_CACHE_TAG)
-            engine.destroy()
-        }
+        engineManager.destroyEngine()
     }
 
-    // ── Config persistence ──────────────────────────────────────────
-
-    /**
-     * Saves overlay configuration to SharedPreferences so the service
-     * can restore it after app death.
-     */
     fun persistConfig(entryPoint: String) {
-        getPrefs().edit().apply {
-            putBoolean(Constants.PREF_HAS_SAVED_CONFIG, true)
-            putString(Constants.PREF_ENTRY_POINT, entryPoint)
-            Managment.contentWidth?.let { putInt(Constants.PREF_CONTENT_WIDTH, it) }
-                ?: remove(Constants.PREF_CONTENT_WIDTH)
-            Managment.contentHeight?.let { putInt(Constants.PREF_CONTENT_HEIGHT, it) }
-                ?: remove(Constants.PREF_CONTENT_HEIGHT)
-            putString(Constants.PREF_SNAP_EDGE, Managment.snapEdge.name)
-            putFloat(Constants.PREF_SNAP_MARGIN, Managment.snapMargin)
-            putBoolean(Constants.PREF_PERSIST_POSITION, Managment.persistPosition)
-            putString(
-                Constants.PREF_ENTRANCE_ANIMATION,
-                Managment.entranceAnimation.name,
-            )
-            putBoolean(Constants.PREF_DEBUG_MODE, Managment.debugMode)
-            putString(Constants.PREF_NOTIFICATION_TITLE, Managment.notificationTitle)
-            putInt(Constants.PREF_BADGE_COLOR, Managment.badgeColor)
-            putInt(Constants.PREF_BADGE_TEXT_COLOR, Managment.badgeTextColor)
-            Managment.bubbleBorderColor?.let {
-                putInt(Constants.PREF_BUBBLE_BORDER_COLOR, it)
-            } ?: remove(Constants.PREF_BUBBLE_BORDER_COLOR)
-            putFloat(Constants.PREF_BUBBLE_BORDER_WIDTH, Managment.bubbleBorderWidth)
-            putInt(Constants.PREF_BUBBLE_SHADOW_COLOR, Managment.bubbleShadowColor)
-            Managment.closeTintColor?.let {
-                putInt(Constants.PREF_CLOSE_TINT_COLOR, it)
-            } ?: remove(Constants.PREF_CLOSE_TINT_COLOR)
-            // Serialize overlay palette as JSON string.
-            Managment.overlayPalette?.let { palette ->
-                putString(
-                    Constants.PREF_OVERLAY_PALETTE,
-                    JSONObject(palette.mapValues { it.value }).toString(),
-                )
-            } ?: remove(Constants.PREF_OVERLAY_PALETTE)
-            apply()
-        }
+        configPersistence.persist(entryPoint)
     }
 
-    /**
-     * Restores overlay configuration from SharedPreferences into
-     * Managment fields. Returns the saved entry point, or null if
-     * no config was persisted.
-     */
-    private fun restoreConfig(): String? {
-        val prefs = getPrefs()
-        if (!prefs.getBoolean(Constants.PREF_HAS_SAVED_CONFIG, false)) return null
-
-        val entryPoint = prefs.getString(Constants.PREF_ENTRY_POINT, null)
-            ?: return null
-
-        Managment.contentWidth = if (prefs.contains(Constants.PREF_CONTENT_WIDTH)) {
-            prefs.getInt(Constants.PREF_CONTENT_WIDTH, 0)
-        } else null
-
-        Managment.contentHeight = if (prefs.contains(Constants.PREF_CONTENT_HEIGHT)) {
-            prefs.getInt(Constants.PREF_CONTENT_HEIGHT, 0)
-        } else null
-
-        Managment.snapEdge = try {
-            SnapEdge.valueOf(prefs.getString(Constants.PREF_SNAP_EDGE, "BOTH")!!)
-        } catch (_: Exception) { SnapEdge.BOTH }
-
-        Managment.snapMargin = prefs.getFloat(Constants.PREF_SNAP_MARGIN, -10f)
-        Managment.persistPosition = prefs.getBoolean(
-            Constants.PREF_PERSIST_POSITION, false,
-        )
-
-        Managment.entranceAnimation = try {
-            EntranceAnimation.valueOf(
-                prefs.getString(Constants.PREF_ENTRANCE_ANIMATION, "NONE")!!,
-            )
-        } catch (_: Exception) { EntranceAnimation.NONE }
-
-        Managment.debugMode = prefs.getBoolean(Constants.PREF_DEBUG_MODE, false)
-        Managment.notificationTitle = prefs.getString(
-            Constants.PREF_NOTIFICATION_TITLE, "Floaty Chathead",
-        )!!
-        Managment.badgeColor = prefs.getInt(
-            Constants.PREF_BADGE_COLOR, Color.RED,
-        )
-        Managment.badgeTextColor = prefs.getInt(
-            Constants.PREF_BADGE_TEXT_COLOR, Color.WHITE,
-        )
-        Managment.bubbleBorderColor = if (
-            prefs.contains(Constants.PREF_BUBBLE_BORDER_COLOR)
-        ) {
-            prefs.getInt(Constants.PREF_BUBBLE_BORDER_COLOR, 0)
-        } else null
-
-        Managment.bubbleBorderWidth = prefs.getFloat(
-            Constants.PREF_BUBBLE_BORDER_WIDTH, 0f,
-        )
-        Managment.bubbleShadowColor = prefs.getInt(
-            Constants.PREF_BUBBLE_SHADOW_COLOR,
-            Color.argb(80, 0, 0, 0),
-        )
-        Managment.closeTintColor = if (
-            prefs.contains(Constants.PREF_CLOSE_TINT_COLOR)
-        ) {
-            prefs.getInt(Constants.PREF_CLOSE_TINT_COLOR, 0)
-        } else null
-
-        // Restore overlay palette from JSON string.
-        prefs.getString(Constants.PREF_OVERLAY_PALETTE, null)?.let { json ->
-            try {
-                val obj = JSONObject(json)
-                val palette = mutableMapOf<String, Int>()
-                for (key in obj.keys()) {
-                    palette[key] = obj.getInt(key)
-                }
-                Managment.overlayPalette = palette
-            } catch (_: Exception) {
-                Managment.overlayPalette = null
-            }
-        }
-
-        return entryPoint
-    }
-
-    /**
-     * Clears persisted config when the overlay is explicitly closed.
-     */
     fun clearPersistedConfig() {
-        getPrefs().edit().clear().apply()
+        configPersistence.clear()
     }
 
-    // ── Main app connection management ──────────────────────────────
-
-    /**
-     * Called by the plugin when it attaches. Re-establishes the relay
-     * and notifies the overlay Dart side.
-     */
     fun onMainAppConnected() {
-        mainAppConnected = true
-        // Re-setup the overlay messenger relay to forward to the new
-        // plugin instance.
-        val engine = FlutterEngineCache.getInstance()
-            .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-        if (engine != null) {
-            setupOverlayMessenger(engine)
-        }
-        // Notify overlay Dart side.
-        overlayMessenger?.send(
-            mapOf(Constants.CONNECTION_PREFIX to mapOf("connected" to true)),
-        )
+        engineManager.onMainAppConnected()
     }
 
     /**
-     * Called by the plugin when it detaches. Notifies the overlay
-     * Dart side but keeps the engine alive.
+     * Sets up the relay so main→overlay messages work, but does NOT
+     * send the `connected:true` signal to the overlay.  Used during
+     * `onAttachedToEngine` reconnection to avoid triggering the overlay's
+     * queue flush before the main Dart side has registered its handlers.
      */
+    fun onMainAppRelay() {
+        engineManager.onMainAppRelay()
+    }
+
     fun onMainAppDisconnected() {
-        mainAppConnected = false
-        // Notify overlay Dart side.
-        overlayMessenger?.send(
-            mapOf(Constants.CONNECTION_PREFIX to mapOf("connected" to false)),
-        )
-        // Update the overlay messenger to stop forwarding to main app.
-        val engine = FlutterEngineCache.getInstance()
-            .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-        if (engine != null) {
-            overlayMessenger?.setMessageHandler { _, reply ->
-                reply.reply(null)
-            }
-        }
+        engineManager.onMainAppDisconnected()
     }
 
     // ── Service lifecycle ───────────────────────────────────────────
 
     override fun onCreate() {
-        Managment.logD("onCreate() called. instance=$instance")
+        OverlayConfig.logD("onCreate() called. instance=$instance")
         instance = this
+        configPersistence = ConfigPersistence(this)
+        engineManager = OverlayEngineManager(this)
         createNotificationChannel()
         showNotification()
 
         val engine = FlutterEngineCache.getInstance()
             .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-        Managment.logD("onCreate() engine=$engine")
+        OverlayConfig.logD("onCreate() engine=$engine")
 
         if (engine != null) {
             // Engine already exists (normal startup via plugin).
             FloatyOverlayHostApi.setUp(engine.dartExecutor, this)
             overlayFlutterApi = FloatyOverlayFlutterApi(engine.dartExecutor)
-            setupOverlayMessenger(engine)
+            engineManager.setupMessenger(engine)
         } else if (FloatyChatheadsPlugin.activeInstance != null) {
-            // Plugin is active — Managment fields are already populated
+            // Plugin is active — OverlayConfig fields are already populated
             // by the current showChatHead() call. Just read the entry
             // point from SharedPreferences; do NOT call restoreConfig()
-            // because it would overwrite the in-memory Managment values
+            // because it would overwrite the in-memory OverlayConfig values
             // with stale or incomplete SharedPreferences data.
-            val entryPoint = getPrefs().getString(
-                Constants.PREF_ENTRY_POINT, null,
-            )
+            val entryPoint = configPersistence.readEntryPoint()
             if (entryPoint != null) {
-                Managment.logD(
+                OverlayConfig.logD(
                     "onCreate() plugin active, creating engine for '$entryPoint'",
                 )
-                ensureOverlayEngine(entryPoint)
+                engineManager.ensureEngine(entryPoint)
                 val createdEngine = FlutterEngineCache.getInstance()
                     .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
                 if (createdEngine != null) {
@@ -364,36 +144,36 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
                 }
                 // The main app plugin is active but showChatHead() couldn't
                 // call onMainAppConnected() because this service hadn't
-                // started yet. Set the flag now so overlay→main messages
+                // started yet. Set the flag now so overlay->main messages
                 // are forwarded instead of silently dropped.
-                onMainAppConnected()
+                engineManager.onMainAppConnected()
             }
         } else {
             // No engine and no plugin — either restarted after app
             // death via START_STICKY, or the service is starting async
             // from startForegroundService() while the plugin already
-            // populated Managment.  Only call restoreConfig() when
-            // Managment looks unpopulated (both dimensions null) to
+            // populated OverlayConfig.  Only call restoreConfig() when
+            // OverlayConfig looks unpopulated (both dimensions null) to
             // avoid overwriting values the plugin just set.
-            val managmentAlreadySet =
-                Managment.contentWidth != null || Managment.contentHeight != null
-            val entryPoint = if (managmentAlreadySet) {
-                // Managment was populated by the plugin's
+            val configAlreadySet =
+                OverlayConfig.contentWidth != null || OverlayConfig.contentHeight != null
+            val entryPoint = if (configAlreadySet) {
+                // OverlayConfig was populated by the plugin's
                 // showChatHead() — just read the entry point.
-                Managment.logD(
-                    "onCreate() Managment already set " +
-                        "(w=${Managment.contentWidth}, h=${Managment.contentHeight})" +
+                OverlayConfig.logD(
+                    "onCreate() OverlayConfig already set " +
+                        "(w=${OverlayConfig.contentWidth}, h=${OverlayConfig.contentHeight})" +
                         " — skipping restoreConfig()",
                 )
-                getPrefs().getString(Constants.PREF_ENTRY_POINT, null)
+                configPersistence.readEntryPoint()
             } else {
-                restoreConfig()
+                configPersistence.restore()
             }
             if (entryPoint != null) {
-                Managment.logD(
+                OverlayConfig.logD(
                     "onCreate() restoring engine for '$entryPoint'",
                 )
-                ensureOverlayEngine(entryPoint)
+                engineManager.ensureEngine(entryPoint)
                 val restoredEngine = FlutterEngineCache.getInstance()
                     .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
                 if (restoredEngine != null) {
@@ -405,7 +185,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
                     )
                 }
             } else {
-                Managment.logW(
+                OverlayConfig.logW(
                     "onCreate() no saved config — cannot restore overlay",
                 )
             }
@@ -413,7 +193,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Managment.logD(
+        OverlayConfig.logD(
             "onStartCommand() called. chatHeads=$chatHeads, instance=$instance",
         )
         // Re-post the foreground notification so Android doesn't kill the
@@ -422,7 +202,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         if (chatHeads == null) {
             createWindow()
         } else {
-            Managment.logD(
+            OverlayConfig.logD(
                 "onStartCommand() chatHeads already exists — skipping createWindow()",
             )
         }
@@ -430,7 +210,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     }
 
     fun createWindow() {
-        Managment.logD(
+        OverlayConfig.logD(
             "createWindow() called. instance=$instance, chatHeads=$chatHeads",
         )
         // Ensure instance always points to the live service. When the
@@ -443,11 +223,11 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
         val engine = FlutterEngineCache.getInstance()
             .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-        Managment.logD(
+        OverlayConfig.logD(
             "createWindow() engine=$engine, " +
-                "contentW=${Managment.contentWidth}, " +
-                "contentH=${Managment.contentHeight}, " +
-                "entranceAnim=${Managment.entranceAnimation}",
+                "contentW=${OverlayConfig.contentWidth}, " +
+                "contentH=${OverlayConfig.contentHeight}, " +
+                "entranceAnim=${OverlayConfig.entranceAnimation}",
         )
         if (engine != null) {
             // Re-register Pigeon APIs on the (possibly new) engine.
@@ -456,7 +236,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
             chatHeads?.content?.attachEngine(engine)
         } else {
-            Managment.logE(
+            OverlayConfig.logE(
                 "createWindow() ENGINE IS NULL — overlay will not render!",
             )
         }
@@ -466,11 +246,11 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         // Uses setContentSize() which stores the values and re-applies
         // them in showContent() when the panel transitions from GONE to
         // VISIBLE, guaranteeing the dimensions survive the layout cycle.
-        //  • null  → keep default (MATCH_PARENT from FrameLayout)
-        //  • > 0   → explicit dp → px
-        //  • <= 0  → MATCH_PARENT (fullscreen overlays)
-        val cw = Managment.contentWidth
-        val ch = Managment.contentHeight
+        //  * null  -> keep default (MATCH_PARENT from FrameLayout)
+        //  * > 0   -> explicit dp -> px
+        //  * <= 0  -> MATCH_PARENT (fullscreen overlays)
+        val cw = OverlayConfig.contentWidth
+        val ch = OverlayConfig.contentHeight
         if (cw != null || ch != null) {
             val w = when {
                 cw == null -> ViewGroup.LayoutParams.WRAP_CONTENT
@@ -485,7 +265,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
             }
             chatHeads?.content?.setContentSize(w, h)
         }
-        Managment.logD(
+        OverlayConfig.logD(
             "createWindow() done. " +
                 "content.lp.w=${chatHeads?.content?.layoutParams?.width}, " +
                 "content.lp.h=${chatHeads?.content?.layoutParams?.height}",
@@ -501,7 +281,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     }
 
     fun closeWindow(stopService: Boolean) {
-        Managment.logD(
+        OverlayConfig.logD(
             "closeWindow(stopService=$stopService) called. chatHeads=$chatHeads",
         )
         val closedId = chatHeads?.topChatHead?.id ?: "default"
@@ -520,15 +300,39 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
             overlayFlutterApi?.onChatHeadClosed(closedId) { }
         } catch (_: Exception) { }
 
-        if (stopService) {
-            // Explicit close — destroy engine and clear persisted config.
-            destroyOverlayEngine()
-            clearPersistedConfig()
+        // Notify the main app that the chathead was closed (e.g. by
+        // the drag-to-close gesture or overlay close button).
+        try {
+            FloatyChatheadsPlugin.activeInstance?.mainMessenger?.send(
+                mapOf(
+                    Constants.SYSTEM_ENVELOPE to Constants.CLOSED_PREFIX,
+                    Constants.CLOSED_PREFIX to mapOf("id" to closedId),
+                ),
+            )
+        } catch (_: Exception) { }
 
+        if (stopService) {
+            configPersistence.clear()
+
+            // Stop the foreground service and dismiss the notification
+            // BEFORE engine destruction — destroyEngine() can throw when
+            // called from within the overlay engine's own Pigeon handler,
+            // and we must ensure the service stops regardless.
+            @Suppress("DEPRECATION")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+            } else {
+                stopForeground(true)
+            }
             val notificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.cancel(Constants.NOTIFICATION_ID)
             stopSelf()
+
+            // Destroy engine after service teardown is guaranteed.
+            try {
+                engineManager.destroyEngine()
+            } catch (_: Exception) { }
         } else {
             // Teardown for restart — just unbind Pigeon, keep engine logic
             // to the caller.
@@ -542,46 +346,41 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
     // ── Lifecycle notification helpers ──────────────────────────────────
 
-    fun notifyChatHeadTapped(id: String) {
-        logPigeonCall("onChatHeadTapped", mapOf("id" to id))
+    private inline fun notifyOverlay(
+        method: String,
+        args: Map<String, Any?> = emptyMap(),
+        call: FloatyOverlayFlutterApi.() -> Unit,
+    ) {
+        logPigeonCall(method, args)
         try {
-            overlayFlutterApi?.onChatHeadTapped(id) { }
+            overlayFlutterApi?.call()
         } catch (_: Exception) { }
     }
 
-    fun notifyChatHeadExpanded(id: String) {
-        logPigeonCall("onChatHeadExpanded", mapOf("id" to id))
-        try {
-            overlayFlutterApi?.onChatHeadExpanded(id) { }
-        } catch (_: Exception) { }
-    }
+    fun notifyChatHeadTapped(id: String) =
+        notifyOverlay("onChatHeadTapped", mapOf("id" to id)) {
+            onChatHeadTapped(id) { }
+        }
 
-    fun notifyChatHeadCollapsed(id: String) {
-        logPigeonCall("onChatHeadCollapsed", mapOf("id" to id))
-        try {
-            overlayFlutterApi?.onChatHeadCollapsed(id) { }
-        } catch (_: Exception) { }
-    }
+    fun notifyChatHeadExpanded(id: String) =
+        notifyOverlay("onChatHeadExpanded", mapOf("id" to id)) {
+            onChatHeadExpanded(id) { }
+        }
 
-    fun notifyChatHeadDragStart(id: String, x: Double, y: Double) {
-        logPigeonCall(
-            "onChatHeadDragStart",
-            mapOf("id" to id, "x" to x, "y" to y),
-        )
-        try {
-            overlayFlutterApi?.onChatHeadDragStart(id, x, y) { }
-        } catch (_: Exception) { }
-    }
+    fun notifyChatHeadCollapsed(id: String) =
+        notifyOverlay("onChatHeadCollapsed", mapOf("id" to id)) {
+            onChatHeadCollapsed(id) { }
+        }
 
-    fun notifyChatHeadDragEnd(id: String, x: Double, y: Double) {
-        logPigeonCall(
-            "onChatHeadDragEnd",
-            mapOf("id" to id, "x" to x, "y" to y),
-        )
-        try {
-            overlayFlutterApi?.onChatHeadDragEnd(id, x, y) { }
-        } catch (_: Exception) { }
-    }
+    fun notifyChatHeadDragStart(id: String, x: Double, y: Double) =
+        notifyOverlay("onChatHeadDragStart", mapOf("id" to id, "x" to x, "y" to y)) {
+            onChatHeadDragStart(id, x, y) { }
+        }
+
+    fun notifyChatHeadDragEnd(id: String, x: Double, y: Double) =
+        notifyOverlay("onChatHeadDragEnd", mapOf("id" to id, "x" to x, "y" to y)) {
+            onChatHeadDragEnd(id, x, y) { }
+        }
 
     // ── FloatyOverlayHostApi implementation ─────────────────────────────
 
@@ -629,7 +428,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     override fun getDebugInfo(): Map<String?, Any?> {
         val top = chatHeads?.topChatHead
         val info = mutableMapOf<String?, Any?>(
-            "debugMode" to Managment.debugMode,
+            "debugMode" to OverlayConfig.debugMode,
             "toggled" to (chatHeads?.toggled ?: false),
             "captured" to (chatHeads?.captured ?: false),
             "chatHeadCount" to (chatHeads?.chatHeads?.size ?: 0),
@@ -687,12 +486,20 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         val builder = NotificationCompat.Builder(
             this, Constants.NOTIFICATION_CHANNEL_ID,
         )
-            .setContentTitle("${Managment.notificationTitle} is running")
+            .setContentTitle(
+                if (OverlayConfig.notificationDescription != null)
+                    OverlayConfig.notificationTitle
+                else
+                    "${OverlayConfig.notificationTitle} is running"
+            )
+            .apply {
+                OverlayConfig.notificationDescription?.let { setContentText(it) }
+            }
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
 
-        if (Managment.notificationIcon != null) {
-            builder.setLargeIcon(Managment.notificationIcon)
+        if (OverlayConfig.notificationIcon != null) {
+            builder.setLargeIcon(OverlayConfig.notificationIcon)
         }
 
         builder.setSmallIcon(R.drawable.ic_chathead)
@@ -703,7 +510,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
-        Managment.logD("onDestroy() called. instance=$instance")
+        OverlayConfig.logD("onDestroy() called. instance=$instance")
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(Constants.NOTIFICATION_ID)

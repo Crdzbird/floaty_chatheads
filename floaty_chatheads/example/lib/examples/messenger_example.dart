@@ -19,11 +19,15 @@ class _MessengerExampleState extends State<MessengerExample> {
   final _messages = <_Msg>[];
   final _scrollController = ScrollController();
   StreamSubscription<Object?>? _sub;
+  StreamSubscription<String>? _closeSub;
   bool _chatheadActive = false;
 
   @override
   void initState() {
     super.initState();
+    _closeSub = FloatyChatheads.onClosed.listen((_) {
+      if (mounted) setState(() => _chatheadActive = false);
+    });
     _sub = FloatyChatheads.onData.listen((data) {
       if (data is Map && mounted) {
         setState(() {
@@ -221,6 +225,7 @@ class _MessengerExampleState extends State<MessengerExample> {
 
   @override
   void dispose() {
+    _closeSub?.cancel();
     _sub?.cancel();
     _controller.dispose();
     _scrollController.dispose();

@@ -92,11 +92,9 @@ final class FloatyStateChannel<S> {
   /// Replaces the entire state and syncs to the other side.
   Future<void> setState(S newState) {
     _state = newState;
-    return FloatyChannel.send({
-      _prefix: {
-        'full': true,
-        'data': _toJson(newState),
-      },
+    return FloatyChannel.sendSystem(_prefix, {
+      'full': true,
+      'data': _toJson(newState),
     });
   }
 
@@ -107,11 +105,9 @@ final class FloatyStateChannel<S> {
   Future<void> updateState(Map<String, dynamic> partial) {
     final current = _toJson(_state)..addAll(partial);
     _state = _fromJson(current);
-    return FloatyChannel.send({
-      _prefix: {
-        'full': false,
-        'data': partial,
-      },
+    return FloatyChannel.sendSystem(_prefix, {
+      'full': false,
+      'data': partial,
     });
   }
 

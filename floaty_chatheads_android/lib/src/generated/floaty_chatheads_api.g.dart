@@ -259,6 +259,7 @@ class ChatHeadConfig {
     this.chatheadIconSource,
     this.closeIconSource,
     this.closeBackgroundSource,
+    this.notificationDescription,
   });
 
   String entryPoint;
@@ -311,6 +312,9 @@ class ChatHeadConfig {
   /// Multi-source close background (takes precedence over [closeBackgroundAsset]).
   IconSourceMessage? closeBackgroundSource;
 
+  /// Body text for the foreground-service notification.
+  String? notificationDescription;
+
   List<Object?> _toList() {
     return <Object?>[
       entryPoint,
@@ -333,6 +337,7 @@ class ChatHeadConfig {
       chatheadIconSource,
       closeIconSource,
       closeBackgroundSource,
+      notificationDescription,
     ];
   }
 
@@ -362,6 +367,7 @@ class ChatHeadConfig {
       chatheadIconSource: result[17] as IconSourceMessage?,
       closeIconSource: result[18] as IconSourceMessage?,
       closeBackgroundSource: result[19] as IconSourceMessage?,
+      notificationDescription: result[20] as String?,
     );
   }
 

@@ -1,4 +1,5 @@
 import 'package:floaty_chatheads_platform_interface/src/models/snap_edge.dart';
+import 'package:meta/meta.dart';
 
 /// {@template snap_config}
 /// Groups snap-behavior parameters for the chathead bubble.
@@ -11,6 +12,7 @@ import 'package:floaty_chatheads_platform_interface/src/models/snap_edge.dart';
 /// ),
 /// ```
 /// {@endtemplate}
+@immutable
 class SnapConfig {
   /// {@macro snap_config}
   const SnapConfig({
@@ -34,4 +36,15 @@ class SnapConfig {
   ///
   /// Defaults to `false`.
   final bool persistPosition;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SnapConfig &&
+          other.edge == edge &&
+          other.margin == margin &&
+          other.persistPosition == persistPosition;
+
+  @override
+  int get hashCode => Object.hash(edge, margin, persistPosition);
 }

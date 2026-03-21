@@ -2,12 +2,10 @@ import 'package:floaty_chatheads_platform_interface/src/models/chat_head_assets.
 import 'package:floaty_chatheads_platform_interface/src/models/chat_head_theme.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/content_size_preset.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/entrance_animation.dart';
-import 'package:floaty_chatheads_platform_interface/src/models/icon_source.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/notification_config.dart';
-import 'package:floaty_chatheads_platform_interface/src/models/notification_visibility.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/overlay_flag.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/snap_config.dart';
-import 'package:floaty_chatheads_platform_interface/src/models/snap_edge.dart';
+import 'package:meta/meta.dart';
 
 /// {@template chat_head_config}
 /// Configuration for showing a floating chathead.
@@ -18,35 +16,23 @@ import 'package:floaty_chatheads_platform_interface/src/models/snap_edge.dart';
 ///
 /// ## Grouped parameters
 ///
-/// Related parameters can be passed individually **or** via config objects:
+/// Related parameters are passed via config objects:
 ///
 /// - [assets] / [ChatHeadAssets] — groups icon and close-button asset paths.
 /// - [notification] / [NotificationConfig] — groups notification title, icon,
 ///   and visibility.
 /// - [snap] / [SnapConfig] — groups snap edge, margin, and position
 ///   persistence.
-///
-/// When a grouped config is provided **and** the corresponding individual
-/// parameter is also set, the grouped config takes precedence. Use the
-/// `effective*` getters to resolve the final value.
 /// {@endtemplate}
+@immutable
 class ChatHeadConfig {
   /// {@macro chat_head_config}
   const ChatHeadConfig({
     this.entryPoint = 'overlayMain',
     this.contentWidth,
     this.contentHeight,
-    this.chatheadIconAsset,
-    this.closeIconAsset,
-    this.closeBackgroundAsset,
-    this.notificationTitle,
-    this.notificationIconAsset,
     this.flag = OverlayFlag.defaultFlag,
     this.enableDrag = true,
-    this.notificationVisibility = NotificationVisibility.visibilityPublic,
-    this.snapEdge = SnapEdge.both,
-    this.snapMargin = -10,
-    this.persistPosition = false,
     this.entranceAnimation = EntranceAnimation.none,
     this.theme,
     this.sizePreset,
@@ -74,41 +60,6 @@ class ChatHeadConfig {
   /// {@endtemplate}
   final int? contentHeight;
 
-  /// {@template chat_head_config.chathead_icon_asset}
-  /// Flutter asset path for the chathead bubble icon (Android).
-  ///
-  /// Prefer using [assets] instead for grouped configuration.
-  /// {@endtemplate}
-  final String? chatheadIconAsset;
-
-  /// {@template chat_head_config.close_icon_asset}
-  /// Flutter asset path for the close-button icon (Android).
-  ///
-  /// Prefer using [assets] instead for grouped configuration.
-  /// {@endtemplate}
-  final String? closeIconAsset;
-
-  /// {@template chat_head_config.close_background_asset}
-  /// Flutter asset path for the close-button background (Android).
-  ///
-  /// Prefer using [assets] instead for grouped configuration.
-  /// {@endtemplate}
-  final String? closeBackgroundAsset;
-
-  /// {@template chat_head_config.notification_title}
-  /// Title shown in the foreground-service notification (Android).
-  ///
-  /// Prefer using [notification] instead for grouped configuration.
-  /// {@endtemplate}
-  final String? notificationTitle;
-
-  /// {@template chat_head_config.notification_icon_asset}
-  /// Flutter asset path for the notification icon (Android).
-  ///
-  /// Prefer using [notification] instead for grouped configuration.
-  /// {@endtemplate}
-  final String? notificationIconAsset;
-
   /// {@template chat_head_config.flag}
   /// Window behavior flag.
   ///
@@ -122,43 +73,6 @@ class ChatHeadConfig {
   /// Defaults to `true`.
   /// {@endtemplate}
   final bool enableDrag;
-
-  /// {@template chat_head_config.notification_visibility}
-  /// Notification visibility on the lock screen (Android).
-  ///
-  /// Prefer using [notification] instead for grouped configuration.
-  ///
-  /// Defaults to [NotificationVisibility.visibilityPublic].
-  /// {@endtemplate}
-  final NotificationVisibility notificationVisibility;
-
-  /// {@template chat_head_config.snap_edge}
-  /// Which screen edge(s) the chathead snaps to after being released.
-  ///
-  /// Prefer using [snap] instead for grouped configuration.
-  ///
-  /// Defaults to [SnapEdge.both].
-  /// {@endtemplate}
-  final SnapEdge snapEdge;
-
-  /// {@template chat_head_config.snap_margin}
-  /// Margin (in dp) from the screen edge when snapped.
-  ///
-  /// Prefer using [snap] instead for grouped configuration.
-  ///
-  /// Negative values mean the bubble overlaps the edge (partially hidden).
-  /// Defaults to `-10` (matching the classic chathead look).
-  /// {@endtemplate}
-  final double snapMargin;
-
-  /// {@template chat_head_config.persist_position}
-  /// Whether to save and restore the chathead position across sessions.
-  ///
-  /// Prefer using [snap] instead for grouped configuration.
-  ///
-  /// Defaults to `false`.
-  /// {@endtemplate}
-  final bool persistPosition;
 
   /// {@template chat_head_config.entrance_animation}
   /// The entrance animation when the chathead first appears.
@@ -198,94 +112,52 @@ class ChatHeadConfig {
   /// Grouped asset paths for the chathead bubble, close icon, and
   /// close background.
   ///
-  /// When provided, takes precedence over the individual
-  /// [chatheadIconAsset], [closeIconAsset], and [closeBackgroundAsset]
-  /// parameters.
-  ///
   /// Use [ChatHeadAssets.defaults] for convention-based file names.
   /// {@endtemplate}
   final ChatHeadAssets? assets;
 
   /// {@template chat_head_config.notification}
-  /// Grouped notification configuration.
-  ///
-  /// When provided, takes precedence over the individual
-  /// [notificationTitle], [notificationIconAsset], and
-  /// [notificationVisibility] parameters.
+  /// Grouped notification configuration (title, description, icon,
+  /// and lock-screen visibility).
   /// {@endtemplate}
   final NotificationConfig? notification;
 
   /// {@template chat_head_config.snap}
-  /// Grouped snap-behavior configuration.
-  ///
-  /// When provided, takes precedence over the individual
-  /// [snapEdge], [snapMargin], and [persistPosition] parameters.
+  /// Grouped snap-behavior configuration (edge, margin, and position
+  /// persistence).
   /// {@endtemplate}
   final SnapConfig? snap;
 
-  // ── Effective getters (grouped → individual fallback) ─────────────
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChatHeadConfig &&
+          other.entryPoint == entryPoint &&
+          other.contentWidth == contentWidth &&
+          other.contentHeight == contentHeight &&
+          other.flag == flag &&
+          other.enableDrag == enableDrag &&
+          other.entranceAnimation == entranceAnimation &&
+          other.theme == theme &&
+          other.sizePreset == sizePreset &&
+          other.debugMode == debugMode &&
+          other.assets == assets &&
+          other.notification == notification &&
+          other.snap == snap;
 
-  /// Resolved chathead icon source: [assets] → [chatheadIconAsset].
-  ///
-  /// Returns the [IconSource] from [assets] if available, otherwise
-  /// wraps [chatheadIconAsset] in an [AssetIconSource].
-  IconSource? get effectiveChatheadIconSource => assets?.icon ??
-      (chatheadIconAsset != null
-          ? IconSource.asset(chatheadIconAsset!)
-          : null);
-
-  /// Resolved close icon source: [assets] → [closeIconAsset].
-  IconSource? get effectiveCloseIconSource => assets?.closeIcon ??
-      (closeIconAsset != null ? IconSource.asset(closeIconAsset!) : null);
-
-  /// Resolved close background source: [assets] → [closeBackgroundAsset].
-  IconSource? get effectiveCloseBackgroundSource =>
-      assets?.closeBackground ??
-      (closeBackgroundAsset != null
-          ? IconSource.asset(closeBackgroundAsset!)
-          : null);
-
-  /// Resolved chathead icon as an asset path (backward compat).
-  ///
-  /// Returns the path if the resolved source is an [AssetIconSource],
-  /// otherwise falls back to [chatheadIconAsset].
-  String? get effectiveChatheadIcon {
-    final source = effectiveChatheadIconSource;
-    return source is AssetIconSource ? source.path : chatheadIconAsset;
-  }
-
-  /// Resolved close icon as an asset path (backward compat).
-  String? get effectiveCloseIcon {
-    final source = effectiveCloseIconSource;
-    return source is AssetIconSource ? source.path : closeIconAsset;
-  }
-
-  /// Resolved close background as an asset path (backward compat).
-  String? get effectiveCloseBackground {
-    final source = effectiveCloseBackgroundSource;
-    return source is AssetIconSource ? source.path : closeBackgroundAsset;
-  }
-
-  /// Resolved notification title: [notification] → [notificationTitle].
-  String? get effectiveNotificationTitle =>
-      notification?.title ?? notificationTitle;
-
-  /// Resolved notification icon: [notification] → [notificationIconAsset].
-  String? get effectiveNotificationIcon =>
-      notification?.iconAsset ?? notificationIconAsset;
-
-  /// Resolved notification visibility: [notification] →
-  /// [notificationVisibility].
-  NotificationVisibility get effectiveNotificationVisibility =>
-      notification?.visibility ?? notificationVisibility;
-
-  /// Resolved snap edge: [snap] → [snapEdge].
-  SnapEdge get effectiveSnapEdge => snap?.edge ?? snapEdge;
-
-  /// Resolved snap margin: [snap] → [snapMargin].
-  double get effectiveSnapMargin => snap?.margin ?? snapMargin;
-
-  /// Resolved persist position: [snap] → [persistPosition].
-  bool get effectivePersistPosition =>
-      snap?.persistPosition ?? persistPosition;
+  @override
+  int get hashCode => Object.hashAll([
+        entryPoint,
+        contentWidth,
+        contentHeight,
+        flag,
+        enableDrag,
+        entranceAnimation,
+        theme,
+        sizePreset,
+        debugMode,
+        assets,
+        notification,
+        snap,
+      ]);
 }

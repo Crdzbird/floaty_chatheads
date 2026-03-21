@@ -11,7 +11,7 @@ import android.widget.FrameLayout
 /**
  * Transparent debug overlay drawn on top of the ChatHeads FrameLayout.
  *
- * When `Managment.debugMode == true`, this view renders:
+ * When `OverlayConfig.debugMode == true`, this view renders:
  * - Translucent colored bounds around each ChatHead, content panel, and close target
  * - Position/size labels at each view
  * - Spring velocity HUD for the top chathead

@@ -191,11 +191,9 @@ final class FloatyActionRouter {
       return Future<void>.value();
     }
 
-    return FloatyChannel.send({
-      _prefix: {
-        'type': action.type,
-        'payload': action.toJson(),
-      },
+    return FloatyChannel.sendSystem(_prefix, {
+      'type': action.type,
+      'payload': action.toJson(),
     });
   }
 

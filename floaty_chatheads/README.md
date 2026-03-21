@@ -3,7 +3,7 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
 [![coverage: 100%][coverage_badge]][coverage_link]
-[![tests: 267 passed][tests_badge]][tests_link]
+[![tests: 271 passed][tests_badge]][tests_link]
 
 **Floating bubble overlays for Flutter -- like Facebook Messenger chatheads, but for any widget.**
 
@@ -46,7 +46,7 @@ else you can dream up.
 | **Zero-boilerplate helpers** | Show a chathead in 3 lines; build an overlay widget in 1 line |
 | **Built-in messaging** | Send data back and forth between your main app and the overlay in real time |
 | **Theming & accessibility** | Full TalkBack / VoiceOver support, customizable colors, and a debug inspector |
-| **Production-ready** | 267 tests, 100% coverage on handwritten code, MIT licensed |
+| **Production-ready** | 271 tests, 100% coverage on handwritten code, MIT licensed |
 
 ---
 
@@ -827,14 +827,14 @@ flutter run
 
 ## Test Suite & Coverage
 
-The plugin ships with **267 unit and widget tests** across all 4 packages:
+The plugin ships with **271 unit and widget tests** across all 4 packages:
 
 | Package | Tests | Status |
 |---|---|---|
 | `floaty_chatheads` | 233 | All passing |
 | `floaty_chatheads_platform_interface` | 33 | All passing |
 | `floaty_chatheads_android` | 1 | All passing |
-| **Total** | **267** | **All passing** |
+| **Total** | **271** | **All passing** |
 
 ### Coverage (handwritten code, excluding generated files)
 
@@ -1105,5 +1105,5 @@ This project is licensed under the MIT License. See [LICENSE](../LICENSE) for de
 [very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
 [coverage_badge]: https://img.shields.io/badge/coverage-100%25-brightgreen.svg
 [coverage_link]: #test-suite--coverage
-[tests_badge]: https://img.shields.io/badge/tests-267%20passed-brightgreen.svg
+[tests_badge]: https://img.shields.io/badge/tests-271%20passed-brightgreen.svg
 [tests_link]: #test-suite--coverage

@@ -10,7 +10,7 @@ import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import com.facebook.rebound.*
 import ni.devotion.floaty_chatheads.R
 import ni.devotion.floaty_chatheads.utils.ImageHelper
-import ni.devotion.floaty_chatheads.utils.Managment
+import ni.devotion.floaty_chatheads.utils.OverlayConfig
 import kotlin.math.hypot
 import kotlin.math.pow
 
@@ -27,12 +27,12 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
         }
 
     private val badgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Managment.badgeColor
+        color = OverlayConfig.badgeColor
         style = Paint.Style.FILL
     }
 
     private val badgeTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Managment.badgeTextColor
+        color = OverlayConfig.badgeTextColor
         textSize = WindowManagerHelper.dpToPx(10f).toFloat()
         typeface = Typeface.DEFAULT_BOLD
         textAlign = Paint.Align.CENTER
@@ -125,21 +125,21 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
     }
 
     override fun onDraw(canvas: Canvas) {
-        val icon = iconBitmap ?: Managment.floatingIcon
+        val icon = iconBitmap ?: OverlayConfig.floatingIcon
         if (icon != null) {
             canvas.drawBitmap(ImageHelper.addShadow(ImageHelper.getCircularBitmap(icon)), 0f, 0f, paint)
         } else {
-            canvas.drawBitmap(ImageHelper.addShadow(ImageHelper.getCircularBitmap(decodeResource(Managment.globalContext!!.resources, R.drawable.bot))), 0f, 0f, paint)
+            canvas.drawBitmap(ImageHelper.addShadow(ImageHelper.getCircularBitmap(decodeResource(context.resources, R.drawable.bot))), 0f, 0f, paint)
         }
 
         // Draw optional border ring
-        val borderColor = Managment.bubbleBorderColor
-        val borderWidth = Managment.bubbleBorderWidth
+        val borderColor = OverlayConfig.bubbleBorderColor
+        val borderWidth = OverlayConfig.bubbleBorderWidth
         if (borderColor != null && borderWidth > 0f) {
             borderPaint.color = borderColor
             borderPaint.strokeWidth = WindowManagerHelper.dpToPx(borderWidth).toFloat()
             val shadowBitmap = ImageHelper.addShadow(ImageHelper.getCircularBitmap(
-                icon ?: decodeResource(Managment.globalContext!!.resources, R.drawable.bot)
+                icon ?: decodeResource(context.resources, R.drawable.bot)
             ))
             val cx = shadowBitmap.width / 2f
             val cy = shadowBitmap.height / 2f
@@ -150,8 +150,8 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
         // Draw badge
         if (badgeCount > 0) {
             // Update badge paint colors from theme
-            badgePaint.color = Managment.badgeColor
-            badgeTextPaint.color = Managment.badgeTextColor
+            badgePaint.color = OverlayConfig.badgeColor
+            badgeTextPaint.color = OverlayConfig.badgeTextColor
 
             val badgeRadius = WindowManagerHelper.dpToPx(9f).toFloat()
             val badgeText = if (badgeCount > 99) "99+" else badgeCount.toString()

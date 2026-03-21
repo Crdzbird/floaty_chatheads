@@ -60,31 +60,32 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
         entryPoint: config.entryPoint,
         contentWidth: effectiveWidth,
         contentHeight: effectiveHeight,
-        chatheadIconAsset: config.effectiveChatheadIcon,
-        closeIconAsset: config.effectiveCloseIcon,
-        closeBackgroundAsset: config.effectiveCloseBackground,
-        notificationTitle: config.effectiveNotificationTitle,
-        notificationIconAsset: config.effectiveNotificationIcon,
+        notificationTitle: config.notification?.title,
+        notificationDescription: config.notification?.description,
+        notificationIconAsset: config.notification?.iconAsset,
         flag: pigeon.OverlayFlagMessage.values[config.flag.index],
         enableDrag: config.enableDrag,
-        notificationVisibility: pigeon.NotificationVisibilityMessage
-            .values[config.effectiveNotificationVisibility.index],
+        notificationVisibility:
+            pigeon.NotificationVisibilityMessage.values[
+                (config.notification?.visibility ??
+                        NotificationVisibility.visibilityPublic)
+                    .index],
         snapEdge: pigeon.SnapEdgeMessage
-            .values[config.effectiveSnapEdge.index],
-        snapMargin: config.effectiveSnapMargin,
-        persistPosition: config.effectivePersistPosition,
+            .values[(config.snap?.edge ?? SnapEdge.both).index],
+        snapMargin: config.snap?.margin ?? -10,
+        persistPosition: config.snap?.persistPosition ?? false,
         entranceAnimation: pigeon.EntranceAnimationMessage
             .values[config.entranceAnimation.index],
         theme: themeMsg,
         debugMode: config.debugMode,
         chatheadIconSource: _toIconSourceMessage(
-          config.effectiveChatheadIconSource,
+          config.assets?.icon,
         ),
         closeIconSource: _toIconSourceMessage(
-          config.effectiveCloseIconSource,
+          config.assets?.closeIcon,
         ),
         closeBackgroundSource: _toIconSourceMessage(
-          config.effectiveCloseBackgroundSource,
+          config.assets?.closeBackground,
         ),
       ),
     );

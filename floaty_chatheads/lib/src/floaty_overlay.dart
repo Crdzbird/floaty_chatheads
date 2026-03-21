@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:floaty_chatheads/src/floaty_channel.dart';
 import 'package:floaty_chatheads/src/floaty_connection_state.dart';
 import 'package:floaty_chatheads/src/generated/floaty_chatheads_overlay_api.g.dart';
+import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart'
+    show OverlayFlag, OverlayPosition;
 import 'package:flutter/services.dart';
 
 /// {@template floaty_overlay}
@@ -146,15 +148,19 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
       _overlayHostApi.resizeContent(width, height);
 
   /// {@macro floaty_chatheads_platform.update_flag}
-  static Future<void> updateFlag(OverlayFlagMessage flag) =>
-      _overlayHostApi.updateFlag(flag);
+  static Future<void> updateFlag(OverlayFlag flag) =>
+      _overlayHostApi.updateFlag(
+        OverlayFlagMessage.values[flag.index],
+      );
 
   /// {@macro floaty_chatheads_platform.close_overlay}
   static Future<void> closeOverlay() => _overlayHostApi.closeOverlay();
 
   /// {@macro floaty_chatheads_platform.get_overlay_position}
-  static Future<OverlayPositionMessage> getOverlayPosition() =>
-      _overlayHostApi.getOverlayPosition();
+  static Future<OverlayPosition> getOverlayPosition() async {
+    final msg = await _overlayHostApi.getOverlayPosition();
+    return OverlayPosition(x: msg.x, y: msg.y);
+  }
 
   /// {@macro floaty_chatheads_platform.update_badge}
   static Future<void> updateBadge(int count) =>

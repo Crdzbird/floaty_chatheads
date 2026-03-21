@@ -124,35 +124,29 @@ final class FloatyProxyHost {
 
     final handler = _services[service];
     if (handler == null) {
-      await FloatyChannel.send({
-        _prefix: {
-          'id': id,
-          'type': 'response',
-          'result': null,
-          'error': 'Unknown service: $service',
-        },
+      await FloatyChannel.sendSystem(_prefix, {
+        'id': id,
+        'type': 'response',
+        'result': null,
+        'error': 'Unknown service: $service',
       });
       return;
     }
 
     try {
       final result = await handler(method, params);
-      await FloatyChannel.send({
-        _prefix: {
-          'id': id,
-          'type': 'response',
-          'result': result,
-          'error': null,
-        },
+      await FloatyChannel.sendSystem(_prefix, {
+        'id': id,
+        'type': 'response',
+        'result': result,
+        'error': null,
       });
     } on Object catch (e) {
-      await FloatyChannel.send({
-        _prefix: {
-          'id': id,
-          'type': 'response',
-          'result': null,
-          'error': e.toString(),
-        },
+      await FloatyChannel.sendSystem(_prefix, {
+        'id': id,
+        'type': 'response',
+        'result': null,
+        'error': e.toString(),
       });
     }
   }
@@ -241,14 +235,12 @@ final class FloatyProxyClient {
     });
 
     unawaited(
-      FloatyChannel.send({
-        _prefix: {
-          'id': id,
-          'type': 'request',
-          'service': service,
-          'method': method,
-          'params': params,
-        },
+      FloatyChannel.sendSystem(_prefix, {
+        'id': id,
+        'type': 'request',
+        'service': service,
+        'method': method,
+        'params': params,
       }),
     );
 

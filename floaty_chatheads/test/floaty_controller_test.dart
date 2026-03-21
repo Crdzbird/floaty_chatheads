@@ -114,7 +114,10 @@ void main() {
       await controller.show();
       final config = fake.lastConfig!;
       expect(config.entryPoint, equals('custom'));
-      expect(config.effectiveChatheadIcon, equals('assets/icon.png'));
+      expect(
+        (config.assets!.icon as AssetIconSource).path,
+        equals('assets/icon.png'),
+      );
       expect(config.sizePreset, equals(ContentSizePreset.card));
       expect(config.theme?.badgeColor, equals(0xFFFF0000));
       expect(config.debugMode, isTrue);
