@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'examples/accessibility_example.dart';
 import 'examples/dashboard_example.dart';
 import 'examples/features_showcase_example.dart';
+import 'examples/gps_stream_example.dart';
 import 'examples/map_example.dart';
 import 'examples/messenger_example.dart';
 import 'examples/messenger_fullscreen_example.dart';
@@ -13,6 +14,7 @@ import 'examples/mini_player_example.dart';
 import 'examples/multi_chathead_example.dart';
 import 'examples/notification_counter_example.dart';
 import 'examples/quick_action_example.dart';
+import 'examples/sensor_stream_example.dart';
 import 'examples/survival_example.dart';
 import 'examples/themed_example.dart';
 import 'examples/timer_example.dart';
@@ -20,6 +22,7 @@ import 'examples/todo_survival_example.dart';
 import 'overlays/accessibility_overlay.dart';
 import 'overlays/dashboard_overlay.dart';
 import 'overlays/features_showcase_overlay.dart';
+import 'overlays/gps_stream_overlay.dart';
 import 'overlays/map_overlay.dart';
 import 'overlays/messenger_fullscreen_overlay.dart';
 import 'overlays/messenger_overlay.dart';
@@ -27,6 +30,7 @@ import 'overlays/mini_player_overlay.dart';
 import 'overlays/multi_chat_overlay.dart';
 import 'overlays/notification_counter_overlay.dart';
 import 'overlays/quick_action_overlay.dart';
+import 'overlays/sensor_stream_overlay.dart';
 import 'overlays/survival_overlay.dart';
 import 'overlays/themed_overlay.dart';
 import 'overlays/timer_overlay.dart';
@@ -94,6 +98,14 @@ void survivalOverlayMain() =>
 @pragma('vm:entry-point')
 void todoSurvivalOverlayMain() =>
     FloatyOverlayApp.run(const TodoSurvivalOverlay());
+
+@pragma('vm:entry-point')
+void gpsStreamOverlayMain() =>
+    FloatyOverlayApp.run(const GpsStreamOverlay());
+
+@pragma('vm:entry-point')
+void sensorStreamOverlayMain() =>
+    FloatyOverlayApp.run(const SensorStreamOverlay());
 
 // ---------------------------------------------------------------------------
 // Gallery — lists all examples
@@ -200,6 +212,20 @@ class GalleryPage extends StatelessWidget {
       icon: Icons.checklist,
       color: Colors.teal,
     ),
+    _ExampleInfo(
+      title: 'GPS Proxy Stream',
+      description:
+          'One-way push: main app streams simulated GPS to the overlay.',
+      icon: Icons.gps_fixed,
+      color: Colors.green,
+    ),
+    _ExampleInfo(
+      title: 'Sensor Proxy Streams',
+      description:
+          'Multiple proxy streams: accelerometer + light sensor at 5 Hz.',
+      icon: Icons.sensors,
+      color: Colors.purple,
+    ),
   ];
 
   Widget _buildRoute(int index) {
@@ -219,6 +245,8 @@ class GalleryPage extends StatelessWidget {
       12 => const MapExample(),
       13 => const SurvivalExample(),
       14 => const TodoSurvivalExample(),
+      15 => const GpsStreamExample(),
+      16 => const SensorStreamExample(),
       _ => const HomePage(),
     };
   }

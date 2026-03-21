@@ -41,6 +41,10 @@ class FloatyChatheadsPlugin :
 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 2084
+        /** Timeout (ms) for each icon load (network connect + read + decode). */
+        private const val ICON_LOAD_TIMEOUT_MS = 4_000L
+        private const val NETWORK_CONNECT_TIMEOUT_MS = 3_000
+        private const val NETWORK_READ_TIMEOUT_MS = 3_000
         var isServiceRunning = false
 
         /**
@@ -228,13 +232,29 @@ class FloatyChatheadsPlugin :
         FloatyContentJobService.instance?.destroyOverlayEngine()
 
         // Load icons: new multi-source fields take precedence over legacy
-        // asset-path strings.
-        loadBitmapFromSource(appContext, config.chatheadIconSource, config.chatheadIconAsset)
-            ?.let { OverlayConfig.floatingIcon = it }
-        loadBitmapFromSource(appContext, config.closeIconSource, config.closeIconAsset)
-            ?.let { OverlayConfig.closeIcon = it }
-        loadBitmapFromSource(appContext, config.closeBackgroundSource, config.closeBackgroundAsset)
-            ?.let { OverlayConfig.backgroundCloseIcon = it }
+        // asset-path strings.  Network icons are loaded in parallel on
+        // background threads to avoid blocking the main thread for up to
+        // 3 × timeout seconds sequentially.
+        val chatheadIconFuture = java.util.concurrent.CompletableFuture.supplyAsync {
+            loadBitmapFromSource(appContext, config.chatheadIconSource, config.chatheadIconAsset)
+        }
+        val closeIconFuture = java.util.concurrent.CompletableFuture.supplyAsync {
+            loadBitmapFromSource(appContext, config.closeIconSource, config.closeIconAsset)
+        }
+        val closeBgFuture = java.util.concurrent.CompletableFuture.supplyAsync {
+            loadBitmapFromSource(appContext, config.closeBackgroundSource, config.closeBackgroundAsset)
+        }
+        // Wait for all three in parallel — worst case is 1 × timeout, not 3 ×.
+        try {
+            chatheadIconFuture.get(ICON_LOAD_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+                ?.let { OverlayConfig.floatingIcon = it }
+            closeIconFuture.get(ICON_LOAD_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+                ?.let { OverlayConfig.closeIcon = it }
+            closeBgFuture.get(ICON_LOAD_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+                ?.let { OverlayConfig.backgroundCloseIcon = it }
+        } catch (_: Exception) {
+            OverlayConfig.logW("One or more icon loads timed out")
+        }
         config.notificationIconAsset?.let { loadAssetBitmap(appContext, it) }
             ?.let { OverlayConfig.notificationIcon = it }
         config.notificationTitle?.let { OverlayConfig.notificationTitle = it }
@@ -402,25 +422,25 @@ class FloatyChatheadsPlugin :
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
     }
 
+    /**
+     * Loads a bitmap from a network URL.
+     *
+     * The HTTP request runs on the **calling thread** (which should be a
+     * background thread — see `showChatHead` where `supplyAsync` is used).
+     * This method never blocks the main/UI thread directly.
+     */
     private fun loadBitmapFromNetwork(url: String): android.graphics.Bitmap? {
-        val future = java.util.concurrent.CompletableFuture.supplyAsync {
-            try {
-                val connection = URL(url).openConnection() as HttpURLConnection
-                connection.doInput = true
-                connection.connectTimeout = 5_000
-                connection.readTimeout = 5_000
-                connection.connect()
-                val input = connection.inputStream
-                val bitmap = BitmapFactory.decodeStream(input)
-                input.close()
-                connection.disconnect()
-                bitmap
-            } catch (_: Exception) {
-                null
-            }
-        }
         return try {
-            future.get(6, java.util.concurrent.TimeUnit.SECONDS)
+            val connection = URL(url).openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connectTimeout = NETWORK_CONNECT_TIMEOUT_MS
+            connection.readTimeout = NETWORK_READ_TIMEOUT_MS
+            connection.connect()
+            val input = connection.inputStream
+            val bitmap = BitmapFactory.decodeStream(input)
+            input.close()
+            connection.disconnect()
+            bitmap
         } catch (_: Exception) {
             null
         }

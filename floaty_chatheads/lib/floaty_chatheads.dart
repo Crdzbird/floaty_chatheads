@@ -14,6 +14,7 @@
 /// - `FloatyStateChannel` -- auto-syncing typed state between app and overlay
 /// - `FloatyActionRouter` -- typed bidirectional action routing
 /// - `FloatyProxyHost` / `FloatyProxyClient` -- overlay-side plugin access
+/// - `FloatyProxyStream` -- typed unidirectional push stream (main -> overlay)
 /// - `FloatyHostKit` / `FloatyOverlayKit` -- all-in-one communication bundles
 /// - `FloatyOverlayScope` -- zero-boilerplate reactive scope for overlays
 /// - `FloatyDataBuilder` -- reactive builder for main-app data reception
@@ -59,6 +60,7 @@ export 'src/floaty_overlay_builder.dart';
 export 'src/floaty_overlay_scope.dart';
 export 'src/floaty_permission_gate.dart';
 export 'src/floaty_proxy.dart';
+export 'src/floaty_proxy_stream.dart';
 export 'src/floaty_scope.dart';
 export 'src/floaty_state_channel.dart';
 export 'src/widgets/floaty_mini_player.dart';

@@ -300,18 +300,22 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
             overlayFlutterApi?.onChatHeadClosed(closedId) { }
         } catch (_: Exception) { }
 
-        // Notify the main app that the chathead was closed (e.g. by
-        // the drag-to-close gesture or overlay close button).
-        try {
-            FloatyChatheadsPlugin.activeInstance?.mainMessenger?.send(
-                mapOf(
-                    Constants.SYSTEM_ENVELOPE to Constants.CLOSED_PREFIX,
-                    Constants.CLOSED_PREFIX to mapOf("id" to closedId),
-                ),
-            )
-        } catch (_: Exception) { }
-
         if (stopService) {
+            // Notify the main app that the chathead was actually dismissed
+            // (drag-to-close, overlay close button, or closeChatHead API).
+            // Skipped when stopService=false — the caller is about to
+            // recreate the window immediately (e.g. showChatHead
+            // reconfiguration) and firing onClosed would incorrectly tell
+            // the app the chathead was dismissed.
+            try {
+                FloatyChatheadsPlugin.activeInstance?.mainMessenger?.send(
+                    mapOf(
+                        Constants.SYSTEM_ENVELOPE to Constants.CLOSED_PREFIX,
+                        Constants.CLOSED_PREFIX to mapOf("id" to closedId),
+                    ),
+                )
+            } catch (_: Exception) { }
+
             configPersistence.clear()
 
             // Stop the foreground service and dismiss the notification
