@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.6
+
+### 🐛 Bug Fixes
+
+- **Fixed `CompletableFuture` crash on Android 6.0 (API 23).**
+  `CompletableFuture.supplyAsync` requires API 24+, but the module's
+  `minSdkVersion` is 23. Replaced with `ExecutorService` +
+  `Callable` (available since API 1) for parallel icon loading.
+- **Fixed resource leak in `loadBitmapFromNetwork`.** `InputStream` and
+  `HttpURLConnection` are now released via `use { }` and a `finally`
+  block, ensuring cleanup even if `BitmapFactory.decodeStream` throws.
+
 ## 1.0.5
 
 ### 🐛 Bug Fixes

@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.3.2
+
+### 🐛 Bug Fixes
+
+- **`FloatyProxyStream` now throws `StateError` on duplicate names.**
+  Creating a second stream with the same `name` without disposing the
+  first previously caused silent overwrites and broken dispose
+  semantics. A clear error message now guides the developer.
+
+### 🧪 Tests
+
+- Added duplicate-name guard tests for `FloatyProxyStream`.
+- Added 3 message-buffering tests for `FloatyChannel` (replay on
+  handler registration, max-pending overflow, no buffering for
+  previously-removed handlers) — `floaty_channel.dart` is now at
+  100% line coverage.
+
 ## 1.3.1
 
 ### ✨ Enhancements
