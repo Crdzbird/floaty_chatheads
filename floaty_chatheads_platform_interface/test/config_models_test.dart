@@ -215,11 +215,11 @@ void main() {
 
   group('ChatHeadTheme', () {
     test('equality uses map content, not identity', () {
-      final a = ChatHeadTheme(
+      const a = ChatHeadTheme(
         badgeColor: 0xFFFF0000,
         overlayPalette: {'primary': 0xFF000000, 'surface': 0xFFFFFFFF},
       );
-      final b = ChatHeadTheme(
+      const b = ChatHeadTheme(
         badgeColor: 0xFFFF0000,
         overlayPalette: {'primary': 0xFF000000, 'surface': 0xFFFFFFFF},
       );
@@ -242,7 +242,9 @@ void main() {
       final b = ChatHeadTheme(overlayPalette: palette2);
 
       expect(a, equals(b));
-      expect(a.hashCode, equals(b.hashCode),
+      expect(
+        a.hashCode,
+        equals(b.hashCode),
         reason: 'hashCode must be order-independent for equal maps',
       );
     });
@@ -255,10 +257,10 @@ void main() {
     });
 
     test('different overlayPalette values produce different hashes', () {
-      final a = ChatHeadTheme(
+      const a = ChatHeadTheme(
         overlayPalette: {'primary': 0xFF000000},
       );
-      final b = ChatHeadTheme(
+      const b = ChatHeadTheme(
         overlayPalette: {'primary': 0xFFFFFFFF},
       );
       expect(a, isNot(equals(b)));

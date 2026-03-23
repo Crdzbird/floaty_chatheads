@@ -342,15 +342,14 @@ void main() {
       final first = FloatyProxyStream<Map<String, double>>(
         name: 'reuse',
         toJson: (v) => v,
-      );
-      first.dispose();
-
+      )..dispose();
+      expect(first, isNotNull);
       // Should not throw — name was freed by dispose.
       final second = FloatyProxyStream<Map<String, double>>(
         name: 'reuse',
         toJson: (v) => v,
-      );
-      second.dispose();
+      )..dispose();
+      expect(second, isNotNull);
     });
   });
 
