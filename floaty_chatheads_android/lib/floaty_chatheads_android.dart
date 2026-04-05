@@ -78,6 +78,8 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
             .values[config.entranceAnimation.index],
         theme: themeMsg,
         debugMode: config.debugMode,
+        autoLaunchOnBackground: config.autoLaunchOnBackground,
+        persistOnAppClose: config.persistOnAppClose,
         chatheadIconSource: _toIconSourceMessage(
           config.assets?.icon,
         ),

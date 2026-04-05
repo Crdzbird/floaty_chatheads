@@ -190,6 +190,8 @@ class ChatHeadConfig {
     required this.entranceAnimation,
     this.theme,
     required this.debugMode,
+    required this.autoLaunchOnBackground,
+    required this.persistOnAppClose,
   });
 
   String entryPoint;
@@ -233,6 +235,12 @@ class ChatHeadConfig {
   /// Whether to enable the debug overlay inspector.
   bool debugMode;
 
+  /// Whether the chathead automatically appears when the app goes to background.
+  bool autoLaunchOnBackground;
+
+  /// Whether the chathead overlay survives after the main app is killed.
+  bool persistOnAppClose;
+
   List<Object?> _toList() {
     return <Object?>[
       entryPoint,
@@ -252,6 +260,8 @@ class ChatHeadConfig {
       entranceAnimation,
       theme,
       debugMode,
+      autoLaunchOnBackground,
+      persistOnAppClose,
     ];
   }
 
@@ -278,6 +288,8 @@ class ChatHeadConfig {
       entranceAnimation: result[14]! as EntranceAnimationMessage,
       theme: result[15] as ChatHeadThemeMessage?,
       debugMode: result[16]! as bool,
+      autoLaunchOnBackground: result[17]! as bool,
+      persistOnAppClose: result[18]! as bool,
     );
   }
 

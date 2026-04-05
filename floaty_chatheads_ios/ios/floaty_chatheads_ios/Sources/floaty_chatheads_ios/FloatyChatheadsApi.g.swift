@@ -249,6 +249,10 @@ struct ChatHeadConfig: Hashable {
   var theme: ChatHeadThemeMessage? = nil
   /// Whether to enable the debug overlay inspector.
   var debugMode: Bool
+  /// Whether the chathead automatically appears when the app goes to background.
+  var autoLaunchOnBackground: Bool
+  /// Whether the chathead overlay survives after the main app is killed.
+  var persistOnAppClose: Bool
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -270,6 +274,8 @@ struct ChatHeadConfig: Hashable {
     let entranceAnimation = pigeonVar_list[14] as! EntranceAnimationMessage
     let theme: ChatHeadThemeMessage? = nilOrValue(pigeonVar_list[15])
     let debugMode = pigeonVar_list[16] as! Bool
+    let autoLaunchOnBackground = pigeonVar_list[17] as! Bool
+    let persistOnAppClose = pigeonVar_list[18] as! Bool
 
     return ChatHeadConfig(
       entryPoint: entryPoint,
@@ -288,7 +294,9 @@ struct ChatHeadConfig: Hashable {
       persistPosition: persistPosition,
       entranceAnimation: entranceAnimation,
       theme: theme,
-      debugMode: debugMode
+      debugMode: debugMode,
+      autoLaunchOnBackground: autoLaunchOnBackground,
+      persistOnAppClose: persistOnAppClose
     )
   }
   func toList() -> [Any?] {
@@ -310,6 +318,8 @@ struct ChatHeadConfig: Hashable {
       entranceAnimation,
       theme,
       debugMode,
+      autoLaunchOnBackground,
+      persistOnAppClose,
     ]
   }
   static func == (lhs: ChatHeadConfig, rhs: ChatHeadConfig) -> Bool {
@@ -469,10 +479,10 @@ class FloatyChatheadsApiPigeonCodec: FlutterStandardMessageCodec, @unchecked Sen
 protocol FloatyHostApi {
   func checkPermission() throws -> Bool
   func requestPermission(completion: @escaping (Result<Bool, Error>) -> Void)
-  func showChatHead(config: ChatHeadConfig) throws
+  func showChatHead(config: ChatHeadConfig, completion: @escaping (Result<Void, Error>) -> Void)
   func closeChatHead() throws
   func isChatHeadActive() throws -> Bool
-  func addChatHead(config: AddChatHeadConfig) throws
+  func addChatHead(config: AddChatHeadConfig, completion: @escaping (Result<Void, Error>) -> Void)
   func removeChatHead(id: String) throws
   /// Updates the badge count on the chathead bubble.
   /// Pass 0 to hide the badge.
@@ -522,11 +532,13 @@ class FloatyHostApiSetup {
       showChatHeadChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let configArg = args[0] as! ChatHeadConfig
-        do {
-          try api.showChatHead(config: configArg)
-          reply(wrapResult(nil))
-        } catch {
-          reply(wrapError(error))
+        api.showChatHead(config: configArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
         }
       }
     } else {
@@ -563,11 +575,13 @@ class FloatyHostApiSetup {
       addChatHeadChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let configArg = args[0] as! AddChatHeadConfig
-        do {
-          try api.addChatHead(config: configArg)
-          reply(wrapResult(nil))
-        } catch {
-          reply(wrapError(error))
+        api.addChatHead(config: configArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
         }
       }
     } else {

@@ -1,11 +1,13 @@
 package ni.devotion.floaty_chatheads
 
 import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
@@ -29,6 +31,14 @@ import ni.devotion.floaty_chatheads.utils.Constants
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
 import ni.devotion.floaty_chatheads.utils.OverlayConfig
 import ni.devotion.floaty_chatheads.utils.SnapEdge
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -61,6 +71,22 @@ class FloatyChatheadsPlugin :
         private set
     private var pendingPermissionResult: ((Result<Boolean>) -> Unit)? = null
     private var flutterPluginBinding: FlutterPlugin.FlutterPluginBinding? = null
+    private var lifecycleCallbacks: AutoLaunchLifecycleCallbacks? = null
+
+    /**
+     * True while [showChatHead] is setting up the overlay (between
+     * `startForegroundService` and the coroutine completing).
+     * When set, [FloatyContentJobService.onStartCommand] must NOT
+     * call `createWindow()` — the coroutine will do it after icons
+     * are loaded and OverlayConfig is fully populated.
+     */
+    internal var pluginSetupInProgress = false
+
+    /**
+     * Coroutine scope tied to the plugin's engine attachment lifecycle.
+     * Cancelled in [onDetachedFromEngine] to prevent leaks.
+     */
+    private var pluginScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     /**
      * True when `onAttachedToEngine` detected an existing overlay and set
@@ -91,6 +117,7 @@ class FloatyChatheadsPlugin :
         isMainEnginePlugin = true
         flutterPluginBinding = binding
         context = binding.applicationContext
+        pluginScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
         activeInstance = this
         FloatyHostApi.setUp(binding.binaryMessenger, this)
 
@@ -139,6 +166,8 @@ class FloatyChatheadsPlugin :
         flutterPluginBinding = null
         isMainEnginePlugin = false
         pendingConnectionSignal = false
+        removeAutoLaunchCallbacks()
+        pluginScope.cancel()
 
         // Notify the service that the main app is disconnected, but
         // keep the overlay engine alive.
@@ -215,8 +244,14 @@ class FloatyChatheadsPlugin :
         return false
     }
 
-    override fun showChatHead(config: ChatHeadConfig) {
-        val currentActivity = activity ?: return
+    override fun showChatHead(
+        config: ChatHeadConfig,
+        callback: (Result<Unit>) -> Unit,
+    ) {
+        val currentActivity = activity ?: run {
+            callback(Result.success(Unit))
+            return
+        }
         val appContext = currentActivity.applicationContext
 
         // Tear down any existing overlay so the new entry point takes
@@ -231,44 +266,13 @@ class FloatyChatheadsPlugin :
         // Destroy any existing engine before creating a new one.
         FloatyContentJobService.instance?.destroyOverlayEngine()
 
-        // Load icons: new multi-source fields take precedence over legacy
-        // asset-path strings.  Network icons are loaded in parallel on
-        // background threads to avoid blocking the main thread for up to
-        // 3 × timeout seconds sequentially.
-        //
-        // Uses ExecutorService + Callable (API 1+) instead of
-        // CompletableFuture (API 24+) to stay compatible with minSdk 23.
-        val executor = java.util.concurrent.Executors.newFixedThreadPool(3)
-        val chatheadIconFuture = executor.submit(java.util.concurrent.Callable {
-            loadBitmapFromSource(appContext, config.chatheadIconSource, config.chatheadIconAsset)
-        })
-        val closeIconFuture = executor.submit(java.util.concurrent.Callable {
-            loadBitmapFromSource(appContext, config.closeIconSource, config.closeIconAsset)
-        })
-        val closeBgFuture = executor.submit(java.util.concurrent.Callable {
-            loadBitmapFromSource(appContext, config.closeBackgroundSource, config.closeBackgroundAsset)
-        })
-        // Wait for all three in parallel — worst case is 1 × timeout, not 3 ×.
-        try {
-            chatheadIconFuture.get(ICON_LOAD_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
-                ?.let { OverlayConfig.floatingIcon = it }
-            closeIconFuture.get(ICON_LOAD_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
-                ?.let { OverlayConfig.closeIcon = it }
-            closeBgFuture.get(ICON_LOAD_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
-                ?.let { OverlayConfig.backgroundCloseIcon = it }
-        } catch (_: Exception) {
-            OverlayConfig.logW("One or more icon loads timed out")
-        } finally {
-            executor.shutdown()
-        }
-        config.notificationIconAsset?.let { loadAssetBitmap(appContext, it) }
-            ?.let { OverlayConfig.notificationIcon = it }
+        // Populate OverlayConfig synchronously so the values are
+        // available when the service starts.
         config.notificationTitle?.let { OverlayConfig.notificationTitle = it }
         OverlayConfig.notificationDescription = config.notificationDescription
         OverlayConfig.contentWidth = config.contentWidth?.toInt()
         OverlayConfig.contentHeight = config.contentHeight?.toInt()
 
-        // Snap behavior
         OverlayConfig.snapEdge = when (config.snapEdge) {
             ni.devotion.floaty_chatheads.generated.SnapEdgeMessage.BOTH ->
                 SnapEdge.BOTH
@@ -280,11 +284,7 @@ class FloatyChatheadsPlugin :
                 SnapEdge.NONE
         }
         OverlayConfig.snapMargin = config.snapMargin.toFloat()
-
-        // Persistent position
         OverlayConfig.persistPosition = config.persistPosition
-
-        // Entrance animation
         OverlayConfig.entranceAnimation = when (config.entranceAnimation) {
             ni.devotion.floaty_chatheads.generated
                 .EntranceAnimationMessage.NONE ->
@@ -299,11 +299,9 @@ class FloatyChatheadsPlugin :
                 .EntranceAnimationMessage.FADE ->
                 EntranceAnimation.FADE
         }
-
-        // Debug mode
         OverlayConfig.debugMode = config.debugMode
-
-        // Theme
+        OverlayConfig.autoLaunchOnBackground = config.autoLaunchOnBackground
+        OverlayConfig.persistOnAppClose = config.persistOnAppClose
         config.theme?.let { theme ->
             theme.badgeColor?.let { OverlayConfig.badgeColor = it.toInt() }
             theme.badgeTextColor?.let {
@@ -330,7 +328,13 @@ class FloatyChatheadsPlugin :
             }
         }
 
-        // Start service — it will create the engine.
+        // Start the service BEFORE icon loading so that onCreate()
+        // runs on the main thread while the coroutine suspends for
+        // I/O. This guarantees FloatyContentJobService.instance is
+        // non-null by the time icons are loaded. The service's
+        // onStartCommand() is guarded (pluginSetupInProgress) to
+        // avoid creating the window prematurely.
+        pluginSetupInProgress = true
         val serviceIntent = Intent(
             appContext, FloatyContentJobService::class.java,
         )
@@ -340,38 +344,66 @@ class FloatyChatheadsPlugin :
             appContext.startService(serviceIntent)
         }
 
-        // Tell the service to create the engine and window.
-        // Note: the service may not have started yet (async), so we
-        // also pass the entry point via SharedPreferences and let
-        // the service's onCreate handle it if needed.
-        val service = FloatyContentJobService.instance
-        if (service != null) {
-            // Tear down any stale window left over from a previous
-            // session (e.g. START_STICKY restart with wrong dimensions
-            // or a detached engine).  closeWindow(false) is a no-op
-            // when chatHeads is already null.
-            service.closeWindow(false)
-            service.ensureOverlayEngine(config.entryPoint)
-            service.persistConfig(config.entryPoint)
-            pendingConnectionSignal = false
-            service.onMainAppConnected()
-            // Create the window NOW with the current OverlayConfig values
-            // instead of relying on onStartCommand(), which skips
-            // createWindow() when chatHeads is already non-null.
-            service.createWindow()
-        } else {
-            // Service hasn't started yet — persist the FULL config so
-            // its onCreate() -> restoreConfig() recovers all values
-            // (especially content dimensions).  Previously only the
-            // entry point was saved, causing dimensions to restore as
-            // null -> MATCH_PARENT on every subsequent launch.
-            ConfigPersistence(appContext).persist(config.entryPoint)
-        }
+        // Load icons in parallel on Dispatchers.IO. While the
+        // coroutine suspends here, the main thread processes the
+        // service start (onCreate sets instance). The Pigeon callback
+        // is invoked only after the window is fully created.
+        pluginScope.launch {
+            val chatheadIcon = async(Dispatchers.IO) {
+                withTimeoutOrNull(ICON_LOAD_TIMEOUT_MS) {
+                    loadBitmapFromSource(appContext, config.chatheadIconSource, config.chatheadIconAsset)
+                }
+            }
+            val closeIcon = async(Dispatchers.IO) {
+                withTimeoutOrNull(ICON_LOAD_TIMEOUT_MS) {
+                    loadBitmapFromSource(appContext, config.closeIconSource, config.closeIconAsset)
+                }
+            }
+            val closeBg = async(Dispatchers.IO) {
+                withTimeoutOrNull(ICON_LOAD_TIMEOUT_MS) {
+                    loadBitmapFromSource(appContext, config.closeBackgroundSource, config.closeBackgroundAsset)
+                }
+            }
 
-        isServiceRunning = true
+            // Await all three in parallel — worst case is 1 × timeout.
+            chatheadIcon.await()?.let { OverlayConfig.floatingIcon = it }
+            closeIcon.await()?.let { OverlayConfig.closeIcon = it }
+            closeBg.await()?.let { OverlayConfig.backgroundCloseIcon = it }
+
+            // Notification icon is always an asset — fast, no network.
+            withContext(Dispatchers.IO) {
+                config.notificationIconAsset?.let { loadAssetBitmap(appContext, it) }
+                    ?.let { OverlayConfig.notificationIcon = it }
+            }
+
+            // Back on Main — service.instance is guaranteed non-null
+            // because onCreate() ran while we were loading icons.
+            val service = FloatyContentJobService.instance
+            if (service != null) {
+                service.closeWindow(false)
+                service.ensureOverlayEngine(config.entryPoint)
+                service.persistConfig(config.entryPoint)
+                pendingConnectionSignal = false
+                service.onMainAppConnected()
+                service.createWindow()
+            } else {
+                // Fallback: service not ready (should not happen).
+                ConfigPersistence(appContext).persist(config.entryPoint)
+            }
+
+            isServiceRunning = true
+            pluginSetupInProgress = false
+
+            // Register / unregister auto-launch lifecycle callbacks.
+            updateAutoLaunchCallbacks(appContext)
+
+            // Signal the Dart side that the chathead is fully ready.
+            callback(Result.success(Unit))
+        }
     }
 
     override fun closeChatHead() {
+        removeAutoLaunchCallbacks()
         FloatyContentJobService.instance?.closeWindow(true)
         isServiceRunning = false
     }
@@ -389,9 +421,21 @@ class FloatyChatheadsPlugin :
         return isServiceRunning
     }
 
-    override fun addChatHead(config: AddChatHeadConfig) {
-        val icon = loadBitmapFromSource(context!!, config.iconSource, config.iconAsset)
-        FloatyContentJobService.instance?.addChatHead(config.id, icon)
+    override fun addChatHead(
+        config: AddChatHeadConfig,
+        callback: (Result<Unit>) -> Unit,
+    ) {
+        val ctx = context ?: run {
+            callback(Result.success(Unit))
+            return
+        }
+        pluginScope.launch {
+            val icon = withContext(Dispatchers.IO) {
+                loadBitmapFromSource(ctx, config.iconSource, config.iconAsset)
+            }
+            FloatyContentJobService.instance?.addChatHead(config.id, icon)
+            callback(Result.success(Unit))
+        }
     }
 
     override fun removeChatHead(id: String) {
@@ -453,6 +497,67 @@ class FloatyChatheadsPlugin :
         }
     }
 
+    // ── Auto-launch lifecycle management ─────────────────────────────
+
+    private fun updateAutoLaunchCallbacks(appContext: Context) {
+        val app = appContext as? Application ?: return
+        // Remove previous callbacks before (re-)registering.
+        removeAutoLaunchCallbacks()
+        if (OverlayConfig.autoLaunchOnBackground) {
+            val callbacks = AutoLaunchLifecycleCallbacks(this)
+            app.registerActivityLifecycleCallbacks(callbacks)
+            lifecycleCallbacks = callbacks
+        }
+    }
+
+    private fun removeAutoLaunchCallbacks() {
+        lifecycleCallbacks?.let { cb ->
+            (context as? Application)?.unregisterActivityLifecycleCallbacks(cb)
+            lifecycleCallbacks = null
+        }
+    }
+
+    /**
+     * Called by [AutoLaunchLifecycleCallbacks] when all activities have moved
+     * to the background. Shows the chathead if it is not already visible.
+     */
+    internal fun onAppBackgrounded() {
+        if (!OverlayConfig.autoLaunchOnBackground) return
+        if (isServiceRunning) return
+        val appContext = context ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            !Settings.canDrawOverlays(appContext)
+        ) return
+
+        // Start the service and create the overlay from persisted config.
+        val serviceIntent = Intent(appContext, FloatyContentJobService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            appContext.startForegroundService(serviceIntent)
+        } else {
+            appContext.startService(serviceIntent)
+        }
+
+        val service = FloatyContentJobService.instance
+        if (service != null) {
+            val entryPoint = ConfigPersistence(appContext).readEntryPoint() ?: return
+            service.ensureOverlayEngine(entryPoint)
+            service.onMainAppConnected()
+            service.createWindow()
+        }
+        isServiceRunning = true
+    }
+
+    /**
+     * Called by [AutoLaunchLifecycleCallbacks] when the app returns to the
+     * foreground. Closes the auto-launched chathead.
+     */
+    internal fun onAppForegrounded() {
+        if (!OverlayConfig.autoLaunchOnBackground) return
+        if (!isServiceRunning) return
+        FloatyContentJobService.instance?.closeWindow(true)
+        isServiceRunning = false
+    }
+
     // Resolves an icon from the new IconSourceMessage or falls back to a
     // legacy asset-path string.
     private fun loadBitmapFromSource(
@@ -480,4 +585,39 @@ class FloatyChatheadsPlugin :
         }
         return bitmap
     }
+}
+
+/**
+ * Tracks how many activities are in the started state. When the count drops
+ * to zero the app is considered backgrounded; when it rises from zero the
+ * app is foregrounded.
+ *
+ * This mirrors the approach used by `ProcessLifecycleOwner` but avoids
+ * pulling in the `lifecycle-process` dependency.
+ */
+internal class AutoLaunchLifecycleCallbacks(
+    private val plugin: FloatyChatheadsPlugin,
+) : Application.ActivityLifecycleCallbacks {
+
+    private var startedCount = 0
+
+    override fun onActivityStarted(activity: Activity) {
+        val wasBackground = startedCount == 0
+        startedCount++
+        if (wasBackground) plugin.onAppForegrounded()
+    }
+
+    override fun onActivityStopped(activity: Activity) {
+        startedCount--
+        if (startedCount <= 0) {
+            startedCount = 0
+            plugin.onAppBackgrounded()
+        }
+    }
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+    override fun onActivityResumed(activity: Activity) {}
+    override fun onActivityPaused(activity: Activity) {}
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+    override fun onActivityDestroyed(activity: Activity) {}
 }

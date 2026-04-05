@@ -25,6 +25,8 @@ object Constants {
     const val PREF_BUBBLE_SHADOW_COLOR = "bubble_shadow_color"
     const val PREF_CLOSE_TINT_COLOR = "close_tint_color"
     const val PREF_OVERLAY_PALETTE = "overlay_palette"
+    const val PREF_AUTO_LAUNCH_ON_BACKGROUND = "auto_launch_on_background"
+    const val PREF_PERSIST_ON_APP_CLOSE = "persist_on_app_close"
     const val PREF_HAS_SAVED_CONFIG = "has_saved_config"
 
     // Connection state prefix for Dart channel.

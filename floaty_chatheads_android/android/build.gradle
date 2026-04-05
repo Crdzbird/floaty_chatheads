@@ -42,6 +42,7 @@ android {
         implementation 'com.facebook.rebound:rebound:0.3.8'
         implementation 'com.google.android.material:material:1.12.0'
         implementation 'androidx.core:core-ktx:1.15.0'
+        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
         testImplementation 'org.jetbrains.kotlin:kotlin-test'
         testImplementation 'org.mockito:mockito-core:5.0.0'
     }

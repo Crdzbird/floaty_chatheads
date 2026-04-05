@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.1.5
+
+### ⚡ Performance
+
+- **Migrated to Swift Concurrency (`@MainActor`).**
+  Replaced `@unchecked Sendable` conformance and manual
+  `DispatchQueue.main.async` dispatching with `@MainActor` isolation
+  on the plugin class. All Pigeon API methods now have compile-time
+  main-thread safety enforcement instead of runtime GCD checks.
+- Marked `register(with:)` as `nonisolated` with
+  `MainActor.assumeIsolated` for Flutter registrar compatibility.
+
+### 🐛 Bug Fixes
+
+- **Fixed chathead freeze during drag.** The `@MainActor` annotation
+  caused `UIPanGestureRecognizer` callbacks to route through the
+  MainActor executor instead of executing synchronously. The pan
+  handler is now `nonisolated` with `MainActor.assumeIsolated` to
+  guarantee zero-overhead synchronous dispatch.
+- **Fixed message handler closures.** `setMessageHandler` closures
+  for both main and overlay messengers now use
+  `MainActor.assumeIsolated` to prevent async actor hops during
+  message forwarding.
+
 ## 1.1.4
 
 ### ✨ Enhancements

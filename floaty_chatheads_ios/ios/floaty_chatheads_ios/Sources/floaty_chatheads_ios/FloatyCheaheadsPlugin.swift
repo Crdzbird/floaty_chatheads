@@ -1,7 +1,8 @@
 @preconcurrency import Flutter
 import UIKit
 
-public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, FlutterPlugin, FloatyHostApi, FloatyOverlayHostApi {
+@MainActor
+public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurrency FloatyHostApi, @preconcurrency FloatyOverlayHostApi {
 
     private var registrar: FlutterPluginRegistrar?
     private var overlayWindow: UIWindow?
@@ -33,18 +34,24 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
     private static let positionXKey = "floaty_chatheads_x"
     private static let positionYKey = "floaty_chatheads_y"
 
-    public static func register(with registrar: FlutterPluginRegistrar) {
-        let instance = FloatyChatheadsPlugin()
-        instance.registrar = registrar
-        FloatyHostApiSetup.setUp(binaryMessenger: registrar.messenger(), api: instance)
+    // Using nonisolated to satisfy FlutterPlugin's static registration
+    // requirement. The instance methods are all @MainActor-isolated.
+    nonisolated public static func register(with registrar: FlutterPluginRegistrar) {
+        MainActor.assumeIsolated {
+            let instance = FloatyChatheadsPlugin()
+            instance.registrar = registrar
+            FloatyHostApiSetup.setUp(binaryMessenger: registrar.messenger(), api: instance)
 
-        instance.mainMessenger = FlutterBasicMessageChannel(
-            name: "ni.devotion.floaty_head/messenger",
-            binaryMessenger: registrar.messenger(),
-            codec: FlutterJSONMessageCodec.sharedInstance()
-        )
-        instance.mainMessenger?.setMessageHandler { [weak instance] message, reply in
-            instance?.overlayMessenger?.sendMessage(message, reply: reply)
+            instance.mainMessenger = FlutterBasicMessageChannel(
+                name: "ni.devotion.floaty_head/messenger",
+                binaryMessenger: registrar.messenger(),
+                codec: FlutterJSONMessageCodec.sharedInstance()
+            )
+            instance.mainMessenger?.setMessageHandler { [weak instance] message, reply in
+                MainActor.assumeIsolated {
+                    instance?.overlayMessenger?.sendMessage(message, reply: reply)
+                }
+            }
         }
     }
 
@@ -58,26 +65,23 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
         completion(.success(true))
     }
 
-    func showChatHead(config: ChatHeadConfig) throws {
-        let cfg = config
-        DispatchQueue.main.async {
-            self.createOverlayWindow(config: cfg)
-        }
+    func showChatHead(config: ChatHeadConfig, completion: @escaping (Result<Void, any Error>) -> Void) {
+        createOverlayWindow(config: config)
+        completion(.success(()))
     }
 
     func closeChatHead() throws {
-        DispatchQueue.main.async {
-            self.destroyOverlayWindow()
-        }
+        destroyOverlayWindow()
     }
 
     func isChatHeadActive() throws -> Bool {
         return isOverlayActive
     }
 
-    func addChatHead(config: AddChatHeadConfig) throws {
+    func addChatHead(config: AddChatHeadConfig, completion: @escaping (Result<Void, any Error>) -> Void) {
         // Multi-chathead is not supported on iOS.
         // The overlay shows a single bubble managed by the UIWindow.
+        completion(.success(()))
     }
 
     func removeChatHead(id: String) throws {
@@ -86,57 +90,41 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
     }
 
     func updateBadge(count: Int64) throws {
-        let c = Int(count)
-        DispatchQueue.main.async {
-            self.applyBadgeCount(c)
-        }
+        applyBadgeCount(Int(count))
     }
 
     func expandChatHead() throws {
-        DispatchQueue.main.async {
-            self.performExpand()
-        }
+        performExpand()
     }
 
     func collapseChatHead() throws {
-        DispatchQueue.main.async {
-            self.performCollapse()
-        }
+        performCollapse()
     }
 
     // MARK: - FloatyOverlayHostApi
 
     func resizeContent(width: Int64, height: Int64) throws {
-        let w = width
-        let h = height
-        DispatchQueue.main.async {
-            guard let window = self.overlayWindow else { return }
-            self.contentSize = CGSize(width: CGFloat(w), height: CGFloat(h))
-            if self.isExpanded {
-                var frame = window.frame
-                frame.size = self.contentSize
-                window.frame = frame
-            }
+        guard let window = overlayWindow else { return }
+        contentSize = CGSize(width: CGFloat(width), height: CGFloat(height))
+        if isExpanded {
+            var frame = window.frame
+            frame.size = contentSize
+            window.frame = frame
         }
     }
 
     func updateFlag(flag: OverlayFlagMessage) throws {
-        let f = flag
-        DispatchQueue.main.async {
-            guard let window = self.overlayWindow else { return }
-            switch f {
-            case .clickThrough:
-                window.isUserInteractionEnabled = false
-            case .focusPointer, .defaultFlag:
-                window.isUserInteractionEnabled = true
-            }
+        guard let window = overlayWindow else { return }
+        switch flag {
+        case .clickThrough:
+            window.isUserInteractionEnabled = false
+        case .focusPointer, .defaultFlag:
+            window.isUserInteractionEnabled = true
         }
     }
 
     func closeOverlay() throws {
-        DispatchQueue.main.async {
-            self.destroyOverlayWindow()
-        }
+        destroyOverlayWindow()
     }
 
     func getOverlayPosition() throws -> OverlayPositionMessage {
@@ -150,10 +138,7 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
     }
 
     func updateBadgeFromOverlay(count: Int64) throws {
-        let c = Int(count)
-        DispatchQueue.main.async {
-            self.applyBadgeCount(c)
-        }
+        applyBadgeCount(Int(count))
     }
 
     func getDebugInfo() throws -> [String?: Any?] {
@@ -219,7 +204,9 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
             codec: FlutterJSONMessageCodec.sharedInstance()
         )
         overlayMessenger?.setMessageHandler { [weak self] message, reply in
-            self?.mainMessenger?.sendMessage(message, reply: reply)
+            MainActor.assumeIsolated {
+                self?.mainMessenger?.sendMessage(message, reply: reply)
+            }
         }
 
         // Deliver theme palette to overlay isolate
@@ -542,7 +529,16 @@ public final class FloatyChatheadsPlugin: NSObject, @unchecked Sendable, Flutter
 
     // MARK: - Pan Gesture (Drag)
 
-    @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+    // `nonisolated` so the ObjC gesture-action dispatch calls this
+    // synchronously — avoids a MainActor executor hop that would
+    // cause visible lag / freezing during drag.
+    @objc nonisolated private func handlePan(_ gesture: UIPanGestureRecognizer) {
+        MainActor.assumeIsolated {
+            self.handlePanOnMain(gesture)
+        }
+    }
+
+    private func handlePanOnMain(_ gesture: UIPanGestureRecognizer) {
         guard let window = overlayWindow else { return }
         let translation = gesture.translation(in: window)
 

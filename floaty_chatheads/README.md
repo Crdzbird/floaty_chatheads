@@ -46,7 +46,7 @@ else you can dream up.
 | **Zero-boilerplate helpers** | Show a chathead in 3 lines; build an overlay widget in 1 line |
 | **Built-in messaging** | Send data back and forth between your main app and the overlay in real time |
 | **Theming & accessibility** | Full TalkBack / VoiceOver support, customizable colors, and a debug inspector |
-| **Production-ready** | 271 tests, 100% coverage on handwritten code, MIT licensed |
+| **Production-ready** | 262+ tests, 100% coverage on handwritten code, MIT licensed |
 
 ---
 
@@ -771,6 +771,8 @@ swipes away the main app, the overlay remains visible and functional:
 | `theme` | `ChatHeadTheme?` | `null` | Colors, borders, shadows, and overlay palette | Android |
 | `sizePreset` | `ContentSizePreset?` | `null` | Named size (overrides `contentWidth` / `contentHeight`) | Both |
 | `debugMode` | `bool` | `false` | Enable debug inspector and verbose native logs | Android |
+| `autoLaunchOnBackground` | `bool` | `false` | Automatically show the chathead when the app goes to background and dismiss it on foreground | Android |
+| `persistOnAppClose` | `bool` | `false` | Keep the overlay alive after the main app process is killed (`START_STICKY`). When `false`, the service stops on disconnect | Android |
 
 ---
 
@@ -794,7 +796,7 @@ overlay cannot float above other apps.
 
 ## Examples
 
-The example app ships with **14 demo screens** accessible from a gallery page:
+The example app ships with **18 demo screens** accessible from a gallery page:
 
 | # | Example | What it demonstrates |
 |---|---|---|
@@ -812,6 +814,10 @@ The example app ships with **14 demo screens** accessible from a gallery page:
 | 12 | Accessibility | TalkBack labels and large touch targets |
 | 13 | Interactive Map | OSM map with action routing, state sync, proxy |
 | 14 | Overlay Survival | Kill app -- overlay survives, queues actions, reconnects |
+| 15 | Todo Survival | Todo list that survives app death with add, toggle, remove |
+| 16 | GPS Proxy Stream | One-way push: main app streams simulated GPS to the overlay |
+| 17 | Sensor Proxy Streams | Multiple proxy streams: accelerometer + light sensor at 5 Hz |
+| 18 | Auto-Launch & Persist | Chathead auto-shows on background, optionally survives app kill |
 
 Run the example:
 
@@ -827,14 +833,14 @@ flutter run
 
 ## Test Suite & Coverage
 
-The plugin ships with **271 unit and widget tests** across all 4 packages:
+The plugin ships with **297 unit and widget tests** across all 4 packages:
 
 | Package | Tests | Status |
 |---|---|---|
-| `floaty_chatheads` | 233 | All passing |
-| `floaty_chatheads_platform_interface` | 33 | All passing |
+| `floaty_chatheads` | 262 | All passing |
+| `floaty_chatheads_platform_interface` | 34 | All passing |
 | `floaty_chatheads_android` | 1 | All passing |
-| **Total** | **271** | **All passing** |
+| **Total** | **297** | **All passing** |
 
 ### Coverage (handwritten code, excluding generated files)
 
@@ -854,6 +860,8 @@ The plugin ships with **271 unit and widget tests** across all 4 packages:
 | `floaty_state_channel.dart` | 100% |
 | `floaty_action_router.dart` | 100% |
 | `floaty_proxy.dart` | 100% |
+| `floaty_proxy_stream.dart` | 100% |
+| `floaty_channel.dart` | 100% |
 | `floaty_mini_player.dart` | 100% |
 | `floaty_notification_card.dart` | 100% |
 | `testing.dart` | 100% |

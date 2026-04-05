@@ -1,5 +1,46 @@
 # Changelog
 
+## 1.0.7
+
+### ✨ Enhancements
+
+- **Added `autoLaunchOnBackground` support.** The plugin registers
+  `Application.ActivityLifecycleCallbacks` to detect when all
+  activities leave the foreground. When enabled, the chathead is
+  shown automatically on background and dismissed on foreground.
+- **Added `persistOnAppClose` support.** Controls whether the
+  foreground service returns `START_STICKY` (survives app death)
+  or `START_NOT_STICKY` (stops on main app disconnect). When
+  disabled, the service calls `closeWindow(true)` as soon as the
+  main app disconnects.
+- Both new flags are persisted to SharedPreferences for recovery
+  after a `START_STICKY` restart.
+
+### ⚡ Performance
+
+- **Migrated from `ExecutorService` to Kotlin Coroutines.**
+  All icon I/O (asset, network, byte-array decoding) now runs on
+  `Dispatchers.IO` via structured `async`/`await`, replacing the
+  previous `ExecutorService` + `Callable` approach. The main thread
+  is never blocked — each icon load has an individual
+  `withTimeoutOrNull` guard.
+- **Added `CoroutineScope` lifecycle management.** A `SupervisorJob`-backed
+  scope (`pluginScope`) is created in `onAttachedToEngine` and cancelled
+  in `onDetachedFromEngine`, ensuring all in-flight coroutines are
+  cleaned up when the plugin is detached.
+
+### 🐛 Bug Fixes
+
+- **Fixed chathead freeze caused by async race condition.**
+  `showChatHead` and `addChatHead` are now `@async` Pigeon methods.
+  The Dart `Future` resolves only after the overlay window is fully
+  created, preventing the half-initialized state that caused the
+  overlay to appear frozen.
+
+### 📦 Dependencies
+
+- Added `kotlinx-coroutines-android:1.7.3`.
+
 ## 1.0.6
 
 ### 🐛 Bug Fixes

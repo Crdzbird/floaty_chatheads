@@ -2,7 +2,7 @@ name: floaty_chatheads_ios
 description: >
   iOS implementation of floaty_chatheads with UIWindow-based PiP overlay,
   snap-to-edge physics, theming, and VoiceOver accessibility.
-version: 1.1.4
+version: 1.1.5
 homepage: https://github.com/crdzbird/floaty_chatheads
 repository: https://github.com/crdzbird/floaty_chatheads/tree/main/floaty_chatheads_ios
 issue_tracker: https://github.com/crdzbird/floaty_chatheads/issues

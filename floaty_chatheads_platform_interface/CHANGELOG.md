@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.4
+
+### ✨ Enhancements
+
+- **Added `autoLaunchOnBackground` to `ChatHeadConfig`.** When `true`,
+  the chathead is automatically shown when the app goes to the
+  background and dismissed when the app returns to the foreground.
+- **Added `persistOnAppClose` to `ChatHeadConfig`.** When `true`, the
+  overlay service uses `START_STICKY` and survives after the main app
+  is killed. When `false`, the service stops itself on disconnect.
+
 ## 1.0.3
 
 ### ✨ Enhancements

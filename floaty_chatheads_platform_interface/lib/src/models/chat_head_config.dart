@@ -37,6 +37,8 @@ class ChatHeadConfig {
     this.theme,
     this.sizePreset,
     this.debugMode = false,
+    this.autoLaunchOnBackground = false,
+    this.persistOnAppClose = false,
     this.assets,
     this.notification,
     this.snap,
@@ -106,6 +108,29 @@ class ChatHeadConfig {
   /// {@endtemplate}
   final bool debugMode;
 
+  /// {@template chat_head_config.auto_launch_on_background}
+  /// Whether the chathead automatically appears when the app goes to the
+  /// background.
+  ///
+  /// When `true`, the chathead is shown as soon as all activities leave the
+  /// foreground. It is automatically closed when the app returns to the
+  /// foreground.
+  /// Defaults to `false`.
+  /// {@endtemplate}
+  final bool autoLaunchOnBackground;
+
+  /// {@template chat_head_config.persist_on_app_close}
+  /// Whether the chathead overlay survives after the main app process is
+  /// killed.
+  ///
+  /// When `true`, the foreground service uses `START_STICKY` and persists
+  /// its configuration so the overlay is recreated automatically if the
+  /// system restarts the service. When `false`, the service uses
+  /// `START_NOT_STICKY` and stops itself when the main app disconnects.
+  /// Defaults to `false`.
+  /// {@endtemplate}
+  final bool persistOnAppClose;
+
   // ── Grouped config objects ────────────────────────────────────────
 
   /// {@template chat_head_config.assets}
@@ -141,6 +166,8 @@ class ChatHeadConfig {
           other.theme == theme &&
           other.sizePreset == sizePreset &&
           other.debugMode == debugMode &&
+          other.autoLaunchOnBackground == autoLaunchOnBackground &&
+          other.persistOnAppClose == persistOnAppClose &&
           other.assets == assets &&
           other.notification == notification &&
           other.snap == snap;
@@ -156,6 +183,8 @@ class ChatHeadConfig {
         theme,
         sizePreset,
         debugMode,
+        autoLaunchOnBackground,
+        persistOnAppClose,
         assets,
         notification,
         snap,

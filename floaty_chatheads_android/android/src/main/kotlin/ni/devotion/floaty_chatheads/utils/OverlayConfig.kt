@@ -55,6 +55,12 @@ object OverlayConfig {
     var closeTintColor: Int? = null
     var overlayPalette: Map<String, Int>? = null
 
+    // ── Lifecycle ─────────────────────────────────────────────────────
+    /** Whether the chathead auto-shows when the app goes to background. */
+    var autoLaunchOnBackground: Boolean = false
+    /** Whether the overlay survives after the main app process is killed. */
+    var persistOnAppClose: Boolean = false
+
     // ── Debug ────────────────────────────────────────────────────────
     var debugMode: Boolean = false
 

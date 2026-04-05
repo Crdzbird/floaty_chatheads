@@ -285,6 +285,10 @@ data class ChatHeadConfig (
   val theme: ChatHeadThemeMessage? = null,
   /** Whether to enable the debug overlay inspector. */
   val debugMode: Boolean,
+  /** Whether the chathead automatically appears when the app goes to background. */
+  val autoLaunchOnBackground: Boolean,
+  /** Whether the chathead overlay survives after the main app is killed. */
+  val persistOnAppClose: Boolean,
   /** Multi-source chathead icon (takes precedence over [chatheadIconAsset]). */
   val chatheadIconSource: IconSourceMessage? = null,
   /** Multi-source close icon (takes precedence over [closeIconAsset]). */
@@ -314,11 +318,13 @@ data class ChatHeadConfig (
       val entranceAnimation = pigeonVar_list[14] as EntranceAnimationMessage
       val theme = pigeonVar_list[15] as ChatHeadThemeMessage?
       val debugMode = pigeonVar_list[16] as Boolean
-      val chatheadIconSource = pigeonVar_list[17] as IconSourceMessage?
-      val closeIconSource = pigeonVar_list[18] as IconSourceMessage?
-      val closeBackgroundSource = pigeonVar_list[19] as IconSourceMessage?
-      val notificationDescription = pigeonVar_list[20] as String?
-      return ChatHeadConfig(entryPoint, contentWidth, contentHeight, chatheadIconAsset, closeIconAsset, closeBackgroundAsset, notificationTitle, notificationIconAsset, flag, enableDrag, notificationVisibility, snapEdge, snapMargin, persistPosition, entranceAnimation, theme, debugMode, chatheadIconSource, closeIconSource, closeBackgroundSource, notificationDescription)
+      val autoLaunchOnBackground = pigeonVar_list[17] as Boolean
+      val persistOnAppClose = pigeonVar_list[18] as Boolean
+      val chatheadIconSource = pigeonVar_list[19] as IconSourceMessage?
+      val closeIconSource = pigeonVar_list[20] as IconSourceMessage?
+      val closeBackgroundSource = pigeonVar_list[21] as IconSourceMessage?
+      val notificationDescription = pigeonVar_list[22] as String?
+      return ChatHeadConfig(entryPoint, contentWidth, contentHeight, chatheadIconAsset, closeIconAsset, closeBackgroundAsset, notificationTitle, notificationIconAsset, flag, enableDrag, notificationVisibility, snapEdge, snapMargin, persistPosition, entranceAnimation, theme, debugMode, autoLaunchOnBackground, persistOnAppClose, chatheadIconSource, closeIconSource, closeBackgroundSource, notificationDescription)
     }
   }
   fun toList(): List<Any?> {
@@ -340,6 +346,8 @@ data class ChatHeadConfig (
       entranceAnimation,
       theme,
       debugMode,
+      autoLaunchOnBackground,
+      persistOnAppClose,
       chatheadIconSource,
       closeIconSource,
       closeBackgroundSource,
@@ -531,10 +539,10 @@ private open class FloatyChatheadsApiPigeonCodec : StandardMessageCodec() {
 interface FloatyHostApi {
   fun checkPermission(): Boolean
   fun requestPermission(callback: (Result<Boolean>) -> Unit)
-  fun showChatHead(config: ChatHeadConfig)
+  fun showChatHead(config: ChatHeadConfig, callback: (Result<Unit>) -> Unit)
   fun closeChatHead()
   fun isChatHeadActive(): Boolean
-  fun addChatHead(config: AddChatHeadConfig)
+  fun addChatHead(config: AddChatHeadConfig, callback: (Result<Unit>) -> Unit)
   fun removeChatHead(id: String)
   /**
    * Updates the badge count on the chathead bubble.
@@ -594,13 +602,14 @@ interface FloatyHostApi {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val configArg = args[0] as ChatHeadConfig
-            val wrapped: List<Any?> = try {
-              api.showChatHead(configArg)
-              listOf(null)
-            } catch (exception: Throwable) {
-              FloatyChatheadsApiPigeonUtils.wrapError(exception)
+            api.showChatHead(configArg) { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(FloatyChatheadsApiPigeonUtils.wrapError(error))
+              } else {
+                reply.reply(FloatyChatheadsApiPigeonUtils.wrapResult(null))
+              }
             }
-            reply.reply(wrapped)
           }
         } else {
           channel.setMessageHandler(null)
@@ -643,13 +652,14 @@ interface FloatyHostApi {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val configArg = args[0] as AddChatHeadConfig
-            val wrapped: List<Any?> = try {
-              api.addChatHead(configArg)
-              listOf(null)
-            } catch (exception: Throwable) {
-              FloatyChatheadsApiPigeonUtils.wrapError(exception)
+            api.addChatHead(configArg) { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(FloatyChatheadsApiPigeonUtils.wrapError(error))
+              } else {
+                reply.reply(FloatyChatheadsApiPigeonUtils.wrapResult(null))
+              }
             }
-            reply.reply(wrapped)
           }
         } else {
           channel.setMessageHandler(null)

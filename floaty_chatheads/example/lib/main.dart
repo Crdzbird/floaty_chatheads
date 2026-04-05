@@ -4,6 +4,7 @@ import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
 
 import 'examples/accessibility_example.dart';
+import 'examples/auto_launch_example.dart';
 import 'examples/dashboard_example.dart';
 import 'examples/features_showcase_example.dart';
 import 'examples/gps_stream_example.dart';
@@ -20,6 +21,7 @@ import 'examples/themed_example.dart';
 import 'examples/timer_example.dart';
 import 'examples/todo_survival_example.dart';
 import 'overlays/accessibility_overlay.dart';
+import 'overlays/auto_launch_overlay.dart';
 import 'overlays/dashboard_overlay.dart';
 import 'overlays/features_showcase_overlay.dart';
 import 'overlays/gps_stream_overlay.dart';
@@ -106,6 +108,10 @@ void gpsStreamOverlayMain() =>
 @pragma('vm:entry-point')
 void sensorStreamOverlayMain() =>
     FloatyOverlayApp.run(const SensorStreamOverlay());
+
+@pragma('vm:entry-point')
+void autoLaunchOverlayMain() =>
+    FloatyOverlayApp.run(const AutoLaunchOverlay());
 
 // ---------------------------------------------------------------------------
 // Gallery — lists all examples
@@ -226,6 +232,13 @@ class GalleryPage extends StatelessWidget {
       icon: Icons.sensors,
       color: Colors.purple,
     ),
+    _ExampleInfo(
+      title: 'Auto-Launch & Persist',
+      description:
+          'Chathead auto-shows on background, optionally survives app kill.',
+      icon: Icons.auto_awesome,
+      color: Colors.indigo,
+    ),
   ];
 
   Widget _buildRoute(int index) {
@@ -247,6 +260,7 @@ class GalleryPage extends StatelessWidget {
       14 => const TodoSurvivalExample(),
       15 => const GpsStreamExample(),
       16 => const SensorStreamExample(),
+      17 => const AutoLaunchExample(),
       _ => const HomePage(),
     };
   }

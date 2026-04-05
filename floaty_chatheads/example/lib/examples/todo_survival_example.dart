@@ -223,6 +223,7 @@ class _TodoSurvivalExampleState extends State<TodoSurvivalExample> {
       contentWidth: 260,
       contentHeight: 380,
       entranceAnimation: EntranceAnimation.pop,
+      persistOnAppClose: true,
     );
     setState(() => _chatheadActive = true);
 

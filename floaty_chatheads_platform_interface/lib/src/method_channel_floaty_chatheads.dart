@@ -64,6 +64,8 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
       'persistPosition': config.snap?.persistPosition ?? false,
       'entranceAnimation': config.entranceAnimation.index,
       'debugMode': config.debugMode,
+      'autoLaunchOnBackground': config.autoLaunchOnBackground,
+      'persistOnAppClose': config.persistOnAppClose,
       if (config.theme != null)
         'theme': {
           'badgeColor': config.theme!.badgeColor,

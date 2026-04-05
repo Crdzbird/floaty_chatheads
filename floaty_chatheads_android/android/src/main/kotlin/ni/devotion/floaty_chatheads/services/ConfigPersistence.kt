@@ -32,6 +32,8 @@ internal class ConfigPersistence(private val context: Context) {
             putBoolean(Constants.PREF_PERSIST_POSITION, OverlayConfig.persistPosition)
             putString(Constants.PREF_ENTRANCE_ANIMATION, OverlayConfig.entranceAnimation.name)
             putBoolean(Constants.PREF_DEBUG_MODE, OverlayConfig.debugMode)
+            putBoolean(Constants.PREF_AUTO_LAUNCH_ON_BACKGROUND, OverlayConfig.autoLaunchOnBackground)
+            putBoolean(Constants.PREF_PERSIST_ON_APP_CLOSE, OverlayConfig.persistOnAppClose)
             putString(Constants.PREF_NOTIFICATION_TITLE, OverlayConfig.notificationTitle)
             OverlayConfig.notificationDescription?.let {
                 putString(Constants.PREF_NOTIFICATION_DESCRIPTION, it)
@@ -88,6 +90,8 @@ internal class ConfigPersistence(private val context: Context) {
         } catch (_: Exception) { EntranceAnimation.NONE }
 
         OverlayConfig.debugMode = prefs.getBoolean(Constants.PREF_DEBUG_MODE, false)
+        OverlayConfig.autoLaunchOnBackground = prefs.getBoolean(Constants.PREF_AUTO_LAUNCH_ON_BACKGROUND, false)
+        OverlayConfig.persistOnAppClose = prefs.getBoolean(Constants.PREF_PERSIST_ON_APP_CLOSE, false)
         OverlayConfig.notificationTitle = prefs.getString(
             Constants.PREF_NOTIFICATION_TITLE, "Floaty Chathead",
         )!!

@@ -1,5 +1,47 @@
 # Changelog
 
+## 1.4.0
+
+### ✨ Enhancements
+
+- **Added `autoLaunchOnBackground` parameter.** When `true`, the
+  chathead is automatically shown when the app moves to the background
+  and dismissed when the app returns to the foreground. Useful for
+  music players, call UIs, or any overlay that should appear while the
+  user is in another app. (Android only.)
+- **Added `persistOnAppClose` parameter.** When `true`, the foreground
+  service uses `START_STICKY` and persists its configuration so the
+  overlay survives app death and is recreated by the system. When
+  `false` (the default), the service uses `START_NOT_STICKY` and
+  stops itself when the main app disconnects. (Android only.)
+- **New example**: Auto-Launch & Persist — demonstrates both parameters
+  with toggle switches and step-by-step instructions.
+
+### ⚡ Performance
+
+- **Android: Migrated native plugin to Kotlin Coroutines.** Icon loading
+  and all async operations now use structured concurrency with
+  `Dispatchers.IO`, eliminating main-thread blocking.
+- **iOS: Migrated native plugin to Swift Concurrency (`@MainActor`).**
+  Compile-time main-actor isolation replaces runtime GCD dispatch.
+
+### 🐛 Bug Fixes
+
+- **Fixed chathead freeze on both platforms.**
+  - Android: `showChatHead` and `addChatHead` are now async Pigeon
+    methods. The Dart `Future` resolves only after the overlay window
+    is fully created, preventing the half-initialized state caused by
+    the coroutine race condition.
+  - iOS: The `@MainActor` gesture handler was routing through the
+    actor executor instead of firing synchronously. Now uses
+    `nonisolated` + `MainActor.assumeIsolated` for zero-overhead drag.
+
+### 📦 Dependencies
+
+- Bumped `floaty_chatheads_platform_interface` to `^1.0.4`.
+- Bumped `floaty_chatheads_android` to `^1.0.7`.
+- Bumped `floaty_chatheads_ios` to `^1.1.5`.
+
 ## 1.3.2
 
 ### 🐛 Bug Fixes

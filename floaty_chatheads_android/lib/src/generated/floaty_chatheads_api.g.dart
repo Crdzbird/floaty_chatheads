@@ -256,6 +256,8 @@ class ChatHeadConfig {
     required this.entranceAnimation,
     this.theme,
     required this.debugMode,
+    required this.autoLaunchOnBackground,
+    required this.persistOnAppClose,
     this.chatheadIconSource,
     this.closeIconSource,
     this.closeBackgroundSource,
@@ -303,6 +305,12 @@ class ChatHeadConfig {
   /// Whether to enable the debug overlay inspector.
   bool debugMode;
 
+  /// Whether the chathead automatically appears when the app goes to background.
+  bool autoLaunchOnBackground;
+
+  /// Whether the chathead overlay survives after the main app is killed.
+  bool persistOnAppClose;
+
   /// Multi-source chathead icon (takes precedence over [chatheadIconAsset]).
   IconSourceMessage? chatheadIconSource;
 
@@ -334,6 +342,8 @@ class ChatHeadConfig {
       entranceAnimation,
       theme,
       debugMode,
+      autoLaunchOnBackground,
+      persistOnAppClose,
       chatheadIconSource,
       closeIconSource,
       closeBackgroundSource,
@@ -364,10 +374,12 @@ class ChatHeadConfig {
       entranceAnimation: result[14]! as EntranceAnimationMessage,
       theme: result[15] as ChatHeadThemeMessage?,
       debugMode: result[16]! as bool,
-      chatheadIconSource: result[17] as IconSourceMessage?,
-      closeIconSource: result[18] as IconSourceMessage?,
-      closeBackgroundSource: result[19] as IconSourceMessage?,
-      notificationDescription: result[20] as String?,
+      autoLaunchOnBackground: result[17]! as bool,
+      persistOnAppClose: result[18]! as bool,
+      chatheadIconSource: result[19] as IconSourceMessage?,
+      closeIconSource: result[20] as IconSourceMessage?,
+      closeBackgroundSource: result[21] as IconSourceMessage?,
+      notificationDescription: result[22] as String?,
     );
   }
 

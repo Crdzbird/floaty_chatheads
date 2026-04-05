@@ -124,6 +124,8 @@ class ChatHeadConfig {
     required this.entranceAnimation,
     this.theme,
     required this.debugMode,
+    required this.autoLaunchOnBackground,
+    required this.persistOnAppClose,
     this.chatheadIconSource,
     this.closeIconSource,
     this.closeBackgroundSource,
@@ -159,6 +161,12 @@ class ChatHeadConfig {
 
   /// Whether to enable the debug overlay inspector.
   final bool debugMode;
+
+  /// Whether the chathead automatically appears when the app goes to background.
+  final bool autoLaunchOnBackground;
+
+  /// Whether the chathead overlay survives after the main app is killed.
+  final bool persistOnAppClose;
 
   /// Multi-source chathead icon (takes precedence over [chatheadIconAsset]).
   final IconSourceMessage? chatheadIconSource;
@@ -197,12 +205,14 @@ abstract class FloatyHostApi {
   @async
   bool requestPermission();
 
+  @async
   void showChatHead(ChatHeadConfig config);
 
   void closeChatHead();
 
   bool isChatHeadActive();
 
+  @async
   void addChatHead(AddChatHeadConfig config);
 
   void removeChatHead(String id);

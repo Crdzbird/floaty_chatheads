@@ -99,6 +99,12 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
     fun onMainAppDisconnected() {
         engineManager.onMainAppDisconnected()
+        // When persistOnAppClose is false, tear down the overlay and stop
+        // the service as soon as the main app process disconnects.
+        if (!OverlayConfig.persistOnAppClose) {
+            closeWindow(true)
+            FloatyChatheadsPlugin.isServiceRunning = false
+        }
     }
 
     // ── Service lifecycle ───────────────────────────────────────────
@@ -194,19 +200,29 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         OverlayConfig.logD(
-            "onStartCommand() called. chatHeads=$chatHeads, instance=$instance",
+            "onStartCommand() called. chatHeads=$chatHeads, instance=$instance, " +
+                "pluginSetupInProgress=${FloatyChatheadsPlugin.activeInstance?.pluginSetupInProgress}",
         )
         // Re-post the foreground notification so Android doesn't kill the
         // service when startForegroundService() was used without onCreate().
         showNotification()
-        if (chatHeads == null) {
+
+        // When the plugin is actively setting up the overlay (loading
+        // icons in a coroutine), skip createWindow() here — the plugin
+        // coroutine will call it after icons are loaded and OverlayConfig
+        // is fully populated. Without this guard, onStartCommand could
+        // create the window before icons are ready.
+        val pluginBusy =
+            FloatyChatheadsPlugin.activeInstance?.pluginSetupInProgress == true
+        if (chatHeads == null && !pluginBusy) {
             createWindow()
         } else {
             OverlayConfig.logD(
-                "onStartCommand() chatHeads already exists — skipping createWindow()",
+                "onStartCommand() skipping createWindow(). " +
+                    "chatHeads=${chatHeads != null}, pluginBusy=$pluginBusy",
             )
         }
-        return START_STICKY
+        return if (OverlayConfig.persistOnAppClose) START_STICKY else START_NOT_STICKY
     }
 
     fun createWindow() {
