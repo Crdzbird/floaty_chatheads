@@ -1,8 +1,8 @@
 name: floaty_chatheads
 description: >
-  Floating chathead plugin for Android & iOS with draggable bubbles,
-  expandable content panels, theming, snap-to-edge physics, and
-  bidirectional app-overlay messaging.
+  Floating chathead plugin for Android & iOS with draggable bubbles, expandable
+  content panels, theming, snap-to-edge physics, and bidirectional app-overlay
+  messaging.
 version: 1.4.0
 homepage: https://github.com/crdzbird/floaty_chatheads
 repository: https://github.com/crdzbird/floaty_chatheads
@@ -29,15 +29,15 @@ flutter:
 dependencies:
   floaty_chatheads_android: ^1.0.7
   floaty_chatheads_ios: ^1.1.5
-  floaty_chatheads_platform_interface: ^1.0.4
+  floaty_chatheads_platform_interface: ^1.0.4+1
   flutter:
     sdk: flutter
-  meta: ^1.11.0
+  meta: ^1.18.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   mocktail: ^1.0.4
-  pigeon: ^26.2.3
+  pigeon: ^26.3.3
   plugin_platform_interface: ^2.1.8
   very_good_analysis: ^10.2.0

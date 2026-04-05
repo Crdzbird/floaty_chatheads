@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0+1
+
+### 📦 Metadata
+
+- Upgraded package version for meta to 1.18.
+- Upgraded package version for pigeon to 26.3.3
+
 ## 1.4.0
 
 ### ✨ Enhancements
