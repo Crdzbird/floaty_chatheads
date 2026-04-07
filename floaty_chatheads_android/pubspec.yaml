@@ -2,7 +2,7 @@ name: floaty_chatheads_android
 description: >
   Android implementation of floaty_chatheads with SYSTEM_ALERT_WINDOW,
   foreground service, spring physics, theming, and TalkBack accessibility.
-version: 1.0.7
+version: 1.1.0
 homepage: https://github.com/crdzbird/floaty_chatheads
 repository: https://github.com/crdzbird/floaty_chatheads/tree/main/floaty_chatheads_android
 issue_tracker: https://github.com/crdzbird/floaty_chatheads/issues
@@ -26,10 +26,9 @@ flutter:
         dartPluginClass: FloatyChatheadsAndroid
 
 dependencies:
-  floaty_chatheads_platform_interface: ^1.0.4+1
+  floaty_chatheads_platform_interface: ^1.0.5
   flutter:
     sdk: flutter
-  meta: ^1.11.0
 
 dev_dependencies:
   flutter_test:

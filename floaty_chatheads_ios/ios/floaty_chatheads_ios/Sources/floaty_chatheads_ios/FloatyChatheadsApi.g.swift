@@ -491,6 +491,12 @@ protocol FloatyHostApi {
   func expandChatHead() throws
   /// Programmatically collapses the chathead content panel.
   func collapseChatHead() throws
+  /// Updates the chathead icon with raw RGBA pixel data.
+  ///
+  /// On iOS the chathead is already a Flutter view, so this is a
+  /// no-op placeholder for API symmetry. The Dart-side
+  /// [AnimatedWidgetIcon] renders directly via the overlay engine.
+  func updateChatHeadIcon(id: String, rgbaBytes: FlutterStandardTypedData, width: Int64, height: Int64) throws
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -646,6 +652,29 @@ class FloatyHostApiSetup {
       }
     } else {
       collapseChatHeadChannel.setMessageHandler(nil)
+    }
+    /// Updates the chathead icon with raw RGBA pixel data.
+    ///
+    /// On iOS the chathead is already a Flutter view, so this is a
+    /// no-op placeholder for API symmetry. The Dart-side
+    /// [AnimatedWidgetIcon] renders directly via the overlay engine.
+    let updateChatHeadIconChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.updateChatHeadIcon\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      updateChatHeadIconChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let idArg = args[0] as! String
+        let rgbaBytesArg = args[1] as! FlutterStandardTypedData
+        let widthArg = args[2] as! Int64
+        let heightArg = args[3] as! Int64
+        do {
+          try api.updateChatHeadIcon(id: idArg, rgbaBytes: rgbaBytesArg, width: widthArg, height: heightArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      updateChatHeadIconChannel.setMessageHandler(nil)
     }
   }
 }

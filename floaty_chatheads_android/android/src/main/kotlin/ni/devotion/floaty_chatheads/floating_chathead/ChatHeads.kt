@@ -471,6 +471,12 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         )
     }
 
+    /** Replace the icon bitmap of a specific chathead. */
+    fun updateChatHeadIcon(id: String, bitmap: android.graphics.Bitmap) {
+        val target = chatHeads.find { it.id == id } ?: topChatHead
+        target?.updateIcon(bitmap)
+    }
+
     /** Update the badge count on the top chathead (or a specific chathead by id). */
     fun updateBadge(count: Int, id: String? = null) {
         val target = if (id != null) chatHeads.find { it.id == id } else topChatHead

@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show listEquals;
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart' show immutable, listEquals;
 
 /// {@template icon_source}
 /// Describes where to load an icon image from.

@@ -101,6 +101,11 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         performCollapse()
     }
 
+    func updateChatHeadIcon(id: String, rgbaBytes: FlutterStandardTypedData, width: Int64, height: Int64) throws {
+        // No-op on iOS — the chathead bubble is a FlutterViewController,
+        // so widget-based icons render directly via the overlay engine.
+    }
+
     // MARK: - FloatyOverlayHostApi
 
     func resizeContent(width: Int64, height: Int64) throws {

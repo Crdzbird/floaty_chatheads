@@ -1,4 +1,4 @@
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart' show immutable;
 
 /// {@template overlay_position}
 /// The on-screen position of the overlay window.

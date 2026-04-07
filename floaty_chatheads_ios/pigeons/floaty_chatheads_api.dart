@@ -180,6 +180,18 @@ abstract class FloatyHostApi {
 
   /// Programmatically collapses the chathead content panel.
   void collapseChatHead();
+
+  /// Updates the chathead icon with raw RGBA pixel data.
+  ///
+  /// On iOS the chathead is already a Flutter view, so this is a
+  /// no-op placeholder for API symmetry. The Dart-side
+  /// [AnimatedWidgetIcon] renders directly via the overlay engine.
+  void updateChatHeadIcon(
+    String id,
+    Uint8List rgbaBytes,
+    int width,
+    int height,
+  );
 }
 
 @HostApi()

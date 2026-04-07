@@ -10,6 +10,7 @@
 library;
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:floaty_chatheads/src/floaty_overlay.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
@@ -121,6 +122,23 @@ class FakeFloatyPlatform extends FloatyChatheadsPlatform {
 
   @override
   Future<void> collapseChatHead() async {}
+
+  /// The last RGBA bytes passed to [updateChatHeadIcon].
+  Uint8List? lastIconBytes;
+
+  /// The last chathead ID passed to [updateChatHeadIcon].
+  String? lastIconId;
+
+  @override
+  Future<void> updateChatHeadIcon(
+    String id,
+    Uint8List rgbaBytes,
+    int width,
+    int height,
+  ) async {
+    lastIconId = id;
+    lastIconBytes = rgbaBytes;
+  }
 }
 
 /// {@template fake_overlay_data_source}

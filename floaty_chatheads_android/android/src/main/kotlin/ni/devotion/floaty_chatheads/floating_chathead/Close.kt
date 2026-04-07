@@ -57,9 +57,17 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
         OverlayConfig.backgroundCloseIcon?.let {
             bitmapBg = Bitmap.createScaledBitmap(it, ChatHeads.CLOSE_SIZE, ChatHeads.CLOSE_SIZE, false)
         }
+
+        // Widget-rendered close icons fill the close target; asset icons
+        // stay at the small 28 dp default so they sit on top of the bg.
+        val closeIconSize = if (OverlayConfig.closeIconIsWidget) {
+            ChatHeads.CLOSE_SIZE
+        } else {
+            WindowManagerHelper.dpToPx(28f)
+        }
         bitmapClose = OverlayConfig.closeIcon ?: Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close), WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
         OverlayConfig.closeIcon?.let {
-            bitmapClose = Bitmap.createScaledBitmap(it, WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
+            bitmapClose = Bitmap.createScaledBitmap(it, closeIconSize, closeIconSize, false)
         }
 
         // Apply close tint color from theme

@@ -42,6 +42,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.nio.ByteBuffer
 
 class FloatyChatheadsPlugin :
     FlutterPlugin,
@@ -370,6 +371,13 @@ class FloatyChatheadsPlugin :
             closeIcon.await()?.let { OverlayConfig.closeIcon = it }
             closeBg.await()?.let { OverlayConfig.backgroundCloseIcon = it }
 
+            // Mark widget-sourced close icons so Close.kt scales them
+            // to the full close-target size instead of the tiny 28dp default.
+            OverlayConfig.closeIconIsWidget =
+                config.closeIconSource?.type == IconSourceTypeMessage.BYTES
+            OverlayConfig.closeBackgroundIsWidget =
+                config.closeBackgroundSource?.type == IconSourceTypeMessage.BYTES
+
             // Notification icon is always an asset — fast, no network.
             withContext(Dispatchers.IO) {
                 config.notificationIconAsset?.let { loadAssetBitmap(appContext, it) }
@@ -452,6 +460,27 @@ class FloatyChatheadsPlugin :
 
     override fun collapseChatHead() {
         FloatyContentJobService.instance?.chatHeads?.collapse()
+    }
+
+    override fun updateChatHeadIcon(
+        id: String,
+        rgbaBytes: ByteArray,
+        width: Long,
+        height: Long,
+    ) {
+        pluginScope.launch {
+            val bitmap = withContext(Dispatchers.Default) {
+                val bmp = android.graphics.Bitmap.createBitmap(
+                    width.toInt(), height.toInt(),
+                    android.graphics.Bitmap.Config.ARGB_8888,
+                )
+                bmp.copyPixelsFromBuffer(ByteBuffer.wrap(rgbaBytes))
+                bmp
+            }
+            // Back on Main — update the view.
+            FloatyContentJobService.instance?.chatHeads
+                ?.updateChatHeadIcon(id, bitmap)
+        }
     }
 
     private fun loadAssetBitmap(

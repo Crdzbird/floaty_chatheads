@@ -1,5 +1,67 @@
 # Changelog
 
+## 1.5.0
+
+### ✨ Widget-Based Icons
+
+- **Any Flutter widget as the chathead icon.** Pass `iconWidget` to
+  `showChatHead()` and the widget is rendered to a PNG image via an
+  offscreen pipeline (separate `RenderView` / `PipelineOwner` /
+  `BuildOwner` -- does not block the main widget tree).
+
+  ```dart
+  await FloatyChatheads.showChatHead(
+    entryPoint: 'overlayMain',
+    iconWidget: const CircleAvatar(child: Text('JD')),
+  );
+  ```
+
+- **Animated widget icons.** Pass `iconBuilder` (receives a 0.0 -- 1.0
+  animation value) and set `animateIcon: true`. Frames are rendered at
+  configurable FPS and pushed to the native layer as raw RGBA bytes.
+  Control playback with `startIconAnimation()` / `stopIconAnimation()`.
+
+  ```dart
+  await FloatyChatheads.showChatHead(
+    entryPoint: 'overlayMain',
+    iconBuilder: (v) => Transform.rotate(
+      angle: v * 2 * 3.14159,
+      child: const Icon(Icons.sync, size: 50),
+    ),
+    animateIcon: true,
+  );
+  ```
+
+- **Widget-based close icons.** `closeIconWidget` and
+  `closeBackgroundWidget` let you replace the default close target
+  with any Flutter widget. On Android, widget-rendered close icons
+  are scaled to the full close-target size (64 dp) instead of the
+  small 28 dp default.
+- **New parameters on `showChatHead()`**: `iconWidget`, `iconBuilder`,
+  `closeIconWidget`, `closeBackgroundWidget`, `animateIcon`,
+  `iconAnimationFps`, `iconSize`, `iconPixelRatio`,
+  `iconAnimationDuration`.
+- **`addChatHead()` now accepts `iconWidget`.** Additional bubbles
+  can also use widget-based icons.
+- **New public API**: `AnimatedWidgetIcon`, `widgetToIconSource()`,
+  `renderWidgetToImage()`, `renderWidgetToBytes()`,
+  `renderWidgetToRgbaByteData()`, `renderWidgetToPngByteData()`,
+  `updateChatHeadIcon()`, `isIconAnimating`, `startIconAnimation()`,
+  `stopIconAnimation()`.
+
+### 🐛 Bug Fixes
+
+- **Fixed icon animation not stopping on native close.** When the
+  chathead was dismissed via the drag-to-close gesture, the animation
+  timer continued running. The `onClosed` handler now calls
+  `stopIconAnimation()` automatically.
+
+### 📦 Dependencies
+
+- Bumped `floaty_chatheads_platform_interface` to `^1.0.5`.
+- Bumped `floaty_chatheads_android` to `^1.1.0`.
+- Bumped `floaty_chatheads_ios` to `^1.1.6`.
+
 ## 1.4.0+1
 
 ### 📦 Metadata

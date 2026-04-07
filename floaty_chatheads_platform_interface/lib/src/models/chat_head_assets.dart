@@ -1,5 +1,5 @@
 import 'package:floaty_chatheads_platform_interface/src/models/icon_source.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart' show immutable;
 
 /// {@template chat_head_assets}
 /// Groups the three icon sources needed by a chathead.

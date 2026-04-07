@@ -1,5 +1,5 @@
 import 'package:floaty_chatheads_platform_interface/src/models/notification_visibility.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart' show immutable;
 
 /// {@template notification_config}
 /// Groups notification-related parameters for the chathead service.

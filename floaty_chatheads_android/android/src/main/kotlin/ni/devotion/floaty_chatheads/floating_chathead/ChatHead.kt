@@ -124,6 +124,13 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
         chatHeads.onSpringUpdate(this, spring, totalVelocity)
     }
 
+    /** Replaces the icon bitmap and redraws. Called from a coroutine after
+     *  off-main-thread decoding. */
+    fun updateIcon(bitmap: android.graphics.Bitmap) {
+        iconBitmap = bitmap
+        invalidate()
+    }
+
     override fun onDraw(canvas: Canvas) {
         val icon = iconBitmap ?: OverlayConfig.floatingIcon
         if (icon != null) {

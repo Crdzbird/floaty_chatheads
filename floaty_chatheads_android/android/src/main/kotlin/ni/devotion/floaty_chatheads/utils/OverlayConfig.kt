@@ -24,6 +24,11 @@ object OverlayConfig {
     var closeIcon: Bitmap? = null
     var backgroundCloseIcon: Bitmap? = null
 
+    /** When true, close icon/background came from widget rendering (bytes)
+     *  and should be scaled to [CLOSE_SIZE] instead of the small 28dp default. */
+    var closeIconIsWidget: Boolean = false
+    var closeBackgroundIsWidget: Boolean = false
+
     // ── Notification ─────────────────────────────────────────────────
     var notificationTitle: String = "Floaty Chathead"
     var notificationDescription: String? = null
