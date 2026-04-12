@@ -4,13 +4,12 @@ import UIKit
 @MainActor
 public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurrency FloatyHostApi, @preconcurrency FloatyOverlayHostApi {
 
-    private var registrar: FlutterPluginRegistrar?
     private var overlayWindow: UIWindow?
     private var overlayEngine: FlutterEngine?
     private var overlayFlutterApi: FloatyOverlayFlutterApi?
     private var panOrigin: CGPoint = .zero
     private var contentSize: CGSize = CGSize(width: 300, height: 400)
-    private var bubbleSize: CGSize = CGSize(width: 64, height: 64)
+    private let bubbleSize = CGSize(width: 64, height: 64)
     private var isOverlayActive = false
     private var isExpanded = false
     private var badgeCount: Int = 0
@@ -30,7 +29,8 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     private var mainMessenger: FlutterBasicMessageChannel?
     private var overlayMessenger: FlutterBasicMessageChannel?
 
-    // MARK: - UserDefaults keys for position persistence
+    // MARK: - Constants
+    private static let messengerChannelName = "ni.devotion.floaty_head/messenger"
     private static let positionXKey = "floaty_chatheads_x"
     private static let positionYKey = "floaty_chatheads_y"
 
@@ -39,11 +39,10 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     nonisolated public static func register(with registrar: FlutterPluginRegistrar) {
         MainActor.assumeIsolated {
             let instance = FloatyChatheadsPlugin()
-            instance.registrar = registrar
             FloatyHostApiSetup.setUp(binaryMessenger: registrar.messenger(), api: instance)
 
             instance.mainMessenger = FlutterBasicMessageChannel(
-                name: "ni.devotion.floaty_head/messenger",
+                name: messengerChannelName,
                 binaryMessenger: registrar.messenger(),
                 codec: FlutterJSONMessageCodec.sharedInstance()
             )
@@ -204,7 +203,7 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         overlayFlutterApi = FloatyOverlayFlutterApi(binaryMessenger: engine.binaryMessenger)
 
         overlayMessenger = FlutterBasicMessageChannel(
-            name: "ni.devotion.floaty_head/messenger",
+            name: Self.messengerChannelName,
             binaryMessenger: engine.binaryMessenger,
             codec: FlutterJSONMessageCodec.sharedInstance()
         )

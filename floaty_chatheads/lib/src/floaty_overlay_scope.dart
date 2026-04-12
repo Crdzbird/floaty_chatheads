@@ -159,11 +159,17 @@ class _FloatyOverlayScopeState<S> extends State<FloatyOverlayScope<S>> {
 
   @override
   void dispose() {
-    unawaited(_stateSub?.cancel());
-    unawaited(_connSub?.cancel());
-    _kit.dispose();
-    FloatyOverlay.dispose();
+    unawaited(_tearDown());
     super.dispose();
+  }
+
+  Future<void> _tearDown() async {
+    await Future.wait([
+      if (_stateSub != null) _stateSub!.cancel(),
+      if (_connSub != null) _connSub!.cancel(),
+      _kit.dispose(),
+    ]);
+    FloatyOverlay.dispose();
   }
 }
 
@@ -176,5 +182,6 @@ class _FloatyOverlayScopeInherited<S> extends InheritedWidget {
   final FloatyOverlayKit<S> kit;
 
   @override
-  bool updateShouldNotify(_FloatyOverlayScopeInherited<S> oldWidget) => true;
+  bool updateShouldNotify(_FloatyOverlayScopeInherited<S> oldWidget) =>
+      !identical(kit, oldWidget.kit);
 }

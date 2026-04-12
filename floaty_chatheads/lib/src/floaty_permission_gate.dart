@@ -118,12 +118,12 @@ final class _FloatyPermissionGateState extends State<FloatyPermissionGate>
 
   void _startPolling() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(widget.checkInterval, (_) {
+    _pollTimer = Timer.periodic(widget.checkInterval, (_) async {
       if (_granted) {
         _pollTimer?.cancel(); // coverage:ignore-line
         return;
       }
-      unawaited(_checkPermission());
+      await _checkPermission();
     });
   }
 

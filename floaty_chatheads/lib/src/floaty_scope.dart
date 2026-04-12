@@ -162,6 +162,7 @@ final class _FloatyScopeState extends State<FloatyScope> {
     _subscriptions
       ..add(
         FloatyOverlay.onData.listen((data) {
+          if (!mounted) return;
           setState(() {
             _lastMessage = data;
             _messages.add(data);
@@ -170,41 +171,49 @@ final class _FloatyScopeState extends State<FloatyScope> {
       )
       ..add(
         FloatyOverlay.onTapped.listen((id) {
+          if (!mounted) return;
           setState(() => _lastTappedId = id);
         }),
       )
       ..add(
         FloatyOverlay.onClosed.listen((id) {
+          if (!mounted) return;
           setState(() => _lastClosedId = id);
         }),
       )
       ..add(
         FloatyOverlay.onExpanded.listen((id) {
+          if (!mounted) return;
           setState(() => _lastExpandedId = id);
         }),
       )
       ..add(
         FloatyOverlay.onCollapsed.listen((id) {
+          if (!mounted) return;
           setState(() => _lastCollapsedId = id);
         }),
       )
       ..add(
         FloatyOverlay.onDragStart.listen((event) {
+          if (!mounted) return;
           setState(() => _lastDragStart = event);
         }),
       )
       ..add(
         FloatyOverlay.onDragEnd.listen((event) {
+          if (!mounted) return;
           setState(() => _lastDragEnd = event);
         }),
       )
       ..add(
         FloatyOverlay.onPaletteChanged.listen((palette) {
+          if (!mounted) return;
           setState(() => _palette = palette);
         }),
       )
       ..add(
         FloatyConnectionState.onConnectionChanged.listen((connected) {
+          if (!mounted) return;
           setState(() => _isMainAppConnected = connected);
         }),
       );
@@ -212,9 +221,9 @@ final class _FloatyScopeState extends State<FloatyScope> {
 
   @override
   void dispose() {
-    for (final sub in _subscriptions) {
-      unawaited(sub.cancel());
-    }
+    unawaited(
+      Future.wait(_subscriptions.map((s) => s.cancel())),
+    );
     _subscriptions.clear();
     super.dispose();
   }
@@ -248,5 +257,6 @@ class _FloatyScopeInherited extends InheritedWidget {
   final FloatyScopeData data;
 
   @override
-  bool updateShouldNotify(_FloatyScopeInherited oldWidget) => true;
+  bool updateShouldNotify(_FloatyScopeInherited oldWidget) =>
+      !identical(data, oldWidget.data);
 }

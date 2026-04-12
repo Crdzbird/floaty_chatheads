@@ -3,8 +3,6 @@ package ni.devotion.floaty_chatheads.floating_chathead
 import android.graphics.*
 import android.graphics.BitmapFactory.*
 import android.view.*
-import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import com.facebook.rebound.*
@@ -41,6 +39,11 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
     private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
     }
+
+    /** Cached circular+shadow bitmap, recomputed only when icon source changes. */
+    private var processedIcon: Bitmap? = null
+    /** The raw source bitmap that [processedIcon] was built from. */
+    private var processedIconSource: Bitmap? = null
 
     var params: WindowManager.LayoutParams = WindowManager.LayoutParams(
         WindowManager.LayoutParams.WRAP_CONTENT,
@@ -128,16 +131,24 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
      *  off-main-thread decoding. */
     fun updateIcon(bitmap: android.graphics.Bitmap) {
         iconBitmap = bitmap
+        processedIconSource = null  // invalidate cache
         invalidate()
     }
 
-    override fun onDraw(canvas: Canvas) {
-        val icon = iconBitmap ?: OverlayConfig.floatingIcon
-        if (icon != null) {
-            canvas.drawBitmap(ImageHelper.addShadow(ImageHelper.getCircularBitmap(icon)), 0f, 0f, paint)
-        } else {
-            canvas.drawBitmap(ImageHelper.addShadow(ImageHelper.getCircularBitmap(decodeResource(context.resources, R.drawable.bot))), 0f, 0f, paint)
+    /** Returns a circular+shadow bitmap, cached to avoid allocations in onDraw. */
+    private fun getProcessedIcon(): Bitmap {
+        val source = iconBitmap ?: OverlayConfig.floatingIcon
+            ?: decodeResource(context.resources, R.drawable.bot)
+        if (source !== processedIconSource || processedIcon == null) {
+            processedIcon = ImageHelper.addShadow(ImageHelper.getCircularBitmap(source))
+            processedIconSource = source
         }
+        return processedIcon!!
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        val processed = getProcessedIcon()
+        canvas.drawBitmap(processed, 0f, 0f, paint)
 
         // Draw optional border ring
         val borderColor = OverlayConfig.bubbleBorderColor
@@ -145,11 +156,8 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
         if (borderColor != null && borderWidth > 0f) {
             borderPaint.color = borderColor
             borderPaint.strokeWidth = WindowManagerHelper.dpToPx(borderWidth).toFloat()
-            val shadowBitmap = ImageHelper.addShadow(ImageHelper.getCircularBitmap(
-                icon ?: decodeResource(context.resources, R.drawable.bot)
-            ))
-            val cx = shadowBitmap.width / 2f
-            val cy = shadowBitmap.height / 2f
+            val cx = processed.width / 2f
+            val cy = processed.height / 2f
             val radius = ChatHeads.CHAT_HEAD_SIZE / 2f
             canvas.drawCircle(cx, cy, radius, borderPaint)
         }

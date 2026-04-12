@@ -225,13 +225,15 @@ class FakeOverlayDataSource {
   }
 
   /// Closes all controllers.
-  void dispose() {
-    unawaited(dataController.close());
-    unawaited(tapController.close());
-    unawaited(closeController.close());
-    unawaited(expandController.close());
-    unawaited(collapseController.close());
-    unawaited(dragStartController.close());
-    unawaited(dragEndController.close());
+  Future<void> dispose() async {
+    await Future.wait([
+      dataController.close(),
+      tapController.close(),
+      closeController.close(),
+      expandController.close(),
+      collapseController.close(),
+      dragStartController.close(),
+      dragEndController.close(),
+    ]);
   }
 }

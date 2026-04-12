@@ -60,9 +60,7 @@ final class FloatyController extends ChangeNotifier {
     this.notification,
     this.snap,
   }) {
-    if (autoShow) {
-      unawaited(show());
-    }
+    if (autoShow) unawaited(show());
   }
 
   /// {@template floaty_controller.entry_point}

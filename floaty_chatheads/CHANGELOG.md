@@ -49,6 +49,56 @@
   `updateChatHeadIcon()`, `isIconAnimating`, `startIconAnimation()`,
   `stopIconAnimation()`.
 
+### ⚡ Performance
+
+- **Android: Eliminated bitmap allocations in `onDraw()` (ChatHead).**
+  The circular-crop + shadow pipeline ran on every frame (~240
+  allocations/second during 60 fps drag). Processed bitmaps are now
+  cached and only recomputed when the source icon reference changes.
+- **Android: Cached close-target resource bitmap (Close).**
+  `BitmapFactory.decodeResource()` was called on every spring animation
+  frame. The source bitmap is now decoded once at construction and
+  scaled from cache.
+- **Dart: Optimised `updateShouldNotify` in `FloatyScope` and
+  `FloatyOverlayScope`.** Changed from unconditional `true` to
+  `!identical()` identity checks, avoiding unnecessary widget rebuilds
+  when the data object has not changed.
+- **Dart: Parallelised independent dispose futures with
+  `Future.wait`.** Sequential awaits in `FloatyMessenger`, both Kit
+  classes, `FloatyOverlayScope`, and `FakeOverlayDataSource` now run
+  concurrently.
+
+### 🛡️ Robustness
+
+- **Dart: Added `mounted` guards to all stream listeners in
+  `FloatyScope`.** Prevents `setState`-after-dispose crashes if a
+  stream event fires between unmount and subscription cancellation.
+- **Android: Fixed potential `velocityTracker!!` crash (ChatHeads).**
+  Replaced force-unwrap with safe `?: return` to guard against null
+  velocity tracker on `ACTION_UP`.
+- **Android: Added `@Volatile` to thread-shared bitmap properties
+  (OverlayConfig).** Icon bitmaps written from `Dispatchers.IO` are
+  now guaranteed visible to the main-thread `onDraw()`.
+- **Android: Replaced `getString()!!` with safe defaults
+  (ConfigPersistence).** `SharedPreferences.getString()` can return
+  `null` even with a non-null default on some OEM ROMs; three
+  restore calls now use `?: "DEFAULT"` fallbacks.
+
+### 🧹 Code Quality
+
+- **Dart: Replaced `unawaited()` antipattern with proper
+  `async`/`await`.** All non-widget dispose methods
+  (`FloatyActionRouter`, `FloatyStateChannel`, `FloatyMessenger`,
+  `FloatyProxyStream`, `FloatyHostKit`, `FloatyOverlayKit`,
+  `FakeOverlayDataSource`) now return `Future<void>` and properly
+  await their cleanup futures. Reduced from 25 scattered `unawaited()`
+  calls to 9 at unavoidable sync framework boundaries
+  (`State.dispose()`, constructors, lifecycle callbacks).
+- **Android: Removed dead `getRunningServiceInfo()` (ChatHeads) and
+  unused `registrar` property (iOS plugin).**
+- **iOS: Extracted channel name constant and changed `bubbleSize` to
+  `let`.**
+
 ### 🐛 Bug Fixes
 
 - **Fixed icon animation not stopping on native close.** When the

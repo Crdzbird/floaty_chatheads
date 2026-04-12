@@ -15,7 +15,6 @@ import com.facebook.rebound.SimpleSpringListener
 import com.facebook.rebound.SpringChain
 import java.util.*
 import kotlin.math.*
-import android.app.ActivityManager
 import ni.devotion.floaty_chatheads.FlutterContentPanel
 import ni.devotion.floaty_chatheads.services.FloatyContentJobService
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
@@ -406,16 +405,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         fixPositions()
     }
 
-    fun getRunningServiceInfo(serviceClass: Class<*>, context: Context): ActivityManager.RunningServiceInfo? {
-        val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        for (service in manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.name == service.service.className) {
-                return service
-            }
-        }
-        return null
-    }
-
     /** Remove the motionTracker and spring chains that live outside this view. */
     fun cleanup() {
         destroySpringChains()
@@ -640,10 +629,11 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                     }
                 } else if (!toggled) {
                     moving = false
-                    var xVelocity = velocityTracker!!.xVelocity.toDouble()
-                    val yVelocity = velocityTracker!!.yVelocity.toDouble()
+                    val vt = velocityTracker ?: return true
+                    var xVelocity = vt.xVelocity.toDouble()
+                    val yVelocity = vt.yVelocity.toDouble()
                     var maxVelocityX = 0.0
-                    velocityTracker?.recycle()
+                    vt.recycle()
                     velocityTracker = null
 
                     // Notify lifecycle: drag end

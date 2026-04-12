@@ -133,9 +133,9 @@ final class FloatyProxyStream<T> {
   /// Releases resources and removes this instance from the shared
   /// registry. If this was the last instance, the channel handler is
   /// unregistered.
-  void dispose() {
+  Future<void> dispose() async {
     _Registry._unregister(this);
-    unawaited(_controller.close());
+    await _controller.close();
   }
 }
 

@@ -234,6 +234,8 @@ final class FloatyProxyClient {
       }
     });
 
+    // Intentionally not awaited — the result arrives via the completer
+    // when the host responds. The send itself is fire-and-forget.
     unawaited(
       FloatyChannel.sendSystem(_prefix, {
         'id': id,

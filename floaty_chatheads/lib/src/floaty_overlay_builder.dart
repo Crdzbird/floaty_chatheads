@@ -104,9 +104,7 @@ class _FloatyOverlayBuilderState<T> extends State<FloatyOverlayBuilder<T>> {
 
   @override
   void dispose() {
-    for (final sub in _subs) {
-      unawaited(sub.cancel());
-    }
+    unawaited(Future.wait(_subs.map((s) => s.cancel())));
     FloatyOverlay.dispose();
     super.dispose();
   }
