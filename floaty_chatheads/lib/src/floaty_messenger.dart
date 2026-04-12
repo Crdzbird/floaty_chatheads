@@ -118,10 +118,12 @@ final class FloatyMessenger<T> {
   /// {@template floaty_messenger.dispose}
   /// Cancels the underlying stream subscription and closes the controller.
   /// {@endtemplate}
-  void dispose() {
-    unawaited(_subscription?.cancel());
+  Future<void> dispose() async {
+    await Future.wait([
+      if (_subscription != null) _subscription!.cancel(),
+      if (_controller != null) _controller!.close(),
+    ]);
     _subscription = null;
-    unawaited(_controller?.close());
     _controller = null;
     _stream = null;
   }

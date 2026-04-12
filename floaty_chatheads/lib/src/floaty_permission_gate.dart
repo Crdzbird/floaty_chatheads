@@ -118,12 +118,12 @@ final class _FloatyPermissionGateState extends State<FloatyPermissionGate>
 
   void _startPolling() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(widget.checkInterval, (_) {
-      if (_granted) {
-        _pollTimer?.cancel(); // coverage:ignore-line
-        return;
-      }
-      unawaited(_checkPermission());
+    _pollTimer = Timer(widget.checkInterval, () async {
+      if (_granted || !mounted) return;
+      await _checkPermission();
+      // Schedule next poll after _checkPermission completes, preventing
+      // overlapping checks when the call takes longer than checkInterval.
+      if (!_granted && mounted) _startPolling();
     });
   }
 

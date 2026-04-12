@@ -43,6 +43,8 @@ else you can dream up.
 | **Any Flutter widget** | The expanded panel is a full Flutter engine, so you can use any widget, package, or animation |
 | **Spring-physics drag** | The bubble snaps to screen edges with smooth, natural-feeling spring animations |
 | **Survives app death (Android)** | Your overlay stays alive even if the user kills the main app |
+| **Widget-based icons** | Use any Flutter widget as the chathead bubble or close target -- no image assets required |
+| **Animated icons** | Drive icon animations from Dart at configurable FPS with a simple builder callback |
 | **Zero-boilerplate helpers** | Show a chathead in 3 lines; build an overlay widget in 1 line |
 | **Built-in messaging** | Send data back and forth between your main app and the overlay in real time |
 | **Theming & accessibility** | Full TalkBack / VoiceOver support, customizable colors, and a debug inspector |
@@ -189,6 +191,67 @@ Future<void> launchChatHead() async {
 
 That is it! Run `flutter run`, call `launchChatHead()`, and you will see a
 floating bubble on the screen.
+
+### Widget-based icons (no image assets needed)
+
+Use any Flutter widget as the chathead icon instead of an image:
+
+```dart
+await FloatyChatheads.showChatHead(
+  entryPoint: 'overlayMain',
+  iconWidget: const CircleAvatar(
+    backgroundColor: Colors.indigo,
+    child: Text('JD', style: TextStyle(color: Colors.white)),
+  ),
+);
+```
+
+For animated icons, pass a builder and enable animation:
+
+```dart
+await FloatyChatheads.showChatHead(
+  entryPoint: 'overlayMain',
+  iconBuilder: (v) => Transform.rotate(
+    angle: v * 2 * 3.14159,
+    child: const Icon(Icons.sync, color: Colors.white, size: 50),
+  ),
+  animateIcon: true,
+  iconAnimationFps: 24,
+);
+```
+
+The close target can also be a widget:
+
+```dart
+await FloatyChatheads.showChatHead(
+  entryPoint: 'overlayMain',
+  iconWidget: myBubbleWidget,
+  closeIconWidget: Container(
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: LinearGradient(colors: [Colors.red, Colors.orange]),
+    ),
+    child: const Center(
+      child: Icon(Icons.delete_outline, color: Colors.white, size: 32),
+    ),
+  ),
+  closeBackgroundWidget: Container(
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.white24, width: 2),
+      color: Colors.black26,
+    ),
+  ),
+);
+```
+
+Control animation at any time:
+
+```dart
+FloatyChatheads.stopIconAnimation();  // pause
+FloatyChatheads.startIconAnimation(); // resume
+FloatyChatheads.isIconAnimating;      // check state
+```
 
 ### 6. Send data between app and overlay
 
@@ -796,7 +859,7 @@ overlay cannot float above other apps.
 
 ## Examples
 
-The example app ships with **18 demo screens** accessible from a gallery page:
+The example app ships with **19 demo screens** accessible from a gallery page:
 
 | # | Example | What it demonstrates |
 |---|---|---|
@@ -818,6 +881,7 @@ The example app ships with **18 demo screens** accessible from a gallery page:
 | 16 | GPS Proxy Stream | One-way push: main app streams simulated GPS to the overlay |
 | 17 | Sensor Proxy Streams | Multiple proxy streams: accelerometer + light sensor at 5 Hz |
 | 18 | Auto-Launch & Persist | Chathead auto-shows on background, optionally survives app kill |
+| 19 | Widget Icons | Widget-based bubble and close icons: static, animated, custom close target |
 
 Run the example:
 

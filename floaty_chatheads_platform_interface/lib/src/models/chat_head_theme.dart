@@ -1,5 +1,4 @@
-import 'package:flutter/foundation.dart' show mapEquals;
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart' show immutable, mapEquals;
 
 /// {@template chat_head_theme}
 /// Theming configuration for the floating chathead.

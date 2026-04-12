@@ -39,9 +39,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import ni.devotion.floaty_chatheads.utils.ImageHelper
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.nio.ByteBuffer
 
 class FloatyChatheadsPlugin :
     FlutterPlugin,
@@ -55,6 +57,8 @@ class FloatyChatheadsPlugin :
         private const val ICON_LOAD_TIMEOUT_MS = 4_000L
         private const val NETWORK_CONNECT_TIMEOUT_MS = 3_000
         private const val NETWORK_READ_TIMEOUT_MS = 3_000
+        /** Max width/height (px) for updateChatHeadIcon — rejects absurd sizes early. */
+        private const val MAX_ICON_DIMENSION = 4096L
         var isServiceRunning = false
 
         /**
@@ -370,6 +374,11 @@ class FloatyChatheadsPlugin :
             closeIcon.await()?.let { OverlayConfig.closeIcon = it }
             closeBg.await()?.let { OverlayConfig.backgroundCloseIcon = it }
 
+            // Mark widget-sourced close icons so Close.kt scales them
+            // to the full close-target size instead of the tiny 28dp default.
+            OverlayConfig.closeIconIsWidget =
+                config.closeIconSource?.type == IconSourceTypeMessage.BYTES
+
             // Notification icon is always an asset — fast, no network.
             withContext(Dispatchers.IO) {
                 config.notificationIconAsset?.let { loadAssetBitmap(appContext, it) }
@@ -452,6 +461,48 @@ class FloatyChatheadsPlugin :
 
     override fun collapseChatHead() {
         FloatyContentJobService.instance?.chatHeads?.collapse()
+    }
+
+    // Reusable mutable bitmap keyed by (width, height) to avoid per-frame
+    // allocations during animated icon updates at 20-30 fps.
+    private var reusableBitmap: android.graphics.Bitmap? = null
+
+    override fun updateChatHeadIcon(
+        id: String,
+        rgbaBytes: ByteArray,
+        width: Long,
+        height: Long,
+    ) {
+        // Use Long arithmetic to avoid Int overflow on large dimensions.
+        val expectedSize = width * height * 4L
+        // Reject non-positive, oversized (> 4096 px), or mismatched byte counts.
+        if (width <= 0 || height <= 0 || width > MAX_ICON_DIMENSION || height > MAX_ICON_DIMENSION || rgbaBytes.size.toLong() != expectedSize) {
+            android.util.Log.w(
+                "FloatyChatheads",
+                "updateChatHeadIcon: invalid dimensions " +
+                    "${width}x$height (expected $expectedSize bytes, got ${rgbaBytes.size})",
+            )
+            return
+        }
+
+        val w = width.toInt()
+        val h = height.toInt()
+
+        pluginScope.launch {
+            // Decode + circular crop + shadow all off the UI thread.
+            val processed = withContext(Dispatchers.Default) {
+                // Reuse a mutable bitmap when dimensions match.
+                val bmp = reusableBitmap?.takeIf { it.width == w && it.height == h && !it.isRecycled }
+                    ?: android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+                        .also { reusableBitmap = it }
+                bmp.copyPixelsFromBuffer(ByteBuffer.wrap(rgbaBytes))
+                // Pre-process circular crop + shadow so onDraw() is a single drawBitmap.
+                ImageHelper.addShadow(ImageHelper.getCircularBitmap(bmp))
+            }
+            // Back on Main — swap the pre-processed bitmap into the view.
+            FloatyContentJobService.instance?.chatHeads
+                ?.updateChatHeadIcon(id, processed)
+        }
     }
 
     private fun loadAssetBitmap(

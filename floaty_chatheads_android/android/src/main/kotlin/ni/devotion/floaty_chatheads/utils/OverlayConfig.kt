@@ -20,14 +20,19 @@ enum class EntranceAnimation { NONE, POP, SLIDE_FROM_EDGE, FADE }
  */
 object OverlayConfig {
     // ── Icons ────────────────────────────────────────────────────────
-    var floatingIcon: Bitmap? = null
-    var closeIcon: Bitmap? = null
-    var backgroundCloseIcon: Bitmap? = null
+    // Written from coroutines (Dispatchers.IO/Default), read from main thread.
+    @Volatile var floatingIcon: Bitmap? = null
+    @Volatile var closeIcon: Bitmap? = null
+    @Volatile var backgroundCloseIcon: Bitmap? = null
+
+    /** When true, close icon came from widget rendering (bytes)
+     *  and should be scaled to [CLOSE_SIZE] instead of the small 28dp default. */
+    @Volatile var closeIconIsWidget: Boolean = false
 
     // ── Notification ─────────────────────────────────────────────────
     var notificationTitle: String = "Floaty Chathead"
     var notificationDescription: String? = null
-    var notificationIcon: Bitmap? = null
+    @Volatile var notificationIcon: Bitmap? = null
 
     // ── Content panel ────────────────────────────────────────────────
     /** Width in dp: null = WRAP_CONTENT, >0 = explicit dp, <=0 = MATCH_PARENT. */

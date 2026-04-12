@@ -775,6 +775,29 @@ class FloatyHostApi {
     )
     ;
   }
+
+  /// Updates the chathead icon with raw RGBA pixel data.
+  ///
+  /// Bitmap creation from [rgbaBytes] runs off the main thread
+  /// (Dispatchers.Default). The view is invalidated on main after
+  /// the bitmap is ready.
+  Future<void> updateChatHeadIcon(String id, Uint8List rgbaBytes, int width, int height) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.updateChatHeadIcon$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[id, rgbaBytes, width, height]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
 }
 
 class FloatyOverlayHostApi {

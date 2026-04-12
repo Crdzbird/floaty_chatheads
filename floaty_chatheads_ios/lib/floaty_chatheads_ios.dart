@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:floaty_chatheads_ios/src/generated/floaty_chatheads_api.g.dart'
     as pigeon;
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
@@ -135,4 +137,13 @@ class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
   /// {@macro floaty_chatheads_platform.collapse_chat_head}
   @override
   Future<void> collapseChatHead() => _hostApi.collapseChatHead();
+
+  @override
+  Future<void> updateChatHeadIcon(
+    String id,
+    Uint8List rgbaBytes,
+    int width,
+    int height,
+  ) =>
+      _hostApi.updateChatHeadIcon(id, rgbaBytes, width, height);
 }

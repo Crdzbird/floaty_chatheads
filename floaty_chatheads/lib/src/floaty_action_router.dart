@@ -153,8 +153,8 @@ final class FloatyActionRouter {
     if (_isOverlay) {
       _connectionSub =
           FloatyConnectionState.onConnectionChanged.listen(
-        (connected) {
-          if (connected) _flushQueue();
+        (connected) async {
+          if (connected) await _flushQueue();
         },
       );
     }
@@ -209,19 +209,19 @@ final class FloatyActionRouter {
     _queue.add(action);
   }
 
-  void _flushQueue() {
+  Future<void> _flushQueue() async {
     if (_queue.isEmpty) return;
     final queued = List<FloatyAction>.of(_queue);
     _queue.clear();
     for (final action in queued) {
-      unawaited(dispatch(action));
+      await dispatch(action);
     }
   }
 
   /// The number of actions currently queued (waiting for reconnection).
   int get queueLength => _queue.length;
 
-  void _onMessage(Map<String, dynamic> envelope) {
+  Future<void> _onMessage(Map<String, dynamic> envelope) async {
     final type = envelope['type'] as String?;
     if (type == null) return;
 
@@ -232,8 +232,7 @@ final class FloatyActionRouter {
     if (payload is! Map) return;
 
     try {
-      final result = entry.handle(payload.cast<String, dynamic>());
-      if (result is Future<void>) unawaited(result);
+      await entry.handle(payload.cast<String, dynamic>());
     } on Object {
       // Deserialization or handler error — silently ignore to avoid
       // crashing the message loop.
@@ -241,9 +240,9 @@ final class FloatyActionRouter {
   }
 
   /// Releases resources and unregisters the channel handler.
-  void dispose() {
+  Future<void> dispose() async {
     FloatyChannel.unregisterHandler(_prefix);
-    unawaited(_connectionSub?.cancel());
+    await _connectionSub?.cancel();
     _connectionSub = null;
     _handlers.clear();
     _queue.clear();

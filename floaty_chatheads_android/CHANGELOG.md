@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.1.0
+
+### ✨ Enhancements
+
+- **Widget-based chathead icons.** The chathead bubble icon can now be
+  any Flutter widget (rendered to an image via the Dart offscreen
+  pipeline). Supports static widgets and animated widgets with
+  per-frame RGBA updates through the new `updateChatHeadIcon` Pigeon
+  method. Bitmap creation from RGBA bytes runs on `Dispatchers.Default`
+  to keep the main thread free.
+- **Widget-based close icons.** The close target icon and background
+  can also be Flutter widgets. Widget-rendered close icons are scaled
+  to the full close-target size (64 dp) instead of the 28 dp default,
+  so the widget design controls the visual appearance.
+- Added `closeIconIsWidget` / `closeBackgroundIsWidget` flags to
+  `OverlayConfig` for size-aware scaling in `Close.kt`.
+
+### 📦 Dependencies
+
+- Bumped `floaty_chatheads_platform_interface` to `^1.0.5`.
+
 ## 1.0.7
 
 ### ✨ Enhancements

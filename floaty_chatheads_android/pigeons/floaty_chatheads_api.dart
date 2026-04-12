@@ -226,6 +226,18 @@ abstract class FloatyHostApi {
 
   /// Programmatically collapses the chathead content panel.
   void collapseChatHead();
+
+  /// Updates the chathead icon with raw RGBA pixel data.
+  ///
+  /// Bitmap creation from [rgbaBytes] runs off the main thread
+  /// (Dispatchers.Default). The view is invalidated on main after
+  /// the bitmap is ready.
+  void updateChatHeadIcon(
+    String id,
+    Uint8List rgbaBytes,
+    int width,
+    int height,
+  );
 }
 
 @HostApi()

@@ -1,5 +1,124 @@
 # Changelog
 
+## 1.5.0
+
+### ✨ Widget-Based Icons
+
+- **Any Flutter widget as the chathead icon.** Pass `iconWidget` to
+  `showChatHead()` and the widget is rendered to a PNG image via an
+  offscreen pipeline (separate `RenderView` / `PipelineOwner` /
+  `BuildOwner` -- does not block the main widget tree).
+
+  ```dart
+  await FloatyChatheads.showChatHead(
+    entryPoint: 'overlayMain',
+    iconWidget: const CircleAvatar(child: Text('JD')),
+  );
+  ```
+
+- **Animated widget icons.** Pass `iconBuilder` (receives a 0.0 -- 1.0
+  animation value) and set `animateIcon: true`. Frames are rendered at
+  configurable FPS and pushed to the native layer as raw RGBA bytes.
+  Control playback with `startIconAnimation()` / `stopIconAnimation()`.
+
+  ```dart
+  await FloatyChatheads.showChatHead(
+    entryPoint: 'overlayMain',
+    iconBuilder: (v) => Transform.rotate(
+      angle: v * 2 * 3.14159,
+      child: const Icon(Icons.sync, size: 50),
+    ),
+    animateIcon: true,
+  );
+  ```
+
+- **Widget-based close icons.** `closeIconWidget` and
+  `closeBackgroundWidget` let you replace the default close target
+  with any Flutter widget. On Android, widget-rendered close icons
+  are scaled to the full close-target size (64 dp) instead of the
+  small 28 dp default.
+- **New parameters on `showChatHead()`**: `iconWidget`, `iconBuilder`,
+  `closeIconWidget`, `closeBackgroundWidget`, `animateIcon`,
+  `iconAnimationFps`, `iconSize`, `iconPixelRatio`,
+  `iconAnimationDuration`.
+- **`addChatHead()` now accepts `iconWidget`.** Additional bubbles
+  can also use widget-based icons.
+- **New public API**: `AnimatedWidgetIcon`, `widgetToIconSource()`,
+  `renderWidgetToImage()`, `renderWidgetToBytes()`,
+  `renderWidgetToRgbaByteData()`, `renderWidgetToPngByteData()`,
+  `updateChatHeadIcon()`, `isIconAnimating`, `startIconAnimation()`,
+  `stopIconAnimation()`.
+
+### ⚡ Performance
+
+- **Android: Eliminated bitmap allocations in `onDraw()` (ChatHead).**
+  The circular-crop + shadow pipeline ran on every frame (~240
+  allocations/second during 60 fps drag). Processed bitmaps are now
+  cached and only recomputed when the source icon reference changes.
+- **Android: Cached close-target resource bitmap (Close).**
+  `BitmapFactory.decodeResource()` was called on every spring animation
+  frame. The source bitmap is now decoded once at construction and
+  scaled from cache.
+- **Dart: Optimised `updateShouldNotify` in `FloatyScope` and
+  `FloatyOverlayScope`.** Changed from unconditional `true` to
+  `!identical()` identity checks, avoiding unnecessary widget rebuilds
+  when the data object has not changed.
+- **Dart: Parallelised independent dispose futures with
+  `Future.wait`.** Sequential awaits in `FloatyMessenger`, both Kit
+  classes, `FloatyOverlayScope`, and `FakeOverlayDataSource` now run
+  concurrently.
+
+### 🛡️ Robustness
+
+- **Dart: Added `mounted` guards to all stream listeners in
+  `FloatyScope`.** Prevents `setState`-after-dispose crashes if a
+  stream event fires between unmount and subscription cancellation.
+- **Android: Fixed potential `velocityTracker!!` crash (ChatHeads).**
+  Replaced force-unwrap with safe `?: return` to guard against null
+  velocity tracker on `ACTION_UP`.
+- **Android: Added `@Volatile` to thread-shared bitmap properties
+  (OverlayConfig).** Icon bitmaps written from `Dispatchers.IO` are
+  now guaranteed visible to the main-thread `onDraw()`.
+- **Android: Replaced `getString()!!` with safe defaults
+  (ConfigPersistence).** `SharedPreferences.getString()` can return
+  `null` even with a non-null default on some OEM ROMs; three
+  restore calls now use `?: "DEFAULT"` fallbacks.
+
+### 🧹 Code Quality
+
+- **Dart: Replaced `unawaited()` antipattern with proper
+  `async`/`await`.** All non-widget dispose methods
+  (`FloatyActionRouter`, `FloatyStateChannel`, `FloatyMessenger`,
+  `FloatyProxyStream`, `FloatyHostKit`, `FloatyOverlayKit`,
+  `FakeOverlayDataSource`) now return `Future<void>` and properly
+  await their cleanup futures. Reduced from 25 scattered `unawaited()`
+  calls to 9 at unavoidable sync framework boundaries
+  (`State.dispose()`, constructors, lifecycle callbacks).
+- **Android: Removed dead `getRunningServiceInfo()` (ChatHeads) and
+  unused `registrar` property (iOS plugin).**
+- **iOS: Extracted channel name constant and changed `bubbleSize` to
+  `let`.**
+
+### 🐛 Bug Fixes
+
+- **Fixed icon animation not stopping on native close.** When the
+  chathead was dismissed via the drag-to-close gesture, the animation
+  timer continued running. The `onClosed` handler now calls
+  `stopIconAnimation()` automatically.
+
+### 📦 Dependencies
+
+- Bumped `floaty_chatheads_platform_interface` to `^1.0.5`.
+- Bumped `floaty_chatheads_android` to `^1.1.0`.
+- Bumped `floaty_chatheads_ios` to `^1.1.6`.
+
+## 1.4.0+1
+
+### 📦 Metadata
+
+- Upgraded package version for meta to 1.18.
+- Upgraded package version for pigeon to 26.3.3
+
 ## 1.4.0
 
 ### ✨ Enhancements

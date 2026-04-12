@@ -5,7 +5,7 @@ import 'package:floaty_chatheads_platform_interface/src/models/entrance_animatio
 import 'package:floaty_chatheads_platform_interface/src/models/notification_config.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/overlay_flag.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/snap_config.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart' show immutable;
 
 /// {@template chat_head_config}
 /// Configuration for showing a floating chathead.

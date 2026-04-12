@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:floaty_chatheads_platform_interface/src/method_channel_floaty_chatheads.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/add_chat_head_config.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/chat_head_config.dart';
@@ -158,5 +160,25 @@ abstract class FloatyChatheadsPlatform extends PlatformInterface {
   /// {@endtemplate}
   Future<void> collapseChatHead() {
     throw UnimplementedError('collapseChatHead() has not been implemented.');
+  }
+
+  /// {@template floaty_chatheads_platform.update_chat_head_icon}
+  /// Replaces the chathead icon with raw RGBA pixel data.
+  ///
+  /// [id] identifies which bubble to update. [rgbaBytes] contains the
+  /// pixel data in RGBA order, with dimensions [width] × [height].
+  ///
+  /// On Android the bitmap is created off the main thread; on iOS the
+  /// chathead is already a Flutter view so this is a no-op.
+  /// {@endtemplate}
+  Future<void> updateChatHeadIcon(
+    String id,
+    Uint8List rgbaBytes,
+    int width,
+    int height,
+  ) {
+    throw UnimplementedError(
+      'updateChatHeadIcon() has not been implemented.',
+    );
   }
 }

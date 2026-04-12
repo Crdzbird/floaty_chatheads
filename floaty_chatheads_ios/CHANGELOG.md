@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.6
+
+### ✨ Enhancements
+
+- **Added `updateChatHeadIcon` bridge method.** No-op on iOS (the
+  chathead is already a `FlutterViewController`) but provides API
+  symmetry with the Android implementation so Dart-side code does not
+  need platform checks.
+
+### 📦 Dependencies
+
+- Bumped `floaty_chatheads_platform_interface` to `^1.0.5`.
+
 ## 1.1.5
 
 ### ⚡ Performance

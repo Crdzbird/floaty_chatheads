@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:floaty_chatheads/testing.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
@@ -84,6 +86,13 @@ void main() {
 
     test('collapseChatHead completes without error', () async {
       await fake.collapseChatHead();
+    });
+
+    test('updateChatHeadIcon tracks id and bytes', () async {
+      final bytes = Uint8List.fromList([1, 2, 3, 4]);
+      await fake.updateChatHeadIcon('bubble1', bytes, 1, 1);
+      expect(fake.lastIconId, equals('bubble1'));
+      expect(fake.lastIconBytes, equals(bytes));
     });
 
     test('works as drop-in for FloatyChatheads', () async {

@@ -28,6 +28,11 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     val paint = Paint()
     private val closePaint = Paint()
     val gradient = FrameLayout(context)
+
+    /** Unscaled source bitmap for the close background (decoded once). */
+    private val bgSourceBitmap: Bitmap = OverlayConfig.backgroundCloseIcon
+        ?: BitmapFactory.decodeResource(context.resources, R.drawable.close_bg)
+
     private var bitmapBg: Bitmap? = null
     private var bitmapClose: Bitmap? = null
 
@@ -53,13 +58,20 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     }
 
     init {
-        bitmapBg = OverlayConfig.backgroundCloseIcon ?: Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close_bg), ChatHeads.CLOSE_SIZE, ChatHeads.CLOSE_SIZE, false)
-        OverlayConfig.backgroundCloseIcon?.let {
-            bitmapBg = Bitmap.createScaledBitmap(it, ChatHeads.CLOSE_SIZE, ChatHeads.CLOSE_SIZE, false)
+        bitmapBg = Bitmap.createScaledBitmap(bgSourceBitmap, ChatHeads.CLOSE_SIZE, ChatHeads.CLOSE_SIZE, false)
+
+        // Widget-rendered close icons fill the close target; asset icons
+        // stay at the small 28 dp default so they sit on top of the bg.
+        val closeIconSize = if (OverlayConfig.closeIconIsWidget) {
+            ChatHeads.CLOSE_SIZE
+        } else {
+            WindowManagerHelper.dpToPx(28f)
         }
-        bitmapClose = OverlayConfig.closeIcon ?: Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close), WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
-        OverlayConfig.closeIcon?.let {
-            bitmapClose = Bitmap.createScaledBitmap(it, WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
+        val closeSource = OverlayConfig.closeIcon
+        bitmapClose = if (closeSource != null) {
+            Bitmap.createScaledBitmap(closeSource, closeIconSize, closeIconSize, false)
+        } else {
+            Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close), WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
         }
 
         // Apply close tint color from theme
@@ -87,10 +99,8 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
         })
         springScale.addListener(object : SimpleSpringListener() {
             override fun onSpringUpdate(spring: Spring) {
-                bitmapBg = OverlayConfig.backgroundCloseIcon ?: Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close_bg), (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt(), (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt(), false)
-                OverlayConfig.backgroundCloseIcon?.let {
-                    bitmapBg = Bitmap.createScaledBitmap(it, (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt(), (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt(), false)
-                }
+                val animatedSize = (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt()
+                bitmapBg = Bitmap.createScaledBitmap(bgSourceBitmap, animatedSize, animatedSize, false)
                 invalidate()
             }
         })

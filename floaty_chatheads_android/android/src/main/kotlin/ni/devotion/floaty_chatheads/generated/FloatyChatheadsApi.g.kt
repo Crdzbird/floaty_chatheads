@@ -553,6 +553,14 @@ interface FloatyHostApi {
   fun expandChatHead()
   /** Programmatically collapses the chathead content panel. */
   fun collapseChatHead()
+  /**
+   * Updates the chathead icon with raw RGBA pixel data.
+   *
+   * Bitmap creation from [rgbaBytes] runs off the main thread
+   * (Dispatchers.Default). The view is invalidated on main after
+   * the bitmap is ready.
+   */
+  fun updateChatHeadIcon(id: String, rgbaBytes: ByteArray, width: Long, height: Long)
 
   companion object {
     /** The codec used by FloatyHostApi. */
@@ -723,6 +731,27 @@ interface FloatyHostApi {
           channel.setMessageHandler { _, reply ->
             val wrapped: List<Any?> = try {
               api.collapseChatHead()
+              listOf(null)
+            } catch (exception: Throwable) {
+              FloatyChatheadsApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.updateChatHeadIcon$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val idArg = args[0] as String
+            val rgbaBytesArg = args[1] as ByteArray
+            val widthArg = args[2] as Long
+            val heightArg = args[3] as Long
+            val wrapped: List<Any?> = try {
+              api.updateChatHeadIcon(idArg, rgbaBytesArg, widthArg, heightArg)
               listOf(null)
             } catch (exception: Throwable) {
               FloatyChatheadsApiPigeonUtils.wrapError(exception)

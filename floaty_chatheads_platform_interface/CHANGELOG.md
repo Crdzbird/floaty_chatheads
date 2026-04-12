@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.5
+
+### ✨ Enhancements
+
+- **Added `updateChatHeadIcon()` to the platform interface.** New abstract
+  method that pushes raw RGBA pixel data to the native layer, enabling
+  real-time animated chathead icons driven from Dart.
+- Added matching implementation in `MethodChannelFloatyChatheads`.
+
+### 📦 Dependencies
+
+- Removed `package:meta` dependency -- replaced with
+  `package:flutter/foundation.dart` imports across all model files.
+
 ## 1.0.4
 
 ### ✨ Enhancements

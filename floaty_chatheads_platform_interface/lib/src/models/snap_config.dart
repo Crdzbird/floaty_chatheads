@@ -1,5 +1,5 @@
 import 'package:floaty_chatheads_platform_interface/src/models/snap_edge.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart' show immutable;
 
 /// {@template snap_config}
 /// Groups snap-behavior parameters for the chathead bubble.

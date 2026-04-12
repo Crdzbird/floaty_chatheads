@@ -128,8 +128,8 @@ final class FloatyStateChannel<S> {
   }
 
   /// Releases resources.
-  void dispose() {
+  Future<void> dispose() async {
     FloatyChannel.unregisterHandler(_prefix);
-    unawaited(_controller.close());
+    await _controller.close();
   }
 }

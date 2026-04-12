@@ -20,6 +20,7 @@ import 'examples/survival_example.dart';
 import 'examples/themed_example.dart';
 import 'examples/timer_example.dart';
 import 'examples/todo_survival_example.dart';
+import 'examples/widget_icon_example.dart';
 import 'overlays/accessibility_overlay.dart';
 import 'overlays/auto_launch_overlay.dart';
 import 'overlays/dashboard_overlay.dart';
@@ -37,6 +38,7 @@ import 'overlays/survival_overlay.dart';
 import 'overlays/themed_overlay.dart';
 import 'overlays/timer_overlay.dart';
 import 'overlays/todo_survival_overlay.dart';
+import 'overlays/widget_icon_overlay.dart';
 import 'utils.dart';
 
 void main() => runApp(const MaterialApp(home: GalleryPage()));
@@ -112,6 +114,10 @@ void sensorStreamOverlayMain() =>
 @pragma('vm:entry-point')
 void autoLaunchOverlayMain() =>
     FloatyOverlayApp.run(const AutoLaunchOverlay());
+
+@pragma('vm:entry-point')
+void widgetIconOverlayMain() =>
+    FloatyOverlayApp.run(const WidgetIconOverlay());
 
 // ---------------------------------------------------------------------------
 // Gallery — lists all examples
@@ -239,6 +245,13 @@ class GalleryPage extends StatelessWidget {
       icon: Icons.auto_awesome,
       color: Colors.indigo,
     ),
+    _ExampleInfo(
+      title: 'Widget Icons',
+      description:
+          'Use any Flutter widget as chathead/close icon — static or animated.',
+      icon: Icons.widgets,
+      color: Colors.deepPurple,
+    ),
   ];
 
   Widget _buildRoute(int index) {
@@ -261,6 +274,7 @@ class GalleryPage extends StatelessWidget {
       15 => const GpsStreamExample(),
       16 => const SensorStreamExample(),
       17 => const AutoLaunchExample(),
+      18 => const WidgetIconExample(),
       _ => const HomePage(),
     };
   }

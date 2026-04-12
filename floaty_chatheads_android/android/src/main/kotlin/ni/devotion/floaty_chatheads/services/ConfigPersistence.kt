@@ -77,7 +77,7 @@ internal class ConfigPersistence(private val context: Context) {
         } else null
 
         OverlayConfig.snapEdge = try {
-            SnapEdge.valueOf(prefs.getString(Constants.PREF_SNAP_EDGE, "BOTH")!!)
+            SnapEdge.valueOf(prefs.getString(Constants.PREF_SNAP_EDGE, "BOTH") ?: "BOTH")
         } catch (_: Exception) { SnapEdge.BOTH }
 
         OverlayConfig.snapMargin = prefs.getFloat(Constants.PREF_SNAP_MARGIN, -10f)
@@ -85,7 +85,7 @@ internal class ConfigPersistence(private val context: Context) {
 
         OverlayConfig.entranceAnimation = try {
             EntranceAnimation.valueOf(
-                prefs.getString(Constants.PREF_ENTRANCE_ANIMATION, "NONE")!!,
+                prefs.getString(Constants.PREF_ENTRANCE_ANIMATION, "NONE") ?: "NONE",
             )
         } catch (_: Exception) { EntranceAnimation.NONE }
 
@@ -94,7 +94,7 @@ internal class ConfigPersistence(private val context: Context) {
         OverlayConfig.persistOnAppClose = prefs.getBoolean(Constants.PREF_PERSIST_ON_APP_CLOSE, false)
         OverlayConfig.notificationTitle = prefs.getString(
             Constants.PREF_NOTIFICATION_TITLE, "Floaty Chathead",
-        )!!
+        ) ?: "Floaty Chathead"
         OverlayConfig.notificationDescription = prefs.getString(
             Constants.PREF_NOTIFICATION_DESCRIPTION, null,
         )

@@ -162,6 +162,22 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
     return methodChannel.invokeMethod<void>('collapseChatHead');
   }
 
+  /// {@macro floaty_chatheads_platform.update_chat_head_icon}
+  @override
+  Future<void> updateChatHeadIcon(
+    String id,
+    Uint8List rgbaBytes,
+    int width,
+    int height,
+  ) {
+    return methodChannel.invokeMethod<void>('updateChatHeadIcon', {
+      'id': id,
+      'rgbaBytes': rgbaBytes,
+      'width': width,
+      'height': height,
+    });
+  }
+
   static Map<String, Object?> _serializeIconSource(IconSource source) {
     return switch (source) {
       AssetIconSource(:final path) => {

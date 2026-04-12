@@ -126,9 +126,8 @@ final class FloatyHostKit<S> {
 
   /// Releases all resources — disposes the router, state channel, and
   /// proxy host in sequence.
-  void dispose() {
-    _router.dispose();
-    _stateChannel.dispose();
+  Future<void> dispose() async {
+    await Future.wait([_router.dispose(), _stateChannel.dispose()]);
     _proxyHost.dispose();
   }
 }
@@ -276,9 +275,8 @@ final class FloatyOverlayKit<S> {
   ///
   /// Does **not** dispose [FloatyConnectionState] (it is a shared
   /// singleton).
-  void dispose() {
-    _router.dispose();
-    _stateChannel.dispose();
+  Future<void> dispose() async {
+    await Future.wait([_router.dispose(), _stateChannel.dispose()]);
     _proxyClient.dispose();
   }
 }

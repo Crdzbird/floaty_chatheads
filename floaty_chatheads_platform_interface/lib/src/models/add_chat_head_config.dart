@@ -1,5 +1,5 @@
 import 'package:floaty_chatheads_platform_interface/src/models/icon_source.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart' show immutable;
 
 /// {@template add_chat_head_config}
 /// Configuration for adding a chathead bubble to an existing group.
