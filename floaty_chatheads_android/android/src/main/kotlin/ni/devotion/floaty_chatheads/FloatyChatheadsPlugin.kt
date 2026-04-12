@@ -56,6 +56,8 @@ class FloatyChatheadsPlugin :
         private const val ICON_LOAD_TIMEOUT_MS = 4_000L
         private const val NETWORK_CONNECT_TIMEOUT_MS = 3_000
         private const val NETWORK_READ_TIMEOUT_MS = 3_000
+        /** Max width/height (px) for updateChatHeadIcon — rejects absurd sizes early. */
+        private const val MAX_ICON_DIMENSION = 4096L
         var isServiceRunning = false
 
         /**
@@ -375,8 +377,6 @@ class FloatyChatheadsPlugin :
             // to the full close-target size instead of the tiny 28dp default.
             OverlayConfig.closeIconIsWidget =
                 config.closeIconSource?.type == IconSourceTypeMessage.BYTES
-            OverlayConfig.closeBackgroundIsWidget =
-                config.closeBackgroundSource?.type == IconSourceTypeMessage.BYTES
 
             // Notification icon is always an asset — fast, no network.
             withContext(Dispatchers.IO) {
@@ -468,18 +468,20 @@ class FloatyChatheadsPlugin :
         width: Long,
         height: Long,
     ) {
-        val w = width.toInt()
-        val h = height.toInt()
-        val expectedSize = w * h * 4
-
-        if (w <= 0 || h <= 0 || rgbaBytes.size != expectedSize) {
+        // Use Long arithmetic to avoid Int overflow on large dimensions.
+        val expectedSize = width * height * 4L
+        // Reject non-positive, oversized (> 4096 px), or mismatched byte counts.
+        if (width <= 0 || height <= 0 || width > MAX_ICON_DIMENSION || height > MAX_ICON_DIMENSION || rgbaBytes.size.toLong() != expectedSize) {
             android.util.Log.w(
                 "FloatyChatheads",
                 "updateChatHeadIcon: invalid dimensions " +
-                    "${w}x$h (expected $expectedSize bytes, got ${rgbaBytes.size})",
+                    "${width}x$height (expected $expectedSize bytes, got ${rgbaBytes.size})",
             )
             return
         }
+
+        val w = width.toInt()
+        val h = height.toInt()
 
         pluginScope.launch {
             val bitmap = withContext(Dispatchers.Default) {

@@ -29,6 +29,7 @@ dependencies:
   floaty_chatheads_platform_interface: ^1.0.5
   flutter:
     sdk: flutter
+  meta: ^1.11.0
 
 dev_dependencies:
   flutter_test:

@@ -2,7 +2,6 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/material.dart' show Theme, ThemeData;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';

@@ -25,10 +25,9 @@ object OverlayConfig {
     @Volatile var closeIcon: Bitmap? = null
     @Volatile var backgroundCloseIcon: Bitmap? = null
 
-    /** When true, close icon/background came from widget rendering (bytes)
+    /** When true, close icon came from widget rendering (bytes)
      *  and should be scaled to [CLOSE_SIZE] instead of the small 28dp default. */
     @Volatile var closeIconIsWidget: Boolean = false
-    @Volatile var closeBackgroundIsWidget: Boolean = false
 
     // ── Notification ─────────────────────────────────────────────────
     var notificationTitle: String = "Floaty Chathead"

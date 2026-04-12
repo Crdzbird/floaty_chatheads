@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:floaty_chatheads/src/widget_to_icon_source.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/widgets.dart';
 
 /// Signature for a builder that receives the current normalised animation
@@ -167,9 +166,9 @@ class AnimatedWidgetIcon {
     _rendering = true;
 
     try {
-      final elapsed = _stopwatch.elapsedMilliseconds;
-      final durationMs = duration.inMilliseconds;
-      final value = (elapsed % durationMs) / durationMs;
+      final elapsed = _stopwatch.elapsedMicroseconds;
+      final durationUs = duration.inMicroseconds;
+      final value = (elapsed % durationUs) / durationUs;
       final widget = builder(value);
 
       final (:bytes, :width, :height) = await renderWidgetToRgbaByteData(
