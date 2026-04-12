@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:floaty_chatheads/src/animated_widget_icon.dart';
 import 'package:floaty_chatheads/src/widget_to_icon_source.dart';

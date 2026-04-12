@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:floaty_chatheads/src/widget_to_icon_source.dart';
@@ -387,6 +386,75 @@ void main() {
         FloatyChatheads.onClosed
           ..listen((_) {})
           ..listen((_) {});
+      });
+
+      test('disposes animation when matching ID is closed', () async {
+        when(() => platform.showChatHead(any())).thenAnswer((_) async {});
+        when(
+          () => platform.updateChatHeadIcon(any(), any(), any(), any()),
+        ).thenAnswer((_) async {});
+
+        // Start an animated icon (animation id defaults to 'default').
+        await FloatyChatheads.showChatHead(
+          iconBuilder: (_) => const SizedBox(width: 10, height: 10),
+          animateIcon: true,
+          iconSize: 10,
+          iconPixelRatio: 1,
+        );
+        expect(FloatyChatheads.isIconAnimating, isTrue);
+
+        // Subscribe to onClosed to attach the handler.
+        FloatyChatheads.onClosed.listen((_) {});
+
+        // Simulate native close for 'default' — should dispose animation.
+        final encoded = const JSONMessageCodec().encodeMessage({
+          '__floaty__': '_floaty_closed',
+          '_floaty_closed': {'id': 'default'},
+        });
+        await TestDefaultBinaryMessengerBinding
+            .instance.defaultBinaryMessenger
+            .handlePlatformMessage(
+          'ni.devotion.floaty_head/messenger',
+          encoded,
+          (data) {},
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(FloatyChatheads.isIconAnimating, isFalse);
+      });
+
+      test('does not dispose animation when non-matching ID is closed',
+          () async {
+        when(() => platform.showChatHead(any())).thenAnswer((_) async {});
+        when(
+          () => platform.updateChatHeadIcon(any(), any(), any(), any()),
+        ).thenAnswer((_) async {});
+
+        await FloatyChatheads.showChatHead(
+          iconBuilder: (_) => const SizedBox(width: 10, height: 10),
+          animateIcon: true,
+          iconSize: 10,
+          iconPixelRatio: 1,
+        );
+        expect(FloatyChatheads.isIconAnimating, isTrue);
+
+        FloatyChatheads.onClosed.listen((_) {});
+
+        // Simulate native close for a different bubble — animation survives.
+        final encoded = const JSONMessageCodec().encodeMessage({
+          '__floaty__': '_floaty_closed',
+          '_floaty_closed': {'id': 'other-bubble'},
+        });
+        await TestDefaultBinaryMessengerBinding
+            .instance.defaultBinaryMessenger
+            .handlePlatformMessage(
+          'ni.devotion.floaty_head/messenger',
+          encoded,
+          (data) {},
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(FloatyChatheads.isIconAnimating, isTrue);
       });
 
       test('emits chathead ID from system envelope', () async {

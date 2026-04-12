@@ -79,8 +79,13 @@ final class FloatyChatheads {
   static void _ensureClosedHandler() {
     if (!_closedHandlerRegistered) {
       FloatyChannel.registerHandler(_closedPrefixKey, (data) {
-        _disposeIconAnimation();
         final id = data['id'] as String? ?? 'default';
+        // Only dispose the animation when the closed bubble is the one
+        // that owns the active animation (avoids killing the animation
+        // when a secondary non-animated bubble is closed).
+        if (_activeIconAnimation?.id == id) {
+          _disposeIconAnimation();
+        }
         _closeController.add(id);
       });
       _closedHandlerRegistered = true;

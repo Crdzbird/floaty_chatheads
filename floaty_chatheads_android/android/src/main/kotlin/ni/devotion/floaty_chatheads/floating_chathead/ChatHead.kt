@@ -127,12 +127,19 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
         chatHeads.onSpringUpdate(this, spring, totalVelocity)
     }
 
-    /** Replaces the icon bitmap and redraws. Called from a coroutine after
-     *  off-main-thread decoding. */
-    fun updateIcon(bitmap: android.graphics.Bitmap) {
-        iconBitmap = bitmap
-        processedIconSource = null  // invalidate cache
+    /** Replaces the icon with a **pre-processed** circular+shadow bitmap.
+     *  Called on the main thread after off-thread processing in the plugin. */
+    fun updateIcon(processed: android.graphics.Bitmap) {
+        val oldProcessed = processedIcon
+        val oldSource = iconBitmap
+        processedIcon = processed
+        processedIconSource = processed  // mark cache as fresh
+        iconBitmap = processed
         invalidate()
+        // Recycle superseded bitmaps to reduce native memory pressure
+        // during high-fps animation (they are unique per-frame).
+        oldProcessed?.takeIf { !it.isRecycled && it !== processed }?.recycle()
+        oldSource?.takeIf { !it.isRecycled && it !== processed && it !== oldProcessed }?.recycle()
     }
 
     /** Returns a circular+shadow bitmap, cached to avoid allocations in onDraw. */
@@ -140,8 +147,10 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
         val source = iconBitmap ?: OverlayConfig.floatingIcon
             ?: decodeResource(context.resources, R.drawable.bot)
         if (source !== processedIconSource || processedIcon == null) {
+            val old = processedIcon
             processedIcon = ImageHelper.addShadow(ImageHelper.getCircularBitmap(source))
             processedIconSource = source
+            old?.takeIf { !it.isRecycled && it !== processedIcon }?.recycle()
         }
         return processedIcon!!
     }

@@ -39,6 +39,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import ni.devotion.floaty_chatheads.utils.ImageHelper
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -462,6 +463,10 @@ class FloatyChatheadsPlugin :
         FloatyContentJobService.instance?.chatHeads?.collapse()
     }
 
+    // Reusable mutable bitmap keyed by (width, height) to avoid per-frame
+    // allocations during animated icon updates at 20-30 fps.
+    private var reusableBitmap: android.graphics.Bitmap? = null
+
     override fun updateChatHeadIcon(
         id: String,
         rgbaBytes: ByteArray,
@@ -484,17 +489,19 @@ class FloatyChatheadsPlugin :
         val h = height.toInt()
 
         pluginScope.launch {
-            val bitmap = withContext(Dispatchers.Default) {
-                val bmp = android.graphics.Bitmap.createBitmap(
-                    w, h,
-                    android.graphics.Bitmap.Config.ARGB_8888,
-                )
+            // Decode + circular crop + shadow all off the UI thread.
+            val processed = withContext(Dispatchers.Default) {
+                // Reuse a mutable bitmap when dimensions match.
+                val bmp = reusableBitmap?.takeIf { it.width == w && it.height == h && !it.isRecycled }
+                    ?: android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+                        .also { reusableBitmap = it }
                 bmp.copyPixelsFromBuffer(ByteBuffer.wrap(rgbaBytes))
-                bmp
+                // Pre-process circular crop + shadow so onDraw() is a single drawBitmap.
+                ImageHelper.addShadow(ImageHelper.getCircularBitmap(bmp))
             }
-            // Back on Main — update the view.
+            // Back on Main — swap the pre-processed bitmap into the view.
             FloatyContentJobService.instance?.chatHeads
-                ?.updateChatHeadIcon(id, bitmap)
+                ?.updateChatHeadIcon(id, processed)
         }
     }
 
