@@ -50,15 +50,16 @@ final class FloatyChatheads {
   // ── Icon animation state ────────────────────────────────────────
   static AnimatedWidgetIcon? _activeIconAnimation;
 
-  /// Whether an animated icon is currently running.
-  static bool get isIconAnimating => _activeIconAnimation != null;
+  /// Whether an animated icon render loop is currently running.
+  static bool get isIconAnimating =>
+      _activeIconAnimation?.isRunning ?? false;
 
   /// Stops the current icon animation if one is running.
   ///
-  /// The icon stays on the last rendered frame.
+  /// The icon stays on the last rendered frame. The controller is
+  /// retained so [startIconAnimation] can resume the animation.
   static void stopIconAnimation() {
     _activeIconAnimation?.stop();
-    _activeIconAnimation = null;
   }
 
   /// Starts the icon animation that was configured via [showChatHead].
@@ -69,10 +70,16 @@ final class FloatyChatheads {
     _activeIconAnimation?.start();
   }
 
+  /// Stops and fully releases the active icon animation controller.
+  static void _disposeIconAnimation() {
+    _activeIconAnimation?.dispose();
+    _activeIconAnimation = null;
+  }
+
   static void _ensureClosedHandler() {
     if (!_closedHandlerRegistered) {
       FloatyChannel.registerHandler(_closedPrefixKey, (data) {
-        stopIconAnimation();
+        _disposeIconAnimation();
         final id = data['id'] as String? ?? 'default';
         _closeController.add(id);
       });
@@ -167,8 +174,8 @@ final class FloatyChatheads {
     double iconPixelRatio = 3.0,
     Duration iconAnimationDuration = const Duration(seconds: 1),
   }) async {
-    // Stop any previous animation.
-    stopIconAnimation();
+    // Dispose any previous animation.
+    _disposeIconAnimation();
 
     // Resolve widget-based icons into IconSource.bytes.
     final effectiveAssets = await _resolveAssets(
@@ -210,7 +217,7 @@ final class FloatyChatheads {
 
   /// {@macro floaty_chatheads_platform.close_chat_head}
   static Future<void> closeChatHead() {
-    stopIconAnimation();
+    _disposeIconAnimation();
     return _platform.closeChatHead();
   }
 
@@ -281,7 +288,7 @@ final class FloatyChatheads {
   /// re-attach the handler automatically on the next access.
   /// {@endtemplate}
   static void dispose() {
-    stopIconAnimation();
+    _disposeIconAnimation();
     FloatyChannel.unregisterHandler(_closedPrefixKey);
     _closedHandlerRegistered = false;
     FloatyChannel.dispose();

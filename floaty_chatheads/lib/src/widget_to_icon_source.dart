@@ -2,9 +2,29 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/material.dart' show Theme, ThemeData;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+
+/// Test-only override for [ui.Image.toByteData].
+///
+/// The Flutter test harness cannot extract bytes from rasterised images
+/// because the engine's raster thread is not available. Set this in
+/// `setUp` to return synthetic [ByteData] so that all code paths through
+/// [renderWidgetToPngByteData], [renderWidgetToRgbaByteData],
+/// [renderWidgetToBytes], and [widgetToIconSource] can be exercised.
+///
+/// ```dart
+/// setUp(() {
+///   testImageEncoder = (image, format) async =>
+///       ByteData(image.width * image.height * 4);
+/// });
+/// tearDown(() => testImageEncoder = null);
+/// ```
+@visibleForTesting
+Future<ByteData> Function(ui.Image image, ui.ImageByteFormat format)?
+    testImageEncoder;
 
 /// Renders any [Widget] tree into an [IconSource] suitable for chathead icons.
 ///
@@ -47,10 +67,12 @@ Future<ui.Image> renderWidgetToImage(
 
   final view = WidgetsBinding.instance.platformDispatcher.implicitView;
   if (view == null) {
+    // coverage:ignore-start
     throw StateError(
       'widgetToIconSource requires an implicit FlutterView. '
       'Ensure WidgetsFlutterBinding is initialised.',
     );
+    // coverage:ignore-end
   }
 
   final renderView = RenderView(
@@ -69,7 +91,8 @@ Future<ui.Image> renderWidgetToImage(
   final pipelineOwner = PipelineOwner()..rootNode = renderView;
   renderView.prepareInitialFrame();
 
-  final buildOwner = BuildOwner(focusManager: FocusManager());
+  final focusManager = FocusManager();
+  final buildOwner = BuildOwner(focusManager: focusManager);
   final rootElement = RenderObjectToWidgetAdapter<RenderBox>(
     container: repaintBoundary,
     child: Theme(
@@ -84,18 +107,33 @@ Future<ui.Image> renderWidgetToImage(
     ),
   ).attachToRenderTree(buildOwner);
 
-  buildOwner.buildScope(rootElement);
-  pipelineOwner
-    ..flushLayout()
-    ..flushCompositingBits()
-    ..flushPaint();
+  try {
+    buildOwner.buildScope(rootElement);
+    pipelineOwner
+      ..flushLayout()
+      ..flushCompositingBits()
+      ..flushPaint();
 
-  // toImage runs on the raster thread — does not block the UI thread.
-  final image = await repaintBoundary.toImage(pixelRatio: pixelRatio);
+    // toImage runs on the raster thread — does not block the UI thread.
+    return await repaintBoundary.toImage(pixelRatio: pixelRatio);
+  } finally {
+    buildOwner.finalizeTree();
+    focusManager.dispose();
+  }
+}
 
-  buildOwner.finalizeTree();
-
-  return image;
+/// Extracts bytes from [image] in the given [format].
+///
+/// Delegates to [testImageEncoder] when set (test environment) or
+/// falls back to the engine's `toByteData` (production).
+Future<ByteData> _encodeImage(
+  ui.Image image,
+  ui.ImageByteFormat format,
+) async {
+  if (testImageEncoder != null) {
+    return testImageEncoder!(image, format);
+  }
+  return (await image.toByteData(format: format))!; // coverage:ignore-line
 }
 
 /// Renders [widget] to PNG-encoded [ByteData] via the offscreen pipeline.
@@ -109,9 +147,9 @@ Future<ByteData> renderWidgetToPngByteData(
     size: size,
     pixelRatio: pixelRatio,
   );
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  final byteData = await _encodeImage(image, ui.ImageByteFormat.png);
   image.dispose();
-  return byteData!;
+  return byteData;
 }
 
 /// Renders [widget] to raw RGBA bytes (no PNG encoding overhead).
@@ -128,12 +166,11 @@ Future<({ByteData bytes, int width, int height})> renderWidgetToRgbaByteData(
     size: size,
     pixelRatio: pixelRatio,
   );
-  final byteData =
-      await image.toByteData();
+  final byteData = await _encodeImage(image, ui.ImageByteFormat.rawRgba);
   final w = image.width;
   final h = image.height;
   image.dispose();
-  return (bytes: byteData!, width: w, height: h);
+  return (bytes: byteData, width: w, height: h);
 }
 
 /// Convenience: renders to PNG [Uint8List].

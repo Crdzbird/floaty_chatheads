@@ -468,10 +468,23 @@ class FloatyChatheadsPlugin :
         width: Long,
         height: Long,
     ) {
+        val w = width.toInt()
+        val h = height.toInt()
+        val expectedSize = w * h * 4
+
+        if (w <= 0 || h <= 0 || rgbaBytes.size != expectedSize) {
+            android.util.Log.w(
+                "FloatyChatheads",
+                "updateChatHeadIcon: invalid dimensions " +
+                    "${w}x$h (expected $expectedSize bytes, got ${rgbaBytes.size})",
+            )
+            return
+        }
+
         pluginScope.launch {
             val bitmap = withContext(Dispatchers.Default) {
                 val bmp = android.graphics.Bitmap.createBitmap(
-                    width.toInt(), height.toInt(),
+                    w, h,
                     android.graphics.Bitmap.Config.ARGB_8888,
                 )
                 bmp.copyPixelsFromBuffer(ByteBuffer.wrap(rgbaBytes))

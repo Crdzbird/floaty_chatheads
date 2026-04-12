@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:floaty_chatheads/src/widget_to_icon_source.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/widgets.dart';
 
 /// Signature for a builder that receives the current normalised animation
@@ -51,6 +52,9 @@ typedef AnimatedIconBuilder = Widget Function(double animationValue);
 /// ```
 class AnimatedWidgetIcon {
   /// Creates an animated widget icon controller.
+  ///
+  /// [fps] must be greater than zero.
+  /// [duration] must be greater than [Duration.zero].
   AnimatedWidgetIcon({
     required this.id,
     required this.builder,
@@ -58,7 +62,11 @@ class AnimatedWidgetIcon {
     this.size = 80,
     this.pixelRatio = 3.0,
     this.duration = const Duration(seconds: 1),
-  });
+  })  : assert(fps > 0, 'fps must be greater than zero'),
+        assert(
+          duration > Duration.zero,
+          'duration must be greater than Duration.zero',
+        );
 
   /// Chathead ID that this animation targets.
   final String id;
@@ -93,7 +101,11 @@ class AnimatedWidgetIcon {
 
   Timer? _timer;
   bool _rendering = false;
+  bool _running = false;
   final Stopwatch _stopwatch = Stopwatch();
+
+  /// Whether the render loop is currently active.
+  bool get isRunning => _running;
 
   static FloatyChatheadsPlatform get _platform =>
       FloatyChatheadsPlatform.instance;
@@ -119,29 +131,37 @@ class AnimatedWidgetIcon {
   /// 3. Renders to raw RGBA bytes (offscreen pipeline + raster thread).
   /// 4. Sends bytes to native via `updateChatHeadIcon`.
   void start() {
-    if (_timer != null) return;
+    if (_running) return;
+    _running = true;
     _stopwatch
       ..reset()
       ..start();
 
     final interval = Duration(milliseconds: 1000 ~/ fps);
-    _timer = Timer.periodic(interval, (_) => _tick());
+    _timer = Timer.periodic(interval, (_) => tick());
   }
 
   /// Stops the render loop without disposing resources.
+  ///
+  /// The controller is retained so [start] can resume the animation.
   void stop() {
     _timer?.cancel();
     _timer = null;
+    _running = false;
     _stopwatch.stop();
   }
-
 
   /// Stops the render loop and releases resources.
   void dispose() {
     stop();
   }
 
-  Future<void> _tick() async {
+  /// Renders a single frame and sends it to the platform.
+  ///
+  /// This is called automatically by the timer when running. Exposed
+  /// for testing only — call [start] / [stop] for normal usage.
+  @visibleForTesting
+  Future<void> tick() async {
     // Skip if the previous frame hasn't finished sending yet.
     if (_rendering) return;
     _rendering = true;
