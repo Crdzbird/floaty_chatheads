@@ -9,6 +9,24 @@ import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
 ///
 /// Uses a `UIWindow`-based PiP overlay at `windowLevel = .alert + 1`
 /// instead of system-level overlays. No special permissions are required.
+///
+/// ### iOS-specific platform behavior
+///
+/// The iOS chathead renders entirely through a Flutter engine attached to
+/// a `UIWindow`, which means several Android-only knobs are deliberately
+/// not forwarded to native code:
+///
+/// - `ChatHeadAssets` (icon / closeIcon / closeBackground) — the chathead
+///   bubble is a Flutter view, so app authors render their own icons
+///   inside the overlay entry point. The Swift side does not consume
+///   `IconSource` payloads.
+/// - `NotificationConfig.description` — there is no foreground-service
+///   notification on iOS.
+/// - `AddChatHeadConfig.iconSource` — secondary bubbles are also Flutter
+///   views; only `iconAsset` is forwarded as a hint.
+///
+/// These omissions are intentional. Wiring the fields through would
+/// silently send data into a void.
 /// {@endtemplate}
 class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
   /// Pigeon host API for main-app operations.
@@ -33,55 +51,51 @@ class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
   Future<bool> requestPermission() => _hostApi.requestPermission();
 
   /// {@macro floaty_chatheads_platform.show_chat_head}
+  ///
+  /// On iOS, `config.assets` (icon overrides) and
+  /// `config.notification.description` are intentionally not forwarded —
+  /// see the class-level docs for why.
   @override
   Future<void> showChatHead(ChatHeadConfig config) {
-    // Resolve size preset: if set, use preset dimensions;
-    // otherwise use raw values.
-    final effectiveWidth = config.sizePreset?.width ?? config.contentWidth;
-    final effectiveHeight = config.sizePreset?.height ?? config.contentHeight;
-
-    // Build theme message if theme is provided.
-    pigeon.ChatHeadThemeMessage? themeMsg;
-    if (config.theme != null) {
-      final t = config.theme!;
-      themeMsg = pigeon.ChatHeadThemeMessage(
-        badgeColor: t.badgeColor,
-        badgeTextColor: t.badgeTextColor,
-        bubbleBorderColor: t.bubbleBorderColor,
-        bubbleBorderWidth: t.bubbleBorderWidth,
-        bubbleShadowColor: t.bubbleShadowColor,
-        closeTintColor: t.closeTintColor,
-        overlayPalette: t.overlayPalette != null
-            ? Map<String?, int?>.from(t.overlayPalette!)
-            : null,
-      );
-    }
-
+    final size = ChatHeadConfigResolver.contentSize(config);
     return _hostApi.showChatHead(
       pigeon.ChatHeadConfig(
         entryPoint: config.entryPoint,
-        contentWidth: effectiveWidth,
-        contentHeight: effectiveHeight,
+        contentWidth: size.width,
+        contentHeight: size.height,
         notificationTitle: config.notification?.title,
         notificationIconAsset: config.notification?.iconAsset,
         flag: pigeon.OverlayFlagMessage.values[config.flag.index],
         enableDrag: config.enableDrag,
-        notificationVisibility:
-            pigeon.NotificationVisibilityMessage.values[
-                (config.notification?.visibility ??
-                        NotificationVisibility.visibilityPublic)
-                    .index],
+        notificationVisibility: pigeon.NotificationVisibilityMessage.values[
+            ChatHeadConfigResolver.notificationVisibility(config.notification)
+                .index],
         snapEdge: pigeon.SnapEdgeMessage
-            .values[(config.snap?.edge ?? SnapEdge.both).index],
-        snapMargin: config.snap?.margin ?? -10,
-        persistPosition: config.snap?.persistPosition ?? false,
+            .values[ChatHeadConfigResolver.snapEdge(config.snap).index],
+        snapMargin: ChatHeadConfigResolver.snapMargin(config.snap),
+        persistPosition: ChatHeadConfigResolver.persistPosition(config.snap),
         entranceAnimation: pigeon.EntranceAnimationMessage
             .values[config.entranceAnimation.index],
-        theme: themeMsg,
+        theme: _toThemeMessage(config.theme),
         debugMode: config.debugMode,
         autoLaunchOnBackground: config.autoLaunchOnBackground,
         persistOnAppClose: config.persistOnAppClose,
       ),
+    );
+  }
+
+  static pigeon.ChatHeadThemeMessage? _toThemeMessage(ChatHeadTheme? t) {
+    if (t == null) return null;
+    return pigeon.ChatHeadThemeMessage(
+      badgeColor: t.badgeColor,
+      badgeTextColor: t.badgeTextColor,
+      bubbleBorderColor: t.bubbleBorderColor,
+      bubbleBorderWidth: t.bubbleBorderWidth,
+      bubbleShadowColor: t.bubbleShadowColor,
+      closeTintColor: t.closeTintColor,
+      overlayPalette: t.overlayPalette != null
+          ? Map<String?, int?>.from(t.overlayPalette!)
+          : null,
     );
   }
 

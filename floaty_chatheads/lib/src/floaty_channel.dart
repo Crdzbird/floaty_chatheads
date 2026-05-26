@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
 import 'package:flutter/services.dart';
 
 /// Internal message router for the floaty_chatheads data channel.
@@ -26,7 +27,7 @@ final class FloatyChannel {
   /// The shared platform channel for main ↔ overlay communication.
   static const BasicMessageChannel<Object?> _messenger =
       BasicMessageChannel<Object?>(
-    'ni.devotion.floaty_head/messenger',
+    FloatyChannels.messenger,
     JSONMessageCodec(),
   );
 
