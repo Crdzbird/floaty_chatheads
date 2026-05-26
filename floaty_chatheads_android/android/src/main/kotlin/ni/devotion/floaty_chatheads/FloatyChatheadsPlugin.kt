@@ -7,7 +7,6 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
 import android.provider.Settings
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
@@ -25,6 +24,7 @@ import ni.devotion.floaty_chatheads.generated.ChatHeadConfig
 import ni.devotion.floaty_chatheads.generated.FloatyHostApi
 import ni.devotion.floaty_chatheads.generated.IconSourceMessage
 import ni.devotion.floaty_chatheads.generated.IconSourceTypeMessage
+import ni.devotion.floaty_chatheads.services.AutoLaunchLifecycleCallbacks
 import ni.devotion.floaty_chatheads.services.ConfigPersistence
 import ni.devotion.floaty_chatheads.services.FloatyContentJobService
 import ni.devotion.floaty_chatheads.utils.Constants
@@ -636,39 +636,4 @@ class FloatyChatheadsPlugin :
         }
         return bitmap
     }
-}
-
-/**
- * Tracks how many activities are in the started state. When the count drops
- * to zero the app is considered backgrounded; when it rises from zero the
- * app is foregrounded.
- *
- * This mirrors the approach used by `ProcessLifecycleOwner` but avoids
- * pulling in the `lifecycle-process` dependency.
- */
-internal class AutoLaunchLifecycleCallbacks(
-    private val plugin: FloatyChatheadsPlugin,
-) : Application.ActivityLifecycleCallbacks {
-
-    private var startedCount = 0
-
-    override fun onActivityStarted(activity: Activity) {
-        val wasBackground = startedCount == 0
-        startedCount++
-        if (wasBackground) plugin.onAppForegrounded()
-    }
-
-    override fun onActivityStopped(activity: Activity) {
-        startedCount--
-        if (startedCount <= 0) {
-            startedCount = 0
-            plugin.onAppBackgrounded()
-        }
-    }
-
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-    override fun onActivityResumed(activity: Activity) {}
-    override fun onActivityPaused(activity: Activity) {}
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-    override fun onActivityDestroyed(activity: Activity) {}
 }

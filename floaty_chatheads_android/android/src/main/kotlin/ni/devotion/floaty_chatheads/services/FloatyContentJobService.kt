@@ -109,6 +109,66 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
     // ── Service lifecycle ───────────────────────────────────────────
 
+    /**
+     * Discriminated decision for how to initialize the overlay engine
+     * during [onCreate]. Replaces a 3-level nested if/else where the
+     * intent was buried behind state checks.
+     */
+    private sealed interface OverlayStartMode {
+        /** A cached engine exists — just rewire Pigeon to it. */
+        data class ReuseExistingEngine(
+            val engine: io.flutter.embedding.engine.FlutterEngine,
+        ) : OverlayStartMode
+
+        /** Plugin is alive and populated [OverlayConfig]. Spin up a new
+         *  engine and signal the overlay that main is connected. */
+        data class StartForActivePlugin(val entryPoint: String) : OverlayStartMode
+
+        /** No engine, no live plugin, but [OverlayConfig] is already
+         *  populated (e.g. async start race). Use the entry point but do
+         *  NOT call [ConfigPersistence.restore] — would overwrite live
+         *  values with stale prefs. */
+        data class StartFromExistingConfig(val entryPoint: String) : OverlayStartMode
+
+        /** Cold restart after app death. Restore the full config from
+         *  prefs (side effect inside [ConfigPersistence.restore]) and
+         *  start the engine. */
+        data class RestoreAfterDeath(val entryPoint: String) : OverlayStartMode
+
+        /** Nothing to restore — log and exit early. */
+        object NoSavedConfig : OverlayStartMode
+    }
+
+    private fun decideStartMode(): OverlayStartMode {
+        val cached = FlutterEngineCache.getInstance()
+            .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
+        if (cached != null) return OverlayStartMode.ReuseExistingEngine(cached)
+
+        val pluginActive = FloatyChatheadsPlugin.activeInstance != null
+        val savedEntryPoint = configPersistence.readEntryPoint()
+
+        if (pluginActive) {
+            return savedEntryPoint?.let { OverlayStartMode.StartForActivePlugin(it) }
+                ?: OverlayStartMode.NoSavedConfig
+        }
+
+        val configAlreadyPopulated =
+            OverlayConfig.contentWidth != null || OverlayConfig.contentHeight != null
+        return if (configAlreadyPopulated) {
+            savedEntryPoint?.let { OverlayStartMode.StartFromExistingConfig(it) }
+                ?: OverlayStartMode.NoSavedConfig
+        } else {
+            configPersistence.restore()
+                ?.let { OverlayStartMode.RestoreAfterDeath(it) }
+                ?: OverlayStartMode.NoSavedConfig
+        }
+    }
+
+    private fun attachPigeonTo(engine: io.flutter.embedding.engine.FlutterEngine) {
+        FloatyOverlayHostApi.setUp(engine.dartExecutor, this)
+        overlayFlutterApi = FloatyOverlayFlutterApi(engine.dartExecutor)
+    }
+
     override fun onCreate() {
         OverlayConfig.logD("onCreate() called. instance=$instance")
         instance = this
@@ -117,84 +177,43 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         createNotificationChannel()
         showNotification()
 
-        val engine = FlutterEngineCache.getInstance()
-            .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-        OverlayConfig.logD("onCreate() engine=$engine")
-
-        if (engine != null) {
-            // Engine already exists (normal startup via plugin).
-            FloatyOverlayHostApi.setUp(engine.dartExecutor, this)
-            overlayFlutterApi = FloatyOverlayFlutterApi(engine.dartExecutor)
-            engineManager.setupMessenger(engine)
-        } else if (FloatyChatheadsPlugin.activeInstance != null) {
-            // Plugin is active — OverlayConfig fields are already populated
-            // by the current showChatHead() call. Just read the entry
-            // point from SharedPreferences; do NOT call restoreConfig()
-            // because it would overwrite the in-memory OverlayConfig values
-            // with stale or incomplete SharedPreferences data.
-            val entryPoint = configPersistence.readEntryPoint()
-            if (entryPoint != null) {
+        when (val mode = decideStartMode()) {
+            is OverlayStartMode.ReuseExistingEngine -> {
+                OverlayConfig.logD("onCreate() reusing cached engine")
+                attachPigeonTo(mode.engine)
+                engineManager.setupMessenger(mode.engine)
+            }
+            is OverlayStartMode.StartForActivePlugin -> {
                 OverlayConfig.logD(
-                    "onCreate() plugin active, creating engine for '$entryPoint'",
+                    "onCreate() plugin active, creating engine for '${mode.entryPoint}'",
                 )
-                engineManager.ensureEngine(entryPoint)
-                val createdEngine = FlutterEngineCache.getInstance()
-                    .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-                if (createdEngine != null) {
-                    FloatyOverlayHostApi.setUp(
-                        createdEngine.dartExecutor, this,
-                    )
-                    overlayFlutterApi = FloatyOverlayFlutterApi(
-                        createdEngine.dartExecutor,
-                    )
-                }
-                // The main app plugin is active but showChatHead() couldn't
-                // call onMainAppConnected() because this service hadn't
-                // started yet. Set the flag now so overlay->main messages
-                // are forwarded instead of silently dropped.
+                engineManager.ensureEngine(mode.entryPoint)
+                engineManager.cachedEngine()?.let(::attachPigeonTo)
+                // showChatHead() couldn't call onMainAppConnected() because
+                // this service hadn't started yet. Do it now so overlay→main
+                // messages are forwarded instead of dropped.
                 engineManager.onMainAppConnected()
             }
-        } else {
-            // No engine and no plugin — either restarted after app
-            // death via START_STICKY, or the service is starting async
-            // from startForegroundService() while the plugin already
-            // populated OverlayConfig.  Only call restoreConfig() when
-            // OverlayConfig looks unpopulated (both dimensions null) to
-            // avoid overwriting values the plugin just set.
-            val configAlreadySet =
-                OverlayConfig.contentWidth != null || OverlayConfig.contentHeight != null
-            val entryPoint = if (configAlreadySet) {
-                // OverlayConfig was populated by the plugin's
-                // showChatHead() — just read the entry point.
+            is OverlayStartMode.StartFromExistingConfig -> {
                 OverlayConfig.logD(
                     "onCreate() OverlayConfig already set " +
                         "(w=${OverlayConfig.contentWidth}, h=${OverlayConfig.contentHeight})" +
-                        " — skipping restoreConfig()",
+                        " — skipping restore() for '${mode.entryPoint}'",
                 )
-                configPersistence.readEntryPoint()
-            } else {
-                configPersistence.restore()
+                engineManager.ensureEngine(mode.entryPoint)
+                engineManager.cachedEngine()?.let(::attachPigeonTo)
             }
-            if (entryPoint != null) {
+            is OverlayStartMode.RestoreAfterDeath -> {
                 OverlayConfig.logD(
-                    "onCreate() restoring engine for '$entryPoint'",
+                    "onCreate() restoring engine for '${mode.entryPoint}'",
                 )
-                engineManager.ensureEngine(entryPoint)
-                val restoredEngine = FlutterEngineCache.getInstance()
-                    .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-                if (restoredEngine != null) {
-                    FloatyOverlayHostApi.setUp(
-                        restoredEngine.dartExecutor, this,
-                    )
-                    overlayFlutterApi = FloatyOverlayFlutterApi(
-                        restoredEngine.dartExecutor,
-                    )
-                }
-            } else {
+                engineManager.ensureEngine(mode.entryPoint)
+                engineManager.cachedEngine()?.let(::attachPigeonTo)
+            }
+            is OverlayStartMode.NoSavedConfig ->
                 OverlayConfig.logW(
                     "onCreate() no saved config — cannot restore overlay",
                 )
-            }
         }
     }
 
