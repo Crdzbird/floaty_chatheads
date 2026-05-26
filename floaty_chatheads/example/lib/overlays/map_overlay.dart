@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:floaty_chatheads/advanced.dart';
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -48,20 +49,16 @@ class _MapOverlayState extends State<MapOverlay> {
 
     // 1. Action router — handle pin actions from main app.
     _router = FloatyActionRouter.overlay();
-    _router.on<PinAction>(
-      'pin',
-      fromJson: PinAction.fromJson,
-      handler: (action) {
-        if (!mounted) return;
-        final target = LatLng(action.lat, action.lng);
-        setState(() {
-          _pinLocation = target;
-          _status = 'Pin ${action.lat.toStringAsFixed(4)}, '
-              '${action.lng.toStringAsFixed(4)}';
-        });
-        _mapController.move(target, _mapController.camera.zoom);
-      },
-    );
+    _router.on(PinAction.key, (action) {
+      if (!mounted) return;
+      final target = LatLng(action.lat, action.lng);
+      setState(() {
+        _pinLocation = target;
+        _status = 'Pin ${action.lat.toStringAsFixed(4)}, '
+            '${action.lng.toStringAsFixed(4)}';
+      });
+      _mapController.move(target, _mapController.camera.zoom);
+    });
 
     // 2. State channel — receive synced map state.
     _stateChannel = FloatyStateChannel<MapSyncState>.overlay(

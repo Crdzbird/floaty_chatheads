@@ -18,10 +18,7 @@ import 'package:floaty_chatheads/src/floaty_state_channel.dart';
 ///   initialState: MyState(),
 /// );
 ///
-/// kit.onAction<IncrementAction>('increment',
-///   fromJson: IncrementAction.fromJson,
-///   handler: (a) => counter += a.amount,
-/// );
+/// kit.onAction(IncrementAction.key, (a) => counter += a.amount);
 ///
 /// kit.registerService('time', (method, params) {
 ///   return DateTime.now().toIso8601String();
@@ -74,16 +71,16 @@ final class FloatyHostKit<S> {
 
   // ── Action delegates ──────────────────────────────────────────────
 
-  /// Registers a handler for actions of the given [type].
+  /// Registers a handler for the action identified by [key].
   void onAction<A extends FloatyAction>(
-    String type, {
-    required A Function(Map<String, dynamic> json) fromJson,
-    required FutureOr<void> Function(A action) handler,
-  }) =>
-      _router.on<A>(type, fromJson: fromJson, handler: handler);
+    ActionKey<A> key,
+    FutureOr<void> Function(A action) handler,
+  ) =>
+      _router.on<A>(key, handler);
 
-  /// Removes the handler for the given action [type].
-  void offAction(String type) => _router.off(type);
+  /// Removes the handler registered for [key].
+  void offAction<A extends FloatyAction>(ActionKey<A> key) =>
+      _router.off<A>(key);
 
   /// Dispatches an action to the overlay.
   Future<void> dispatch(FloatyAction action) => _router.dispatch(action);
@@ -204,16 +201,16 @@ final class FloatyOverlayKit<S> {
 
   // ── Action delegates ──────────────────────────────────────────────
 
-  /// Registers a handler for actions of the given [type].
+  /// Registers a handler for the action identified by [key].
   void onAction<A extends FloatyAction>(
-    String type, {
-    required A Function(Map<String, dynamic> json) fromJson,
-    required FutureOr<void> Function(A action) handler,
-  }) =>
-      _router.on<A>(type, fromJson: fromJson, handler: handler);
+    ActionKey<A> key,
+    FutureOr<void> Function(A action) handler,
+  ) =>
+      _router.on<A>(key, handler);
 
-  /// Removes the handler for the given action [type].
-  void offAction(String type) => _router.off(type);
+  /// Removes the handler registered for [key].
+  void offAction<A extends FloatyAction>(ActionKey<A> key) =>
+      _router.off<A>(key);
 
   /// Dispatches an action to the main app.
   ///

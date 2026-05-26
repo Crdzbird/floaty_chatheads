@@ -51,10 +51,7 @@ class _GpsStreamExampleState extends State<GpsStreamExample> {
       }
     });
 
-    _gpsStream = FloatyProxyStream<GpsCoord>(
-      name: 'gps',
-      toJson: (c) => c.toJson(),
-    );
+    _gpsStream = FloatyProxyStream(GpsCoord.streamKey);
   }
 
   void _startSimulation() {
@@ -286,6 +283,12 @@ class GpsCoord {
         heading: (json['heading'] as num).toDouble(),
         speed: (json['speed'] as num).toDouble(),
       );
+
+  static final streamKey = StreamKey<GpsCoord>(
+    name: 'gps',
+    toJson: (c) => c.toJson(),
+    fromJson: GpsCoord.fromJson,
+  );
 
   final double lat;
   final double lng;

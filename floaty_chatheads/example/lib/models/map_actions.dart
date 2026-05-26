@@ -13,11 +13,13 @@ class PinAction extends FloatyAction {
         lng: json['lng'] as double,
       );
 
+  static const key = ActionKey<PinAction>('pin', PinAction.fromJson);
+
   final double lat;
   final double lng;
 
   @override
-  String get type => 'pin';
+  String get type => key.type;
 
   @override
   Map<String, dynamic> toJson() => {'lat': lat, 'lng': lng};
@@ -33,11 +35,14 @@ class NavigateAction extends FloatyAction {
         lng: json['lng'] as double,
       );
 
+  static const key =
+      ActionKey<NavigateAction>('navigate', NavigateAction.fromJson);
+
   final double lat;
   final double lng;
 
   @override
-  String get type => 'navigate';
+  String get type => key.type;
 
   @override
   Map<String, dynamic> toJson() => {'lat': lat, 'lng': lng};

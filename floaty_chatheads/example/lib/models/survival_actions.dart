@@ -11,10 +11,13 @@ class IncrementAction extends FloatyAction {
   factory IncrementAction.fromJson(Map<String, dynamic> json) =>
       IncrementAction(amount: json['amount'] as int);
 
+  static const key =
+      ActionKey<IncrementAction>('increment', IncrementAction.fromJson);
+
   final int amount;
 
   @override
-  String get type => 'increment';
+  String get type => key.type;
 
   @override
   Map<String, dynamic> toJson() => {'amount': amount};
@@ -33,11 +36,14 @@ class MessageAction extends FloatyAction {
         timestamp: json['timestamp'] as int,
       );
 
+  static const key =
+      ActionKey<MessageAction>('message', MessageAction.fromJson);
+
   final String text;
   final int timestamp;
 
   @override
-  String get type => 'message';
+  String get type => key.type;
 
   @override
   Map<String, dynamic> toJson() => {

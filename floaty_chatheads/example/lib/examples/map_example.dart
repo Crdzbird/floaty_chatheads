@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:floaty_chatheads/advanced.dart';
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -61,34 +62,26 @@ class _MapExampleState extends State<MapExample> {
 
     // 1. Action router — handle navigate/pin actions from overlay.
     _router = FloatyActionRouter();
-    _router.on<NavigateAction>(
-      'navigate',
-      fromJson: NavigateAction.fromJson,
-      handler: (action) {
-        if (!mounted) return;
-        final target = LatLng(action.lat, action.lng);
-        _mapController.move(target, _mapController.camera.zoom);
-        setState(() {
-          _status = 'Navigated to ${action.lat.toStringAsFixed(4)}, '
-              '${action.lng.toStringAsFixed(4)}';
-        });
-      },
-    );
-    _router.on<PinAction>(
-      'pin',
-      fromJson: PinAction.fromJson,
-      handler: (action) {
-        if (!mounted) return;
-        final target = LatLng(action.lat, action.lng);
-        setState(() {
-          _pinnedLocation = target;
-          _status = 'Pinned from overlay '
-              '${action.lat.toStringAsFixed(4)}, '
-              '${action.lng.toStringAsFixed(4)}';
-        });
-        _mapController.move(target, _mapController.camera.zoom);
-      },
-    );
+    _router.on(NavigateAction.key, (action) {
+      if (!mounted) return;
+      final target = LatLng(action.lat, action.lng);
+      _mapController.move(target, _mapController.camera.zoom);
+      setState(() {
+        _status = 'Navigated to ${action.lat.toStringAsFixed(4)}, '
+            '${action.lng.toStringAsFixed(4)}';
+      });
+    });
+    _router.on(PinAction.key, (action) {
+      if (!mounted) return;
+      final target = LatLng(action.lat, action.lng);
+      setState(() {
+        _pinnedLocation = target;
+        _status = 'Pinned from overlay '
+            '${action.lat.toStringAsFixed(4)}, '
+            '${action.lng.toStringAsFixed(4)}';
+      });
+      _mapController.move(target, _mapController.camera.zoom);
+    });
 
     // 2. Shared state channel.
     _stateChannel = FloatyStateChannel<MapSyncState>(

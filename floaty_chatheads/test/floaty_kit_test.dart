@@ -1,3 +1,4 @@
+import 'package:floaty_chatheads/advanced.dart';
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:floaty_chatheads/src/floaty_channel.dart';
 import 'package:flutter/services.dart';
@@ -11,10 +12,13 @@ class _IncrementAction extends FloatyAction {
   factory _IncrementAction.fromJson(Map<String, dynamic> json) =>
       _IncrementAction(amount: json['amount'] as int);
 
+  static const key =
+      ActionKey<_IncrementAction>('increment', _IncrementAction.fromJson);
+
   final int amount;
 
   @override
-  String get type => 'increment';
+  String get type => key.type;
 
   @override
   Map<String, dynamic> toJson() => {'amount': amount};
@@ -74,11 +78,7 @@ void main() {
 
     test('onAction/offAction delegates to router', () async {
       var received = false;
-      kit.onAction<_IncrementAction>(
-        'increment',
-        fromJson: _IncrementAction.fromJson,
-        handler: (_) => received = true,
-      );
+      kit.onAction(_IncrementAction.key, (_) => received = true);
 
       await _simulateMessage({
         '__floaty__': '_floaty_action',
@@ -91,7 +91,7 @@ void main() {
       expect(received, isTrue);
 
       // After offAction, the handler should be removed.
-      kit.offAction('increment');
+      kit.offAction(_IncrementAction.key);
       received = false;
 
       await _simulateMessage({
@@ -349,11 +349,7 @@ void main() {
       addTearDown(kit.dispose);
 
       var received = false;
-      kit.onAction<_IncrementAction>(
-        'increment',
-        fromJson: _IncrementAction.fromJson,
-        handler: (_) => received = true,
-      );
+      kit.onAction(_IncrementAction.key, (_) => received = true);
 
       await _simulateMessage({
         '__floaty__': '_floaty_action',
@@ -366,7 +362,7 @@ void main() {
       expect(received, isTrue);
 
       // After offAction, the handler should be removed.
-      kit.offAction('increment');
+      kit.offAction(_IncrementAction.key);
       received = false;
 
       await _simulateMessage({

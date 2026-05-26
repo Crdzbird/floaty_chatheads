@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:floaty_chatheads/src/floaty_channel.dart';
 import 'package:floaty_chatheads/src/floaty_connection_state.dart';
+import 'package:flutter/foundation.dart' show immutable;
 
 /// {@template floaty_action}
 /// Base class for typed actions dispatched between main app and overlay.
@@ -36,6 +37,47 @@ abstract class FloatyAction {
   Map<String, dynamic> toJson();
 }
 
+/// {@template action_key}
+/// Compile-time link between an action [type] string and its payload
+/// class [A].
+///
+/// Defining a key as a `static const` on the action class colocates the
+/// routing string with the type that owns it, so `router.on` calls
+/// can't pair the wrong `fromJson` with the wrong handler:
+///
+/// ```dart
+/// class PinAction extends FloatyAction {
+///   PinAction({required this.lat, required this.lng});
+///   final double lat;
+///   final double lng;
+///
+///   static const key = ActionKey<PinAction>('pin', PinAction.fromJson);
+///
+///   factory PinAction.fromJson(Map<String, dynamic> json) =>
+///       PinAction(lat: json['lat'] as double, lng: json['lng'] as double);
+///
+///   @override
+///   String get type => key.type;
+///
+///   @override
+///   Map<String, dynamic> toJson() => {'lat': lat, 'lng': lng};
+/// }
+///
+/// router.on(PinAction.key, (a) => setPin(a.lat, a.lng));
+/// ```
+/// {@endtemplate}
+@immutable
+class ActionKey<A extends FloatyAction> {
+  /// {@macro action_key}
+  const ActionKey(this.type, this.fromJson);
+
+  /// Unique type string carried in the wire envelope.
+  final String type;
+
+  /// Deserializes the JSON payload back into an [A].
+  final A Function(Map<String, dynamic> json) fromJson;
+}
+
 /// A registered action handler entry.
 ///
 /// The [handle] method deserializes and dispatches within the generic
@@ -68,17 +110,18 @@ enum QueueOverflowStrategy {
 /// A typed action dispatch system that replaces manual string-key
 /// matching.
 ///
-/// Register handlers for specific action types, then dispatch actions
-/// to the other side (main app ↔ overlay).
+/// Define an [ActionKey] as a `static const` on each action class, then
+/// register handlers by passing the key. The type parameter ensures the
+/// handler is invoked with the correct payload type.
 ///
 /// **Main app side:**
 ///
 /// ```dart
 /// final router = FloatyActionRouter();
 ///
-/// router.on<NavigateAction>('navigate',
-///   fromJson: NavigateAction.fromJson,
-///   handler: (action) => mapController.move(action.target, zoom),
+/// router.on(
+///   NavigateAction.key,
+///   (action) => mapController.move(action.target, zoom),
 /// );
 ///
 /// // Dispatch an action to the overlay.
@@ -90,9 +133,9 @@ enum QueueOverflowStrategy {
 /// ```dart
 /// final router = FloatyActionRouter.overlay();
 ///
-/// router.on<PinAction>('pin',
-///   fromJson: PinAction.fromJson,
-///   handler: (action) => setState(() => pin = action),
+/// router.on(
+///   PinAction.key,
+///   (action) => setState(() => pin = action),
 /// );
 /// ```
 ///
@@ -160,24 +203,23 @@ final class FloatyActionRouter {
     }
   }
 
-  /// Registers a handler for actions of the given [type].
+  /// Registers a handler for the action class identified by [key].
   ///
-  /// [fromJson] deserializes the payload into the action type.
-  /// [handler] processes the deserialized action.
+  /// The handler runs whenever the other side dispatches an action whose
+  /// `type` matches `key.type`.
   void on<A extends FloatyAction>(
-    String type, {
-    required A Function(Map<String, dynamic> json) fromJson,
-    required FutureOr<void> Function(A action) handler,
-  }) {
-    _handlers[type] = _HandlerEntry<A>(
-      fromJson: fromJson,
+    ActionKey<A> key,
+    FutureOr<void> Function(A action) handler,
+  ) {
+    _handlers[key.type] = _HandlerEntry<A>(
+      fromJson: key.fromJson,
       handler: handler,
     );
   }
 
-  /// Removes the handler for the given action [type].
-  void off(String type) {
-    _handlers.remove(type);
+  /// Removes the handler associated with [key].
+  void off<A extends FloatyAction>(ActionKey<A> key) {
+    _handlers.remove(key.type);
   }
 
   /// Dispatches an action to the other side (main app or overlay).

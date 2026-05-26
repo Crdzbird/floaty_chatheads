@@ -55,15 +55,8 @@ class _SensorStreamExampleState extends State<SensorStreamExample> {
       }
     });
 
-    _accelStream = FloatyProxyStream<AccelData>(
-      name: 'accel',
-      toJson: (d) => d.toJson(),
-    );
-
-    _lightStream = FloatyProxyStream<LightData>(
-      name: 'light',
-      toJson: (d) => d.toJson(),
-    );
+    _accelStream = FloatyProxyStream(AccelData.streamKey);
+    _lightStream = FloatyProxyStream(LightData.streamKey);
   }
 
   void _startSimulation() {
@@ -388,6 +381,12 @@ class AccelData {
         z: (json['z'] as num).toDouble(),
       );
 
+  static final streamKey = StreamKey<AccelData>(
+    name: 'accel',
+    toJson: (d) => d.toJson(),
+    fromJson: AccelData.fromJson,
+  );
+
   final double x;
   final double y;
   final double z;
@@ -403,6 +402,12 @@ class LightData {
         lux: (json['lux'] as num).toDouble(),
         label: json['label'] as String,
       );
+
+  static final streamKey = StreamKey<LightData>(
+    name: 'light',
+    toJson: (d) => d.toJson(),
+    fromJson: LightData.fromJson,
+  );
 
   final double lux;
   final String label;

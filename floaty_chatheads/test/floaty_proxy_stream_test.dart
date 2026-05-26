@@ -3,6 +3,20 @@ import 'package:floaty_chatheads/src/floaty_proxy_stream.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+StreamKey<Map<String, double>> _doubleKey(String name) =>
+    StreamKey<Map<String, double>>(
+      name: name,
+      toJson: (v) => v,
+      fromJson: (j) => j.cast<String, double>(),
+    );
+
+StreamKey<Map<String, int>> _intKey(String name) =>
+    StreamKey<Map<String, int>>(
+      name: name,
+      toJson: (v) => v,
+      fromJson: (j) => j.cast<String, int>(),
+    );
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -46,10 +60,7 @@ void main() {
 
   group('FloatyProxyStream (main app side)', () {
     test('add() sends system message with name and serialized data', () async {
-      final stream = FloatyProxyStream<Map<String, double>>(
-        name: 'gps',
-        toJson: (v) => v,
-      );
+      final stream = FloatyProxyStream(_doubleKey('gps'));
 
       await stream.add({'lat': 12.0, 'lng': -86.0});
 
@@ -61,14 +72,11 @@ void main() {
         'data': {'lat': 12.0, 'lng': -86.0},
       });
 
-      stream.dispose();
+      await stream.dispose();
     });
 
     test('add() updates latest and emits on stream', () async {
-      final proxyStream = FloatyProxyStream<Map<String, int>>(
-        name: 'counter',
-        toJson: (v) => v,
-      );
+      final proxyStream = FloatyProxyStream(_intKey('counter'));
 
       expect(proxyStream.latest, isNull);
 
@@ -84,14 +92,11 @@ void main() {
         {'value': 2},
       ]);
 
-      proxyStream.dispose();
+      await proxyStream.dispose();
     });
 
     test('add() is a no-op on overlay-side instance', () async {
-      final proxyStream = FloatyProxyStream<Map<String, int>>.overlay(
-        name: 'test',
-        fromJson: (j) => j.cast<String, int>(),
-      );
+      final proxyStream = FloatyProxyStream.overlay(_intKey('test'));
 
       await proxyStream.add({'value': 1});
 
@@ -99,16 +104,13 @@ void main() {
       expect(sentMessages, isEmpty);
       expect(proxyStream.latest, isNull);
 
-      proxyStream.dispose();
+      await proxyStream.dispose();
     });
   });
 
   group('FloatyProxyStream (overlay side)', () {
     test('receives and deserializes incoming values', () async {
-      final proxyStream = FloatyProxyStream<Map<String, double>>.overlay(
-        name: 'gps',
-        fromJson: (j) => j.cast<String, double>(),
-      );
+      final proxyStream = FloatyProxyStream.overlay(_doubleKey('gps'));
 
       final values = <Map<String, double>>[];
       proxyStream.stream.listen(values.add);
@@ -127,14 +129,11 @@ void main() {
       expect(values.first, {'lat': 12.0, 'lng': -86.0});
       expect(proxyStream.latest, {'lat': 12.0, 'lng': -86.0});
 
-      proxyStream.dispose();
+      await proxyStream.dispose();
     });
 
     test('ignores messages with different name', () async {
-      final proxyStream = FloatyProxyStream<Map<String, double>>.overlay(
-        name: 'gps',
-        fromJson: (j) => j.cast<String, double>(),
-      );
+      final proxyStream = FloatyProxyStream.overlay(_doubleKey('gps'));
 
       final values = <Map<String, double>>[];
       proxyStream.stream.listen(values.add);
@@ -152,14 +151,11 @@ void main() {
       expect(values, isEmpty);
       expect(proxyStream.latest, isNull);
 
-      proxyStream.dispose();
+      await proxyStream.dispose();
     });
 
     test('ignores messages with non-map data', () async {
-      final proxyStream = FloatyProxyStream<Map<String, double>>.overlay(
-        name: 'gps',
-        fromJson: (j) => j.cast<String, double>(),
-      );
+      final proxyStream = FloatyProxyStream.overlay(_doubleKey('gps'));
 
       final values = <Map<String, double>>[];
       proxyStream.stream.listen(values.add);
@@ -176,16 +172,16 @@ void main() {
 
       expect(values, isEmpty);
 
-      proxyStream.dispose();
+      await proxyStream.dispose();
     });
 
     test('survives deserialization errors without crashing', () async {
       final proxyStream = FloatyProxyStream<Map<String, double>>.overlay(
-        name: 'gps',
-        fromJson: (j) {
-          // Force an error.
-          throw const FormatException('bad data');
-        },
+        StreamKey<Map<String, double>>(
+          name: 'gps',
+          toJson: (v) => v,
+          fromJson: (j) => throw const FormatException('bad data'),
+        ),
       );
 
       final values = <Map<String, double>>[];
@@ -205,14 +201,11 @@ void main() {
       expect(values, isEmpty);
       expect(proxyStream.latest, isNull);
 
-      proxyStream.dispose();
+      await proxyStream.dispose();
     });
 
     test('receives multiple values in order', () async {
-      final proxyStream = FloatyProxyStream<Map<String, double>>.overlay(
-        name: 'gps',
-        fromJson: (j) => j.cast<String, double>(),
-      );
+      final proxyStream = FloatyProxyStream.overlay(_doubleKey('gps'));
 
       final values = <Map<String, double>>[];
       proxyStream.stream.listen(values.add);
@@ -235,20 +228,14 @@ void main() {
       }
       expect(proxyStream.latest, {'lat': 4.0});
 
-      proxyStream.dispose();
+      await proxyStream.dispose();
     });
   });
 
   group('FloatyProxyStream multiple streams', () {
     test('two streams with different names coexist independently', () async {
-      final accel = FloatyProxyStream<Map<String, double>>.overlay(
-        name: 'accel',
-        fromJson: (j) => j.cast<String, double>(),
-      );
-      final light = FloatyProxyStream<Map<String, double>>.overlay(
-        name: 'light',
-        fromJson: (j) => j.cast<String, double>(),
-      );
+      final accel = FloatyProxyStream.overlay(_doubleKey('accel'));
+      final light = FloatyProxyStream.overlay(_doubleKey('light'));
 
       final accelValues = <Map<String, double>>[];
       final lightValues = <Map<String, double>>[];
@@ -279,19 +266,13 @@ void main() {
       expect(lightValues, hasLength(1));
       expect(lightValues.first, {'lux': 350.0});
 
-      accel.dispose();
-      light.dispose();
+      await accel.dispose();
+      await light.dispose();
     });
 
     test('disposing one stream does not affect the other', () async {
-      final stream1 = FloatyProxyStream<Map<String, double>>.overlay(
-        name: 'stream1',
-        fromJson: (j) => j.cast<String, double>(),
-      );
-      final stream2 = FloatyProxyStream<Map<String, double>>.overlay(
-        name: 'stream2',
-        fromJson: (j) => j.cast<String, double>(),
-      );
+      final stream1 = FloatyProxyStream.overlay(_doubleKey('stream1'));
+      final stream2 = FloatyProxyStream.overlay(_doubleKey('stream2'));
 
       final values1 = <Map<String, double>>[];
       final values2 = <Map<String, double>>[];
@@ -299,7 +280,7 @@ void main() {
       stream2.stream.listen(values2.add);
 
       // Dispose stream1.
-      stream1.dispose();
+      await stream1.dispose();
 
       // stream2 should still work.
       await simulateIncoming({
@@ -316,54 +297,41 @@ void main() {
       expect(values2, hasLength(1));
       expect(values2.first, {'value': 42.0});
 
-      stream2.dispose();
+      await stream2.dispose();
     });
   });
 
   group('FloatyProxyStream duplicate name', () {
-    test('throws StateError when registering a duplicate name', () {
-      final first = FloatyProxyStream<Map<String, double>>(
-        name: 'dup',
-        toJson: (v) => v,
-      );
+    test('throws StateError when registering a duplicate name', () async {
+      final first = FloatyProxyStream(_doubleKey('dup'));
 
       expect(
-        () => FloatyProxyStream<Map<String, double>>(
-          name: 'dup',
-          toJson: (v) => v,
-        ),
+        () => FloatyProxyStream(_doubleKey('dup')),
         throwsStateError,
       );
 
-      first.dispose();
+      await first.dispose();
     });
 
-    test('allows re-registration after dispose', () {
-      final first = FloatyProxyStream<Map<String, double>>(
-        name: 'reuse',
-        toJson: (v) => v,
-      )..dispose();
+    test('allows re-registration after dispose', () async {
+      final first = FloatyProxyStream(_doubleKey('reuse'));
+      await first.dispose();
       expect(first, isNotNull);
       // Should not throw — name was freed by dispose.
-      final second = FloatyProxyStream<Map<String, double>>(
-        name: 'reuse',
-        toJson: (v) => v,
-      )..dispose();
+      final second = FloatyProxyStream(_doubleKey('reuse'));
+      await second.dispose();
       expect(second, isNotNull);
     });
   });
 
   group('FloatyProxyStream dispose', () {
     test('dispose unregisters handler', () async {
-      final proxyStream = FloatyProxyStream<Map<String, double>>.overlay(
-        name: 'gps',
-        fromJson: (j) => j.cast<String, double>(),
-      );
+      final proxyStream = FloatyProxyStream.overlay(_doubleKey('gps'));
 
       final values = <Map<String, double>>[];
       proxyStream.stream.listen(values.add);
 
-      proxyStream.dispose();
+      await proxyStream.dispose();
 
       // Messages after dispose should not reach the stream.
       await simulateIncoming({

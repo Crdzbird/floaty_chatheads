@@ -1,5 +1,34 @@
 # Changelog
 
+## 2.0.0
+
+> **Released as part of the floaty_chatheads 2.0 line.** See the main
+> package CHANGELOG for the full migration guide.
+
+### ⚙ Toolchain (BREAKING)
+
+- iOS deployment target raised to **14.0** (was 13.0) in both
+  `Package.swift` and the CocoaPods podspec.
+- Dart SDK floor `^3.5.0`, Flutter floor `>=3.27.0`.
+- Pigeon constraint normalized to `^26.3.3`.
+- Depends on `floaty_chatheads_platform_interface: ^2.0.0`.
+
+### 📝 Documented platform behavior
+
+- Added class-level and method-level documentation to
+  `FloatyChatheadsIOS` explaining which `ChatHeadConfig` fields are
+  intentionally not forwarded to the Swift side
+  (`ChatHeadAssets`, `NotificationConfig.description`,
+  `AddChatHeadConfig.iconSource`) and why. The iOS chathead renders as
+  a Flutter view, so app authors render their own icons inside the
+  overlay entry point.
+
+### ♻ Internals
+
+- `showChatHead` now delegates default-value resolution to
+  `ChatHeadConfigResolver` in `floaty_chatheads_platform_interface`,
+  removing ~30 lines of duplication with the Android Dart shim.
+
 ## 1.1.6
 
 ### ✨ Enhancements

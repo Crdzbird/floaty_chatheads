@@ -77,42 +77,34 @@ class _SurvivalExampleState extends State<SurvivalExample> {
     );
 
     // Handle increment actions from the overlay.
-    _kit.onAction<IncrementAction>(
-      'increment',
-      fromJson: IncrementAction.fromJson,
-      handler: (action) {
-        if (!mounted) return;
-        // If the persisted counter hasn't been restored yet (race with
-        // auto-flush on reconnection), buffer the action so each
-        // increment is replayed individually after restoration.
-        if (!_counterRestored) {
-          _bufferedActions.add(action);
-          return;
-        }
-        setState(() {
-          _counter += action.amount;
-          _addLog('[+${action.amount}] counter = $_counter');
-        });
-        unawaited(_persistCounter());
-        // Sync updated counter back to overlay.
-        unawaited(
-          _kit.setState(SurvivalState(
-            counter: _counter,
-            label: 'Updated from main',
-          )),
-        );
-      },
-    );
+    _kit.onAction(IncrementAction.key, (action) {
+      if (!mounted) return;
+      // If the persisted counter hasn't been restored yet (race with
+      // auto-flush on reconnection), buffer the action so each
+      // increment is replayed individually after restoration.
+      if (!_counterRestored) {
+        _bufferedActions.add(action);
+        return;
+      }
+      setState(() {
+        _counter += action.amount;
+        _addLog('[+${action.amount}] counter = $_counter');
+      });
+      unawaited(_persistCounter());
+      // Sync updated counter back to overlay.
+      unawaited(
+        _kit.setState(SurvivalState(
+          counter: _counter,
+          label: 'Updated from main',
+        )),
+      );
+    });
 
     // Handle message actions from the overlay.
-    _kit.onAction<MessageAction>(
-      'message',
-      fromJson: MessageAction.fromJson,
-      handler: (action) {
-        if (!mounted) return;
-        setState(() => _addLog(action.text));
-      },
-    );
+    _kit.onAction(MessageAction.key, (action) {
+      if (!mounted) return;
+      setState(() => _addLog(action.text));
+    });
 
     // Expose a "time" service to the overlay.
     _kit.registerService('time', (method, params) {

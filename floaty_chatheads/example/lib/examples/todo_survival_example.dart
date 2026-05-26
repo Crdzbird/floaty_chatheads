@@ -113,50 +113,38 @@ class _TodoSurvivalExampleState extends State<TodoSurvivalExample> {
       initialState: TodoState(),
     );
 
-    _kit.onAction<AddTodoAction>(
-      'add_todo',
-      fromJson: AddTodoAction.fromJson,
-      handler: (action) {
-        if (!mounted) return;
-        if (!_stateRestored) {
-          _bufferedActions.add(action);
-          return;
-        }
-        setState(() => _applyAction(action));
-        unawaited(_persist());
-        _syncToOverlay('Added');
-      },
-    );
+    _kit.onAction(AddTodoAction.key, (action) {
+      if (!mounted) return;
+      if (!_stateRestored) {
+        _bufferedActions.add(action);
+        return;
+      }
+      setState(() => _applyAction(action));
+      unawaited(_persist());
+      _syncToOverlay('Added');
+    });
 
-    _kit.onAction<ToggleTodoAction>(
-      'toggle_todo',
-      fromJson: ToggleTodoAction.fromJson,
-      handler: (action) {
-        if (!mounted) return;
-        if (!_stateRestored) {
-          _bufferedActions.add(action);
-          return;
-        }
-        setState(() => _applyAction(action));
-        unawaited(_persist());
-        _syncToOverlay('Toggled');
-      },
-    );
+    _kit.onAction(ToggleTodoAction.key, (action) {
+      if (!mounted) return;
+      if (!_stateRestored) {
+        _bufferedActions.add(action);
+        return;
+      }
+      setState(() => _applyAction(action));
+      unawaited(_persist());
+      _syncToOverlay('Toggled');
+    });
 
-    _kit.onAction<RemoveTodoAction>(
-      'remove_todo',
-      fromJson: RemoveTodoAction.fromJson,
-      handler: (action) {
-        if (!mounted) return;
-        if (!_stateRestored) {
-          _bufferedActions.add(action);
-          return;
-        }
-        setState(() => _applyAction(action));
-        unawaited(_persist());
-        _syncToOverlay('Removed');
-      },
-    );
+    _kit.onAction(RemoveTodoAction.key, (action) {
+      if (!mounted) return;
+      if (!_stateRestored) {
+        _bufferedActions.add(action);
+        return;
+      }
+      setState(() => _applyAction(action));
+      unawaited(_persist());
+      _syncToOverlay('Removed');
+    });
 
     _kit.registerService('stats', (method, params) {
       if (method == 'summary') {

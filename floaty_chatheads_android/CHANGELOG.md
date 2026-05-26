@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.0.0
+
+> **Released as part of the floaty_chatheads 2.0 line.** See the main
+> package CHANGELOG for the full migration guide.
+
+### ⚙ Toolchain (BREAKING)
+
+- Android `minSdk` raised to **24** (was 23).
+- `compileSdk` bumped to 35 (Android 15).
+- Plugin Java/Kotlin JVM target raised to 11 (was 1.8).
+- Dart SDK floor `^3.5.0`, Flutter floor `>=3.27.0`.
+- Pigeon constraint normalized to `^26.3.3`.
+- Depends on `floaty_chatheads_platform_interface: ^2.0.0`.
+
+### ♻ Internals
+
+- `showChatHead` now delegates default-value resolution to
+  `ChatHeadConfigResolver` in `floaty_chatheads_platform_interface`,
+  eliminating duplication with the iOS Dart shim. Pigeon
+  enum/message construction stays in this package.
+
 ## 1.1.0
 
 ### ✨ Enhancements

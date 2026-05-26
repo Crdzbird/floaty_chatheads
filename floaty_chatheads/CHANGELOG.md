@@ -1,5 +1,88 @@
 # Changelog
 
+## 2.0.0
+
+> **2.0 is a breaking release.** It modernizes the toolchain, simplifies
+> the public surface, and adds compile-time type safety to action and
+> stream routing. See the migration notes at the end of this entry.
+
+### ⚙ Toolchain & platform floors (BREAKING)
+
+- Dart SDK floor raised to `^3.5.0` (was `^3.4.0`).
+- Flutter floor raised to `>=3.27.0` (was `>=3.22.0`).
+- Android `minSdk` raised to **24** (was 23). Android 7.0 (Nougat) is now the
+  oldest supported OS. `compileSdk` bumped to 35 (Android 15). Plugin
+  Java target raised to 11 (was 1.8) to match the example app.
+- iOS deployment target raised to **14.0** (was 13.0) in both
+  `Package.swift` and the CocoaPods podspec.
+- CI matrix bumped to Flutter `3.44.0` across all four workflows.
+
+### 🔐 Typed action and stream keys (BREAKING)
+
+- New `ActionKey<A extends FloatyAction>` colocates the action `type`
+  string with its `fromJson`, removing the chance of mismatched pairs.
+- New `StreamKey<T>` colocates a stream `name` with both `toJson` and
+  `fromJson`, used by both producer and consumer.
+- `FloatyActionRouter.on` and `FloatyActionRouter.off` (and the matching
+  delegate methods on `FloatyHostKit` / `FloatyOverlayKit`) now take a
+  key instead of separate `String type` + `fromJson` arguments.
+- `FloatyProxyStream(...)` and `FloatyProxyStream.overlay(...)` now take
+  a single `StreamKey<T>` instead of `name` + `toJson` / `fromJson`
+  named parameters.
+
+  Migration:
+
+  ```diff
+  +static const navigateKey = ActionKey<NavigateAction>(
+  +  'navigate', NavigateAction.fromJson);
+  -router.on<NavigateAction>(
+  -  'navigate',
+  -  fromJson: NavigateAction.fromJson,
+  -  handler: (a) => map.move(a.target),
+  -);
+  +router.on(navigateKey, (a) => map.move(a.target));
+  ```
+
+  ```diff
+  +static final gpsKey = StreamKey<GpsCoord>(
+  +  name: 'gps',
+  +  toJson: (c) => c.toJson(),
+  +  fromJson: GpsCoord.fromJson,
+  +);
+  -final gps = FloatyProxyStream<GpsCoord>(
+  -  name: 'gps', toJson: (c) => c.toJson());
+  +final gps = FloatyProxyStream(gpsKey);
+  ```
+
+### 📦 Slimmer public surface (BREAKING)
+
+- The main barrel (`package:floaty_chatheads/floaty_chatheads.dart`)
+  no longer exports the low-level primitives `FloatyActionRouter`,
+  `FloatyStateChannel`, `FloatyProxyHost`, or `FloatyProxyClient`.
+- A new opt-in barrel
+  `package:floaty_chatheads/advanced.dart` exposes them for callers
+  that need direct access (most apps should use `FloatyHostKit` /
+  `FloatyOverlayKit` from the main barrel instead).
+
+  Migration: add `import 'package:floaty_chatheads/advanced.dart';`
+  alongside the existing main-barrel import in files that instantiate
+  the primitives directly.
+
+### 🧹 De-duplication & documentation (Phase B)
+
+- `FloatyChannels` constant in `floaty_chatheads_platform_interface`
+  is now the single source of truth for the messenger channel name
+  (`ni.devotion.floaty_head/messenger`). The Dart channel
+  implementation references it instead of hard-coding the string.
+- New `ChatHeadConfigResolver` in `floaty_chatheads_platform_interface`
+  removes ~30 lines of duplicated default-value resolution between the
+  Android and iOS Dart shims.
+- Documented iOS-only behavior on `ChatHeadAssets` and
+  `FloatyChatheadsIOS`: icon-source overrides, secondary chathead
+  icons, and notification description are intentionally not forwarded
+  to the Swift side because the iOS chathead renders as a Flutter
+  view. Wiring them through would silently send data into a void.
+
 ## 1.5.0
 
 ### ✨ Widget-Based Icons

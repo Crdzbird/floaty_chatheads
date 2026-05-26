@@ -1,30 +1,41 @@
-/// Floaty Chatheads -- a Flutter federated plugin for floating chathead
+/// Floaty Chatheads — a Flutter federated plugin for floating chathead
 /// bubbles on Android and iOS.
 ///
 /// {@macro floaty_chatheads}
 ///
-/// For the overlay-side API, see `FloatyOverlay`.
+/// ## Where to start
 ///
-/// For convenience helpers that reduce boilerplate, see:
-/// - `FloatyOverlayApp` -- one-liner to bootstrap an overlay entry point
-/// - `FloatyScope` -- InheritedWidget that auto-wires all overlay streams
-/// - `FloatyLauncher` -- one-call launcher with automatic permission handling
-/// - `FloatyController` -- lifecycle-aware controller for declarative usage
-/// - `FloatyMessenger` -- type-safe messaging wrapper
-/// - `FloatyStateChannel` -- auto-syncing typed state between app and overlay
-/// - `FloatyActionRouter` -- typed bidirectional action routing
-/// - `FloatyProxyHost` / `FloatyProxyClient` -- overlay-side plugin access
-/// - `FloatyProxyStream` -- typed unidirectional push stream (main -> overlay)
-/// - `FloatyHostKit` / `FloatyOverlayKit` -- all-in-one communication bundles
-/// - `FloatyOverlayScope` -- zero-boilerplate reactive scope for overlays
-/// - `FloatyDataBuilder` -- reactive builder for main-app data reception
-/// - `FloatyOverlayBuilder` -- zero-boilerplate builder for overlay widgets
+/// Most apps need only this barrel. Pick the right entry point for your
+/// situation:
 ///
-/// For pre-built overlay widgets, see:
-/// - `FloatyMiniPlayer` -- media player overlay
-/// - `FloatyNotificationCard` -- toast/notification overlay
+/// - **Show a chathead from your app:** [FloatyChatheads], or use
+///   [FloatyLauncher] / [FloatyPermissionGate] for a one-call setup with
+///   permission handling.
+/// - **Build the overlay UI:** wrap your overlay in [FloatyOverlayApp] or
+///   [FloatyOverlayScope]; use [FloatyOverlayBuilder] for reactive
+///   rebuilds without touching streams.
+/// - **Bidirectional messaging:** [FloatyHostKit] (main app side) and
+///   [FloatyOverlayKit] (overlay side) bundle action routing, state
+///   sync, and RPC into a single disposable.
+/// - **High-frequency one-way data:** [FloatyProxyStream] with
+///   [StreamKey].
+/// - **Pre-built overlay widgets:** [FloatyMiniPlayer],
+///   [FloatyNotificationCard].
 ///
-/// For testing, import `package:floaty_chatheads/testing.dart` instead.
+/// ## Advanced usage
+///
+/// If you need direct access to the underlying messaging primitives
+/// (`FloatyActionRouter`, `FloatyStateChannel`, `FloatyProxyHost`,
+/// `FloatyProxyClient`) instead of using the Kits, import:
+///
+/// ```dart
+/// import 'package:floaty_chatheads/advanced.dart';
+/// ```
+///
+/// ## Testing
+///
+/// `import 'package:floaty_chatheads/testing.dart';` for a
+/// `FakeFloatyPlatform` and other test utilities.
 library;
 
 export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart'
@@ -47,7 +58,7 @@ export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
         SnapEdge;
 
 export 'src/animated_widget_icon.dart';
-export 'src/floaty_action_router.dart';
+export 'src/floaty_action_router.dart' show ActionKey, FloatyAction, QueueOverflowStrategy;
 export 'src/floaty_chatheads.dart';
 export 'src/floaty_connection_state.dart';
 export 'src/floaty_controller.dart';
@@ -60,10 +71,8 @@ export 'src/floaty_overlay_app.dart';
 export 'src/floaty_overlay_builder.dart';
 export 'src/floaty_overlay_scope.dart';
 export 'src/floaty_permission_gate.dart';
-export 'src/floaty_proxy.dart';
-export 'src/floaty_proxy_stream.dart';
+export 'src/floaty_proxy_stream.dart' show FloatyProxyStream, StreamKey;
 export 'src/floaty_scope.dart';
-export 'src/floaty_state_channel.dart';
 export 'src/widget_to_icon_source.dart';
 export 'src/widgets/floaty_mini_player.dart';
 export 'src/widgets/floaty_notification_card.dart';

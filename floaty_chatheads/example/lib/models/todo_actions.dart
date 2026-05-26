@@ -13,11 +13,14 @@ class AddTodoAction extends FloatyAction {
         title: json['title'] as String,
       );
 
+  static const key =
+      ActionKey<AddTodoAction>('add_todo', AddTodoAction.fromJson);
+
   final String id;
   final String title;
 
   @override
-  String get type => 'add_todo';
+  String get type => key.type;
 
   @override
   Map<String, dynamic> toJson() => {'id': id, 'title': title};
@@ -33,10 +36,13 @@ class ToggleTodoAction extends FloatyAction {
   factory ToggleTodoAction.fromJson(Map<String, dynamic> json) =>
       ToggleTodoAction(id: json['id'] as String);
 
+  static const key =
+      ActionKey<ToggleTodoAction>('toggle_todo', ToggleTodoAction.fromJson);
+
   final String id;
 
   @override
-  String get type => 'toggle_todo';
+  String get type => key.type;
 
   @override
   Map<String, dynamic> toJson() => {'id': id};
@@ -52,10 +58,13 @@ class RemoveTodoAction extends FloatyAction {
   factory RemoveTodoAction.fromJson(Map<String, dynamic> json) =>
       RemoveTodoAction(id: json['id'] as String);
 
+  static const key =
+      ActionKey<RemoveTodoAction>('remove_todo', RemoveTodoAction.fromJson);
+
   final String id;
 
   @override
-  String get type => 'remove_todo';
+  String get type => key.type;
 
   @override
   Map<String, dynamic> toJson() => {'id': id};

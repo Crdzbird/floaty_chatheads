@@ -31,10 +31,7 @@ class _GpsStreamOverlayState extends State<GpsStreamOverlay> {
   void initState() {
     super.initState();
 
-    _gpsStream = FloatyProxyStream<GpsCoord>.overlay(
-      name: 'gps',
-      fromJson: GpsCoord.fromJson,
-    );
+    _gpsStream = FloatyProxyStream.overlay(GpsCoord.streamKey);
 
     _sub = _gpsStream.stream.listen((coord) {
       if (mounted) {
