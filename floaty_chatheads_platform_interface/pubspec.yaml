@@ -14,8 +14,8 @@ topics:
   - platform-interface
 
 environment:
-  sdk: ^3.4.0
-  flutter: ">=3.22.0"
+  sdk: ^3.5.0
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:

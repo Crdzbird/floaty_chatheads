@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "floaty_chatheads_ios",
     platforms: [
-        .iOS("13.0"),
+        .iOS("14.0"),
     ],
     products: [
         .library(name: "floaty-chatheads-ios", targets: ["floaty_chatheads_ios"])
