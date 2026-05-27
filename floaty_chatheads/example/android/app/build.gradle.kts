@@ -3,7 +3,6 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -15,10 +14,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     defaultConfig {
@@ -41,4 +36,21 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// Backwards-compatible Built-in Kotlin pattern — see the plugin's
+// android/build.gradle for the full explanation.
+val agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+    .substringBefore('.').toInt()
+
+if (agpMajor < 9) {
+    apply(plugin = "kotlin-android")
+}
+
+project.extensions.configure(
+    org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension::class.java,
+) {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    }
 }
