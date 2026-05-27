@@ -12,6 +12,27 @@ import ni.devotion.floaty_chatheads.utils.OverlayConfig
 import kotlin.math.hypot
 import kotlin.math.pow
 
+/**
+ * A single chathead bubble.
+ *
+ * ## Gesture role vs [ChatHeads]
+ *
+ * Touch handling for the overlay is **split deliberately** between two
+ * classes — they are complementary, not duplicates:
+ *
+ * - [ChatHeads.onTouch] is wired through the `motionTracker` proxy and
+ *   handles the **collapsed** state: dragging the single bubble around
+ *   the screen, velocity throwing, drag-to-close capture, and
+ *   snap-to-edge resolution.
+ * - [onTouch] (this class) handles the **expanded multi-chathead row**:
+ *   tapping an individual bubble to switch active selection, collapsing
+ *   when the active bubble is tapped again, and pulling a single bubble
+ *   out of the row mid-drag.
+ *
+ * The two paths cannot fire simultaneously because the underlying
+ * `WindowManager` window flags toggle `FLAG_NOT_TOUCHABLE` on the
+ * inactive one when expand/collapse transitions occur.
+ */
 class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBitmap: android.graphics.Bitmap? = null): View(chatHeads.context), View.OnTouchListener, SpringListener {
     var isTop: Boolean = false
     var isActive: Boolean = false

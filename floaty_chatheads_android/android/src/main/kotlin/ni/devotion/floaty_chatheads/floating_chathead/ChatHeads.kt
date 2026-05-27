@@ -2,7 +2,6 @@ package ni.devotion.floaty_chatheads.floating_chathead
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.SharedPreferences
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
@@ -19,7 +18,6 @@ import ni.devotion.floaty_chatheads.FlutterContentPanel
 import ni.devotion.floaty_chatheads.services.FloatyContentJobService
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
 import ni.devotion.floaty_chatheads.utils.OverlayConfig
-import ni.devotion.floaty_chatheads.utils.SnapEdge
 
 
 class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
@@ -36,10 +34,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         private const val CLOSE_DELAY_MS = 200L
         private const val HIDE_DELAY_MS = 300L
         private const val EXPAND_CONTENT_DELAY_MS = 200L
-        private const val PREFS_NAME = "floaty_chatheads_position"
-        private const val KEY_X = "last_x"
-        private const val KEY_Y = "last_y"
-        private const val KEY_ON_RIGHT = "on_right"
         fun distance(x1: Float, x2: Float, y1: Float, y2: Float): Float {
             return ((x1 - x2).pow(2) + (y1-y2).pow(2))
         }
@@ -71,8 +65,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
     var chatHeads = ArrayList<ChatHead>()
 
     // ── Persistent position ───────────────────────────────────────────
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val positionStore = ChatHeadPositionStore(context)
 
     private var motionTrackerParams = WindowManager.LayoutParams(
         CHAT_HEAD_SIZE,
@@ -124,76 +117,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         }
     }
 
-    // ── Snap helpers ──────────────────────────────────────────────────
-
-    /** Pixel offset from screen edge when snapped (converted from dp). */
-    private fun snapOffsetPx(): Int {
-        val margin = OverlayConfig.snapMargin
-        return if (margin < 0) {
-            // Negative margin = partially hidden (like CHAT_HEAD_OUT_OF_SCREEN_X)
-            WindowManagerHelper.dpToPx(abs(margin))
-        } else {
-            // Positive margin = gap from edge. We negate so the math
-            // in fixPositions (which subtracts offset) pushes inward.
-            -WindowManagerHelper.dpToPx(margin)
-        }
-    }
-
-    /**
-     * Resolve the X position the chathead should snap to based on the
-     * configured [SnapEdge].
-     *
-     * @param currentX  current horizontal position of the chathead
-     * @param width     chathead width in px
-     * @return Pair(endX, onRight)
-     */
-    private fun resolveSnapX(currentX: Double, width: Int): Pair<Double, Boolean> {
-        val metrics = WindowManagerHelper.getScreenSize()
-        val offset = snapOffsetPx()
-        return when (OverlayConfig.snapEdge) {
-            SnapEdge.LEFT -> {
-                Pair(-offset.toDouble(), false)
-            }
-            SnapEdge.RIGHT -> {
-                Pair(metrics.widthPixels - width + offset.toDouble(), true)
-            }
-            SnapEdge.NONE -> {
-                // No snapping — stay where released.
-                Pair(currentX, currentX >= metrics.widthPixels / 2)
-            }
-            SnapEdge.BOTH -> {
-                if (currentX + width / 2 >= metrics.widthPixels / 2) {
-                    Pair(metrics.widthPixels - width + offset.toDouble(), true)
-                } else {
-                    Pair(-offset.toDouble(), false)
-                }
-            }
-        }
-    }
-
-    // ── Position persistence helpers ──────────────────────────────────
-
-    private fun savePosition(x: Double, y: Double, onRight: Boolean) {
-        if (!OverlayConfig.persistPosition) return
-        prefs.edit()
-            .putFloat(KEY_X, x.toFloat())
-            .putFloat(KEY_Y, y.toFloat())
-            .putBoolean(KEY_ON_RIGHT, onRight)
-            .apply()
-    }
-
-    private data class SavedPosition(val x: Float, val y: Float, val onRight: Boolean)
-
-    private fun loadPosition(): SavedPosition? {
-        if (!OverlayConfig.persistPosition) return null
-        if (!prefs.contains(KEY_X)) return null
-        return SavedPosition(
-            prefs.getFloat(KEY_X, 0f),
-            prefs.getFloat(KEY_Y, 0f),
-            prefs.getBoolean(KEY_ON_RIGHT, false),
-        )
-    }
-
     fun setTop(chatHead: ChatHead) {
         topChatHead?.isTop = false
         chatHead.isTop = true
@@ -202,7 +125,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
 
     fun fixPositions(animation: Boolean = true) {
         if (topChatHead == null) return
-        val offset = snapOffsetPx()
+        val offset = ChatHeadSnapResolver.snapOffsetPx()
         val metrics = WindowManagerHelper.getScreenSize()
         val newX = if (isOnRight) {
             metrics.widthPixels - topChatHead!!.width + offset.toDouble()
@@ -217,7 +140,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             topChatHead!!.springX.currentValue = newX
             topChatHead!!.springY.currentValue = newY
         }
-        savePosition(newX, newY, isOnRight)
+        positionStore.save(newX, newY, isOnRight)
     }
 
     private fun destroySpringChains() {
@@ -283,7 +206,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         // Determine initial position (restore or default).
         var lx: Double
         var ly: Double
-        val saved = loadPosition()
+        val saved = positionStore.load()
         if (saved != null && topChatHead == null) {
             // First chathead with a saved position — restore it.
             lx = saved.x.toDouble()
@@ -294,7 +217,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             lx = topChatHead!!.springX.currentValue
             ly = topChatHead!!.springY.currentValue
         } else {
-            lx = -snapOffsetPx().toDouble()
+            lx = -ChatHeadSnapResolver.snapOffsetPx().toDouble()
             ly = 0.0
         }
 
@@ -526,17 +449,17 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                 if (spring === chatHead.springX) {
                     val xPosition = chatHead.springX.currentValue
                     if (xPosition + chatHead.width > metrics.widthPixels && chatHead.springX.velocity > 0) {
-                        val (snapX, snapRight) = resolveSnapX(xPosition, chatHead.width)
+                        val (snapX, snapRight) = ChatHeadSnapResolver.resolve(xPosition, chatHead.width)
                         chatHead.springX.springConfig = SpringConfigs.NOT_DRAGGING
                         chatHead.springX.endValue = snapX
                         isOnRight = snapRight
-                        savePosition(snapX, chatHead.springY.currentValue, isOnRight)
+                        positionStore.save(snapX, chatHead.springY.currentValue, isOnRight)
                     } else if (xPosition < 0 && chatHead.springX.velocity < 0) {
-                        val (snapX, snapRight) = resolveSnapX(xPosition, chatHead.width)
+                        val (snapX, snapRight) = ChatHeadSnapResolver.resolve(xPosition, chatHead.width)
                         chatHead.springX.springConfig = SpringConfigs.NOT_DRAGGING
                         chatHead.springX.endValue = snapX
                         isOnRight = snapRight
-                        savePosition(snapX, chatHead.springY.currentValue, isOnRight)
+                        positionStore.save(snapX, chatHead.springY.currentValue, isOnRight)
                     }
                 } else if (spring === chatHead.springY) {
                     val yPosition = chatHead.springY.currentValue
@@ -655,24 +578,24 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                             xVelocity = newVelocity + 500
                     } else if (yVelocity > 20 || yVelocity < -20) {
                         topChatHead!!.springX.springConfig = SpringConfigs.NOT_DRAGGING
-                        val (snapX, snapRight) = resolveSnapX(
+                        val (snapX, snapRight) = ChatHeadSnapResolver.resolve(
                             topChatHead!!.springX.currentValue,
                             topChatHead!!.width,
                         )
                         topChatHead!!.springX.endValue = snapX
                         isOnRight = snapRight
-                        savePosition(snapX, topChatHead!!.springY.currentValue, isOnRight)
+                        positionStore.save(snapX, topChatHead!!.springY.currentValue, isOnRight)
                     } else {
                         topChatHead!!.springX.springConfig = SpringConfigs.NOT_DRAGGING
                         topChatHead!!.springY.springConfig = SpringConfigs.NOT_DRAGGING
-                        val (snapX, snapRight) = resolveSnapX(
+                        val (snapX, snapRight) = ChatHeadSnapResolver.resolve(
                             topChatHead!!.springX.currentValue,
                             topChatHead!!.width,
                         )
                         topChatHead!!.springX.endValue = snapX
                         topChatHead!!.springY.endValue = topChatHead!!.y.toDouble()
                         isOnRight = snapRight
-                        savePosition(snapX, topChatHead!!.y.toDouble(), isOnRight)
+                        positionStore.save(snapX, topChatHead!!.y.toDouble(), isOnRight)
                     }
                     if (xVelocity < 0) {
                         topChatHead!!.springX.velocity = max(xVelocity, maxVelocityX)
