@@ -7,6 +7,8 @@ import 'package:floaty_chatheads_platform_interface/src/models/overlay_flag.dart
 import 'package:floaty_chatheads_platform_interface/src/models/overlay_position.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+export 'src/chat_head_config_resolver.dart';
+export 'src/floaty_channels.dart';
 export 'src/models/add_chat_head_config.dart';
 export 'src/models/chat_head_assets.dart';
 export 'src/models/chat_head_config.dart';

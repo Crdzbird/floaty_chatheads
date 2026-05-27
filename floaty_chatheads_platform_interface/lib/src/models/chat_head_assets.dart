@@ -4,6 +4,12 @@ import 'package:flutter/foundation.dart' show immutable;
 /// {@template chat_head_assets}
 /// Groups the three icon sources needed by a chathead.
 ///
+/// **Platform support**: Asset overrides are currently honored on Android
+/// only. On iOS the chathead uses Flutter-rendered views, so these icons
+/// are not consumed by the native side and the iOS implementation
+/// intentionally ignores them. Render your iOS chathead icons inside your
+/// Flutter overlay entry point instead.
+///
 /// Each field accepts an [IconSource], which can be a Flutter asset path,
 /// a network URL, or raw image bytes:
 ///

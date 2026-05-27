@@ -1,5 +1,128 @@
 # Changelog
 
+## 2.0.0
+
+> **2.0 is a breaking release.** It modernizes the toolchain, simplifies
+> the public surface, and adds compile-time type safety to action and
+> stream routing. See the migration notes at the end of this entry.
+
+### ✨ New: minimal happy-path API
+
+Two new additions bring the simplest setup down to a top-level
+entry point and one method call:
+
+- **`Floaty`** — a static facade that wraps the most common
+  workflow (check permission → request if needed → show with sensible
+  defaults). One-liners for `show`, `close`, `toggle`, `isActive`,
+  `send`, `onData`. Drops down to [FloatyLauncher] / [FloatyChatheads]
+  for power users.
+- **`FloatySimplePanel`** — a pre-built styled Material card for
+  overlay content, with optional title and a built-in close button
+  wired to [FloatyOverlay.closeOverlay]. Eliminates the
+  Card/Material/Padding boilerplate for the common case.
+
+See the README "Hello World" section for the full 30-second setup.
+
+### ⚙ Toolchain & platform floors (BREAKING)
+
+- Dart SDK floor raised to `^3.0.0` (was `^3.4.0`) — the minimum
+  that supports `final class`, `sealed class`, records, and the
+  pattern matching used by the typed `ActionKey` / `StreamKey` API.
+- Flutter floor raised to `>=3.10.0` (was `>=3.22.0`) — pairs with
+  Dart 3.0.
+
+Picked as the **bare minimum that the library code actually
+requires**. Anyone on Flutter 3.10+ (released May 2023) can consume
+the plugin.
+
+Trade-offs deliberately taken to keep the floor low:
+
+- The two pre-built widgets (`FloatyMiniPlayer`,
+  `FloatyNotificationCard`) use `Color.withOpacity(x)` rather than
+  the newer `Color.withValues(alpha: x)` (introduced in Flutter
+  3.27). `withOpacity` is deprecated on Flutter 3.27+ but still
+  functional. A file-level `// ignore_for_file: deprecated_member_use`
+  in each widget suppresses the lint.
+- The Android plugin keeps applying `id "kotlin-android"`
+  explicitly with the legacy `android { kotlinOptions {} }` block.
+  On Flutter 3.44+ this triggers the
+  "Future versions of Flutter will fail to build if your app uses
+  plugins that apply KGP" warning. Migrating to Built-in Kotlin
+  would lock out the Flutter 3.10–3.43 install base, so the warning
+  is accepted for now.
+- Android `minSdk` raised to **24** (was 23). Android 7.0 (Nougat) is now the
+  oldest supported OS. `compileSdk` bumped to 35 (Android 15). Plugin
+  Java target raised to 11 (was 1.8) to match the example app.
+- iOS deployment target raised to **14.0** (was 13.0) in both
+  `Package.swift` and the CocoaPods podspec.
+- CI matrix bumped to Flutter `3.44.0` across all four workflows.
+
+### 🔐 Typed action and stream keys (BREAKING)
+
+- New `ActionKey<A extends FloatyAction>` colocates the action `type`
+  string with its `fromJson`, removing the chance of mismatched pairs.
+- New `StreamKey<T>` colocates a stream `name` with both `toJson` and
+  `fromJson`, used by both producer and consumer.
+- `FloatyActionRouter.on` and `FloatyActionRouter.off` (and the matching
+  delegate methods on `FloatyHostKit` / `FloatyOverlayKit`) now take a
+  key instead of separate `String type` + `fromJson` arguments.
+- `FloatyProxyStream(...)` and `FloatyProxyStream.overlay(...)` now take
+  a single `StreamKey<T>` instead of `name` + `toJson` / `fromJson`
+  named parameters.
+
+  Migration:
+
+  ```diff
+  +static const navigateKey = ActionKey<NavigateAction>(
+  +  'navigate', NavigateAction.fromJson);
+  -router.on<NavigateAction>(
+  -  'navigate',
+  -  fromJson: NavigateAction.fromJson,
+  -  handler: (a) => map.move(a.target),
+  -);
+  +router.on(navigateKey, (a) => map.move(a.target));
+  ```
+
+  ```diff
+  +static final gpsKey = StreamKey<GpsCoord>(
+  +  name: 'gps',
+  +  toJson: (c) => c.toJson(),
+  +  fromJson: GpsCoord.fromJson,
+  +);
+  -final gps = FloatyProxyStream<GpsCoord>(
+  -  name: 'gps', toJson: (c) => c.toJson());
+  +final gps = FloatyProxyStream(gpsKey);
+  ```
+
+### 📦 Slimmer public surface (BREAKING)
+
+- The main barrel (`package:floaty_chatheads/floaty_chatheads.dart`)
+  no longer exports the low-level primitives `FloatyActionRouter`,
+  `FloatyStateChannel`, `FloatyProxyHost`, or `FloatyProxyClient`.
+- A new opt-in barrel
+  `package:floaty_chatheads/advanced.dart` exposes them for callers
+  that need direct access (most apps should use `FloatyHostKit` /
+  `FloatyOverlayKit` from the main barrel instead).
+
+  Migration: add `import 'package:floaty_chatheads/advanced.dart';`
+  alongside the existing main-barrel import in files that instantiate
+  the primitives directly.
+
+### 🧹 De-duplication & documentation (Phase B)
+
+- `FloatyChannels` constant in `floaty_chatheads_platform_interface`
+  is now the single source of truth for the messenger channel name
+  (`ni.devotion.floaty_head/messenger`). The Dart channel
+  implementation references it instead of hard-coding the string.
+- New `ChatHeadConfigResolver` in `floaty_chatheads_platform_interface`
+  removes ~30 lines of duplicated default-value resolution between the
+  Android and iOS Dart shims.
+- Documented iOS-only behavior on `ChatHeadAssets` and
+  `FloatyChatheadsIOS`: icon-source overrides, secondary chathead
+  icons, and notification description are intentionally not forwarded
+  to the Swift side because the iOS chathead renders as a Flutter
+  view. Wiring them through would silently send data into a void.
+
 ## 1.5.0
 
 ### ✨ Widget-Based Icons

@@ -1,5 +1,34 @@
 # Changelog
 
+## 2.0.0
+
+> **Released as part of the floaty_chatheads 2.0 line.** See the main
+> package CHANGELOG for the full migration guide.
+
+### ✨ New shared helpers
+
+- **`FloatyChannels`** — single source of truth for the canonical
+  messenger channel name (`ni.devotion.floaty_head/messenger`). The
+  Dart side, the Android Kotlin service, and the iOS Swift plugin all
+  reference this constant.
+- **`ChatHeadConfigResolver`** — extracts default-value resolution
+  (size-preset application, snap-config fallbacks, notification
+  visibility default) from the Android and iOS Dart shims. Both
+  platform packages now call the resolver, eliminating ~30 lines of
+  duplicated null-coalescing logic.
+
+### 📝 Documented platform differences
+
+- `ChatHeadAssets` documents that asset overrides are honored on
+  Android only; the iOS chathead is a Flutter view, so app authors
+  render icons inside the overlay entry point.
+
+### ⚙ Toolchain (BREAKING)
+
+- Dart SDK floor `^3.0.0`, Flutter floor `>=3.10.0` — matches the
+  rest of the federated set; picked as the bare minimum the Dart
+  code requires.
+
 ## 1.0.5
 
 ### ✨ Enhancements

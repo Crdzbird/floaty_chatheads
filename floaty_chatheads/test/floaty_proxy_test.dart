@@ -1,3 +1,4 @@
+import 'package:floaty_chatheads/advanced.dart';
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:floaty_chatheads/src/floaty_channel.dart';
 import 'package:flutter/services.dart';

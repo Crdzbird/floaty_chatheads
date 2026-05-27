@@ -33,7 +33,24 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     private val bgSourceBitmap: Bitmap = OverlayConfig.backgroundCloseIcon
         ?: BitmapFactory.decodeResource(context.resources, R.drawable.close_bg)
 
-    private var bitmapBg: Bitmap? = null
+    /**
+     * Source rect over [bgSourceBitmap] — full bitmap, computed once.
+     * Used with [bgDstRect] in [onDraw] so the close-bg scale animation
+     * does not allocate a new bitmap per spring tick.
+     */
+    private val bgSrcRect = Rect(0, 0, bgSourceBitmap.width, bgSourceBitmap.height)
+
+    /** Destination rect re-used across draws (mutated in [onDraw]). */
+    private val bgDstRect = RectF()
+
+    /** Current animated size in px (driven by [springScale]). */
+    private var bgCurrentSize: Float = ChatHeads.CLOSE_SIZE.toFloat()
+
+    /** Paint dedicated to the scaled bg — bilinear filter keeps the
+     *  upscaled gradient smooth. Kept separate from [paint] so the
+     *  close-icon rendering is unaffected. */
+    private val bgPaint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
+
     private var bitmapClose: Bitmap? = null
 
     fun hide() {
@@ -58,8 +75,6 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     }
 
     init {
-        bitmapBg = Bitmap.createScaledBitmap(bgSourceBitmap, ChatHeads.CLOSE_SIZE, ChatHeads.CLOSE_SIZE, false)
-
         // Widget-rendered close icons fill the close target; asset icons
         // stay at the small 28 dp default so they sit on top of the bg.
         val closeIconSize = if (OverlayConfig.closeIconIsWidget) {
@@ -99,8 +114,7 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
         })
         springScale.addListener(object : SimpleSpringListener() {
             override fun onSpringUpdate(spring: Spring) {
-                val animatedSize = (spring.currentValue + ChatHeads.CLOSE_SIZE).toInt()
-                bitmapBg = Bitmap.createScaledBitmap(bgSourceBitmap, animatedSize, animatedSize, false)
+                bgCurrentSize = (spring.currentValue + ChatHeads.CLOSE_SIZE).toFloat()
                 invalidate()
             }
         })
@@ -129,13 +143,18 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     }
 
     override fun onDraw(canvas: Canvas) {
-        bitmapBg?.let {
-            canvas.drawBitmap(it, width / 2 - it.width.toFloat() / 2, height / 2 - it.height.toFloat() / 2, paint)
-        }
+        // Draw the scale-animated background from a single source bitmap
+        // via dest-rect scaling — zero allocations per spring tick.
+        val cx = width / 2f
+        val cy = height / 2f
+        val half = bgCurrentSize / 2f
+        bgDstRect.set(cx - half, cy - half, cx + half, cy + half)
+        canvas.drawBitmap(bgSourceBitmap, bgSrcRect, bgDstRect, bgPaint)
+
         bitmapClose?.let {
             // Use closePaint if a tint is set, otherwise default paint
             val drawPaint = if (OverlayConfig.closeTintColor != null) closePaint else paint
-            canvas.drawBitmap(it, width / 2 - it.width.toFloat() / 2, height / 2 - it.height.toFloat() / 2, drawPaint)
+            canvas.drawBitmap(it, cx - it.width.toFloat() / 2, cy - it.height.toFloat() / 2, drawPaint)
         }
     }
 }

@@ -1,3 +1,9 @@
+// Color.withOpacity is deprecated in Flutter 3.27+ in favor of
+// Color.withValues(alpha:), but withOpacity continues to work and lets
+// this file build on Flutter 3.10+. Switch when Flutter actually
+// removes withOpacity.
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 /// {@template floaty_mini_player}
@@ -98,7 +104,7 @@ class FloatyMiniPlayer extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
+              color: Colors.black.withOpacity(0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -115,7 +121,7 @@ class FloatyMiniPlayer extends StatelessWidget {
                 children: [
                   if (onClose != null)
                     IconButton(
-                      icon: Icon(Icons.close, color: fg.withValues(alpha: 0.6)),
+                      icon: Icon(Icons.close, color: fg.withOpacity(0.6)),
                       iconSize: 18,
                       onPressed: onClose,
                       tooltip: 'Close player',
@@ -138,7 +144,7 @@ class FloatyMiniPlayer extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: accent.withValues(alpha: 0.2),
+                        color: accent.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(Icons.music_note, color: accent),
@@ -162,7 +168,7 @@ class FloatyMiniPlayer extends StatelessWidget {
                           Text(
                             subtitle!,
                             style: TextStyle(
-                              color: fg.withValues(alpha: 0.6),
+                              color: fg.withOpacity(0.6),
                               fontSize: 12,
                             ),
                             maxLines: 1,
@@ -181,7 +187,7 @@ class FloatyMiniPlayer extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
                 child: LinearProgressIndicator(
                   value: progress.clamp(0, 1),
-                  backgroundColor: fg.withValues(alpha: 0.1),
+                  backgroundColor: fg.withOpacity(0.1),
                   valueColor: AlwaysStoppedAnimation(accent),
                   minHeight: 3,
                 ),

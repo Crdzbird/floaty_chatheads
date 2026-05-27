@@ -1,6 +1,49 @@
 import 'dart:async';
 
 import 'package:floaty_chatheads/src/floaty_channel.dart';
+import 'package:flutter/foundation.dart' show immutable;
+
+/// {@template stream_key}
+/// Compile-time link between a stream [name], its payload type [T], and
+/// the JSON converters used on both sides.
+///
+/// Define the key once (typically as a top-level `const`) and pass it to
+/// both the main-app producer and the overlay consumer:
+///
+/// ```dart
+/// const gpsKey = StreamKey<GpsCoord>(
+///   name: 'gps',
+///   toJson: GpsCoord.encode,
+///   fromJson: GpsCoord.decode,
+/// );
+///
+/// // Main app:
+/// final gps = FloatyProxyStream(gpsKey);
+/// gps.add(GpsCoord(lat, lng));
+///
+/// // Overlay:
+/// final gps = FloatyProxyStream.overlay(gpsKey);
+/// gps.stream.listen(updateMarker);
+/// ```
+/// {@endtemplate}
+@immutable
+class StreamKey<T> {
+  /// {@macro stream_key}
+  const StreamKey({
+    required this.name,
+    required this.toJson,
+    required this.fromJson,
+  });
+
+  /// Stream identifier shared by producer and consumer.
+  final String name;
+
+  /// Serializes a value of [T] to a JSON-compatible map.
+  final Map<String, dynamic> Function(T value) toJson;
+
+  /// Deserializes a JSON-compatible map back into [T].
+  final T Function(Map<String, dynamic> json) fromJson;
+}
 
 /// {@template floaty_proxy_stream}
 /// A typed, reactive, **unidirectional** stream that pushes values from the
@@ -14,11 +57,13 @@ import 'package:floaty_chatheads/src/floaty_channel.dart';
 /// **Main app side:**
 ///
 /// ```dart
-/// final gps = FloatyProxyStream<LatLng>(
+/// const gpsKey = StreamKey<LatLng>(
 ///   name: 'gps',
-///   toJson: (p) => {'lat': p.lat, 'lng': p.lng},
+///   toJson: _gpsToJson,
+///   fromJson: _gpsFromJson,
 /// );
 ///
+/// final gps = FloatyProxyStream(gpsKey);
 /// positionStream.listen((pos) {
 ///   gps.add(LatLng(pos.latitude, pos.longitude));
 /// });
@@ -27,17 +72,14 @@ import 'package:floaty_chatheads/src/floaty_channel.dart';
 /// **Overlay side:**
 ///
 /// ```dart
-/// final gps = FloatyProxyStream<LatLng>.overlay(
-///   name: 'gps',
-///   fromJson: (j) => LatLng(j['lat'] as double, j['lng'] as double),
-/// );
+/// final gps = FloatyProxyStream.overlay(gpsKey);
 ///
 /// gps.stream.listen((pos) => updateMarker(pos));
 /// print(gps.latest); // last received value, or null
 /// ```
 ///
-/// Each stream is identified by [name]; multiple independent streams can
-/// coexist (e.g. `'gps'`, `'gyroscope'`, `'playback'`).
+/// Each stream is identified by its [StreamKey]; multiple independent
+/// streams can coexist (e.g. `'gps'`, `'gyroscope'`, `'playback'`).
 ///
 /// The class uses a dedicated channel prefix (`_floaty_pstream`) that does
 /// not collide with `FloatyStateChannel`, `FloatyActionRouter`, or
@@ -47,14 +89,10 @@ final class FloatyProxyStream<T> {
   /// {@template floaty_proxy_stream.main}
   /// Creates a proxy stream for the **main app** side (producer).
   ///
-  /// [name] identifies this stream (must match the overlay subscriber).
-  /// [toJson] serializes each value for transmission over the platform
-  /// channel.
+  /// Pass the same [StreamKey] used by the overlay consumer.
   /// {@endtemplate}
-  FloatyProxyStream({
-    required this.name,
-    required Map<String, dynamic> Function(T value) toJson,
-  })  : _toJson = toJson,
+  FloatyProxyStream(this._key)
+      : _toJson = _key.toJson,
         _fromJson = null {
     _Registry._register(this);
   }
@@ -62,21 +100,20 @@ final class FloatyProxyStream<T> {
   /// {@template floaty_proxy_stream.overlay}
   /// Creates a proxy stream for the **overlay** side (consumer).
   ///
-  /// [name] must match the main-app producer's name.
-  /// [fromJson] deserializes incoming values.
+  /// Pass the same [StreamKey] used by the main-app producer.
   /// {@endtemplate}
-  FloatyProxyStream.overlay({
-    required this.name,
-    required T Function(Map<String, dynamic> json) fromJson,
-  })  : _toJson = null,
-        _fromJson = fromJson {
+  FloatyProxyStream.overlay(this._key)
+      : _toJson = null,
+        _fromJson = _key.fromJson {
     _Registry._register(this);
   }
 
   static const _prefix = '_floaty_pstream';
 
+  final StreamKey<T> _key;
+
   /// The name identifying this stream.
-  final String name;
+  String get name => _key.name;
 
   final Map<String, dynamic> Function(T value)? _toJson;
   final T Function(Map<String, dynamic> json)? _fromJson;

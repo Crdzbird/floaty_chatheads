@@ -1,3 +1,4 @@
+import 'package:floaty_chatheads/advanced.dart';
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:floaty_chatheads/src/floaty_channel.dart';
 import 'package:flutter/services.dart';
@@ -9,10 +10,12 @@ class _PingAction extends FloatyAction {
   factory _PingAction.fromJson(Map<String, dynamic> json) =>
       _PingAction(value: json['value'] as String);
 
+  static const key = ActionKey<_PingAction>('ping', _PingAction.fromJson);
+
   final String value;
 
   @override
-  String get type => 'ping';
+  String get type => key.type;
 
   @override
   Map<String, dynamic> toJson() => {'value': value};
@@ -24,10 +27,13 @@ class _NavigateAction extends FloatyAction {
   factory _NavigateAction.fromJson(Map<String, dynamic> json) =>
       _NavigateAction(route: json['route'] as String);
 
+  static const key =
+      ActionKey<_NavigateAction>('navigate', _NavigateAction.fromJson);
+
   final String route;
 
   @override
-  String get type => 'navigate';
+  String get type => key.type;
 
   @override
   Map<String, dynamic> toJson() => {'route': route};
@@ -88,11 +94,7 @@ void main() {
       addTearDown(router.dispose);
 
       // on should not throw.
-      router.on<_PingAction>(
-        'ping',
-        fromJson: _PingAction.fromJson,
-        handler: (_) {},
-      );
+      router.on(_PingAction.key, (_) {});
     });
 
     test('off removes a handler', () async {
@@ -100,14 +102,10 @@ void main() {
       addTearDown(router.dispose);
 
       router
-        ..on<_PingAction>(
-          'ping',
-          fromJson: _PingAction.fromJson,
-          handler: (_) {},
-        )
+        ..on(_PingAction.key, (_) {})
 
         // Remove the handler.
-        ..off('ping');
+        ..off(_PingAction.key);
 
       // After off, the handler should no longer be in the router's map.
       // Sending a 'ping' action should be silently ignored (no crash).
@@ -125,11 +123,7 @@ void main() {
       final router = FloatyActionRouter();
       addTearDown(router.dispose);
 
-      router.on<_PingAction>(
-        'ping',
-        fromJson: _PingAction.fromJson,
-        handler: (_) {},
-      );
+      router.on(_PingAction.key, (_) {});
 
       // Send an action type that has no handler -- should not crash.
       await _simulateMessage({
@@ -146,19 +140,11 @@ void main() {
       addTearDown(router.dispose);
 
       router
-        ..on<_PingAction>(
-          'ping',
-          fromJson: _PingAction.fromJson,
-          handler: (_) {},
-        )
-        ..on<_NavigateAction>(
-          'navigate',
-          fromJson: _NavigateAction.fromJson,
-          handler: (_) {},
-        )
+        ..on(_PingAction.key, (_) {})
+        ..on(_NavigateAction.key, (_) {})
 
         // Both registered; off one doesn't affect the other.
-        ..off('ping');
+        ..off(_PingAction.key);
 
       // 'navigate' handler should still be registered (no crash on dispatch).
     });
@@ -167,11 +153,7 @@ void main() {
       final router = FloatyActionRouter();
       addTearDown(router.dispose);
 
-      router.on<_PingAction>(
-        'ping',
-        fromJson: _PingAction.fromJson,
-        handler: (_) {},
-      );
+      router.on(_PingAction.key, (_) {});
 
       // Send a message where payload is not a Map.
       await _simulateMessage({
@@ -188,11 +170,7 @@ void main() {
       final router = FloatyActionRouter();
       addTearDown(router.dispose);
 
-      router.on<_PingAction>(
-        'ping',
-        fromJson: _PingAction.fromJson,
-        handler: (_) {},
-      );
+      router.on(_PingAction.key, (_) {});
 
       // Send a message without 'type'.
       await _simulateMessage({
@@ -226,11 +204,7 @@ void main() {
 
     test('dispose clears handlers and unregisters from channel', () async {
       FloatyActionRouter()
-        ..on<_PingAction>(
-          'ping',
-          fromJson: _PingAction.fromJson,
-          handler: (_) {},
-        )
+        ..on(_PingAction.key, (_) {})
         ..dispose();
 
       // After dispose, action messages should go to rawMessages.
@@ -253,9 +227,11 @@ void main() {
       addTearDown(router.dispose);
 
       router.on<_PingAction>(
-        'ping',
-        fromJson: (json) => throw const FormatException('bad data'),
-        handler: (_) {},
+        ActionKey<_PingAction>(
+          'ping',
+          (json) => throw const FormatException('bad data'),
+        ),
+        (_) {},
       );
 
       // Should not throw.
@@ -288,11 +264,7 @@ void main() {
       final router = FloatyActionRouter();
       addTearDown(router.dispose);
 
-      router.on<_PingAction>(
-        'ping',
-        fromJson: _PingAction.fromJson,
-        handler: (_) {},
-      );
+      router.on(_PingAction.key, (_) {});
 
       final rawReceived = <Object?>[];
       FloatyChannel.rawMessages.listen(rawReceived.add);

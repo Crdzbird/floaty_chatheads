@@ -32,15 +32,8 @@ class _SensorStreamOverlayState extends State<SensorStreamOverlay> {
   void initState() {
     super.initState();
 
-    _accelStream = FloatyProxyStream<AccelData>.overlay(
-      name: 'accel',
-      fromJson: AccelData.fromJson,
-    );
-
-    _lightStream = FloatyProxyStream<LightData>.overlay(
-      name: 'light',
-      fromJson: LightData.fromJson,
-    );
+    _accelStream = FloatyProxyStream.overlay(AccelData.streamKey);
+    _lightStream = FloatyProxyStream.overlay(LightData.streamKey);
 
     _accelSub = _accelStream.stream.listen((data) {
       if (mounted) {

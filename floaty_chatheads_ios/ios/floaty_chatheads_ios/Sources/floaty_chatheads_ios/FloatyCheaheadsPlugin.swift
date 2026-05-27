@@ -12,7 +12,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     private let bubbleSize = CGSize(width: 64, height: 64)
     private var isOverlayActive = false
     private var isExpanded = false
-    private var badgeCount: Int = 0
     private var currentChatHeadId: String = "default"
 
     // Config state
@@ -23,8 +22,8 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     private var currentTheme: ChatHeadThemeMessage?
     private var currentDebugMode: Bool = false
 
-    // UI elements
-    private var badgeLabel: UILabel?
+    // Badge label is managed by [BadgeView].
+    private let badge = BadgeView()
 
     private var mainMessenger: FlutterBasicMessageChannel?
     private var overlayMessenger: FlutterBasicMessageChannel?
@@ -89,7 +88,7 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     }
 
     func updateBadge(count: Int64) throws {
-        applyBadgeCount(Int(count))
+        badge.setCount(Int(count))
     }
 
     func expandChatHead() throws {
@@ -142,14 +141,14 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     }
 
     func updateBadgeFromOverlay(count: Int64) throws {
-        applyBadgeCount(Int(count))
+        badge.setCount(Int(count))
     }
 
     func getDebugInfo() throws -> [String?: Any?] {
         return [
             "isOverlayActive": isOverlayActive,
             "isExpanded": isExpanded,
-            "badgeCount": badgeCount,
+            "badgeCount": badge.count,
             "windowX": overlayWindow?.frame.origin.x ?? 0,
             "windowY": overlayWindow?.frame.origin.y ?? 0,
             "windowWidth": overlayWindow?.frame.width ?? 0,
@@ -251,7 +250,7 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         window.layer.cornerRadius = 16
 
         // Apply theming
-        applyTheme(to: window, theme: config.theme)
+        OverlayThemer.apply(to: window, theme: config.theme)
 
         if config.enableDrag {
             let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
@@ -266,11 +265,18 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         overlayWindow = window
         isOverlayActive = true
 
-        // Create badge label
-        createBadgeLabel(on: window)
+        // Set badge theme colors before install so the label picks them up.
+        if let theme = config.theme {
+            if let bg = theme.badgeColor { badge.backgroundColor = UIColor(argb: bg) }
+            if let tc = theme.badgeTextColor { badge.textColor = UIColor(argb: tc) }
+        }
+        badge.install(on: window)
 
-        // Entrance animation
-        applyEntranceAnimation(to: window, animation: config.entranceAnimation)
+        EntranceAnimator.apply(
+            to: window,
+            animation: config.entranceAnimation,
+            screenWidth: screenBounds.width,
+        )
     }
 
     private func destroyOverlayWindow() {
@@ -280,8 +286,7 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         overlayMessenger = nil
         overlayFlutterApi = nil
 
-        badgeLabel?.removeFromSuperview()
-        badgeLabel = nil
+        badge.remove()
 
         overlayWindow?.isHidden = true
         overlayWindow?.rootViewController = nil
@@ -290,64 +295,12 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         overlayEngine = nil
         isOverlayActive = false
         isExpanded = false
-        badgeCount = 0
 
         // Notify the main app that the chathead was closed.
         mainMessenger?.sendMessage([
             "__floaty__": "_floaty_closed",
             "_floaty_closed": ["id": closedId],
         ])
-    }
-
-    // MARK: - Entrance Animations
-
-    private func applyEntranceAnimation(to window: UIWindow, animation: EntranceAnimationMessage) {
-        switch animation {
-        case .none:
-            window.alpha = 1
-            window.makeKeyAndVisible()
-
-        case .pop:
-            window.transform = CGAffineTransform(scaleX: 0.01, y: 0.01)
-            window.alpha = 1
-            window.makeKeyAndVisible()
-            UIView.animate(
-                withDuration: 0.5,
-                delay: 0,
-                usingSpringWithDamping: 0.6,
-                initialSpringVelocity: 0.8,
-                options: [],
-                animations: {
-                    window.transform = .identity
-                },
-                completion: nil
-            )
-
-        case .slideFromEdge:
-            let screenBounds = self.screenBounds
-            let targetX = window.frame.origin.x
-            window.frame.origin.x = screenBounds.width + window.frame.width
-            window.alpha = 1
-            window.makeKeyAndVisible()
-            UIView.animate(
-                withDuration: 0.5,
-                delay: 0,
-                usingSpringWithDamping: 0.7,
-                initialSpringVelocity: 0.5,
-                options: [],
-                animations: {
-                    window.frame.origin.x = targetX
-                },
-                completion: nil
-            )
-
-        case .fade:
-            window.alpha = 0
-            window.makeKeyAndVisible()
-            UIView.animate(withDuration: 0.25) {
-                window.alpha = 1
-            }
-        }
     }
 
     // MARK: - Snap-to-Edge
@@ -402,89 +355,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     private func savePosition(_ origin: CGPoint) {
         UserDefaults.standard.set(origin.x, forKey: FloatyChatheadsPlugin.positionXKey)
         UserDefaults.standard.set(origin.y, forKey: FloatyChatheadsPlugin.positionYKey)
-    }
-
-    // MARK: - Badge Counter
-
-    private func createBadgeLabel(on window: UIWindow) {
-        let label = UILabel()
-        label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 10, weight: .bold)
-        label.textColor = .white
-        label.backgroundColor = .red
-        label.clipsToBounds = true
-        label.isHidden = true
-
-        // Apply theme colors if available
-        if let theme = currentTheme {
-            if let badgeColor = theme.badgeColor {
-                label.backgroundColor = UIColor(argb: badgeColor)
-            }
-            if let badgeTextColor = theme.badgeTextColor {
-                label.textColor = UIColor(argb: badgeTextColor)
-            }
-        }
-
-        let badgeSize: CGFloat = 18
-        label.frame = CGRect(
-            x: window.frame.width - badgeSize / 2,
-            y: -badgeSize / 2,
-            width: badgeSize,
-            height: badgeSize
-        )
-        label.layer.cornerRadius = badgeSize / 2
-
-        window.addSubview(label)
-        badgeLabel = label
-    }
-
-    private func applyBadgeCount(_ count: Int) {
-        badgeCount = count
-        guard let label = badgeLabel else { return }
-
-        if count <= 0 {
-            label.isHidden = true
-            overlayWindow?.accessibilityValue = nil
-        } else {
-            label.isHidden = false
-            let displayText = count > 99 ? "99+" : "\(count)"
-            label.text = displayText
-
-            // Resize badge to fit text
-            let textWidth = (displayText as NSString).size(withAttributes: [.font: label.font!]).width
-            let badgeWidth = max(18, textWidth + 8)
-            let badgeHeight: CGFloat = 18
-            if let window = overlayWindow {
-                label.frame = CGRect(
-                    x: window.frame.width - badgeWidth / 2,
-                    y: -badgeHeight / 2,
-                    width: badgeWidth,
-                    height: badgeHeight
-                )
-            }
-            label.layer.cornerRadius = badgeHeight / 2
-
-            overlayWindow?.accessibilityValue = "\(count) notifications"
-        }
-    }
-
-    // MARK: - Theming
-
-    private func applyTheme(to window: UIWindow, theme: ChatHeadThemeMessage?) {
-        guard let theme = theme else { return }
-
-        if let borderColor = theme.bubbleBorderColor {
-            window.layer.borderColor = UIColor(argb: borderColor).cgColor
-        }
-        if let borderWidth = theme.bubbleBorderWidth {
-            window.layer.borderWidth = CGFloat(borderWidth)
-        }
-        if let shadowColor = theme.bubbleShadowColor {
-            window.layer.shadowColor = UIColor(argb: shadowColor).cgColor
-            window.layer.shadowOpacity = 0.3
-            window.layer.shadowOffset = CGSize(width: 0, height: 2)
-            window.layer.shadowRadius = 4
-        }
     }
 
     // MARK: - Expand / Collapse
@@ -571,14 +441,3 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     }
 }
 
-// MARK: - UIColor ARGB Extension
-
-private extension UIColor {
-    convenience init(argb: Int64) {
-        let a = CGFloat((argb >> 24) & 0xFF) / 255.0
-        let r = CGFloat((argb >> 16) & 0xFF) / 255.0
-        let g = CGFloat((argb >> 8) & 0xFF) / 255.0
-        let b = CGFloat(argb & 0xFF) / 255.0
-        self.init(red: r, green: g, blue: b, alpha: a)
-    }
-}

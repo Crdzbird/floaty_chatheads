@@ -35,63 +35,50 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
   /// {@macro floaty_chatheads_platform.show_chat_head}
   @override
   Future<void> showChatHead(ChatHeadConfig config) {
-    // Resolve size preset: if set, use preset dimensions;
-    // otherwise use raw values.
-    final effectiveWidth = config.sizePreset?.width ?? config.contentWidth;
-    final effectiveHeight = config.sizePreset?.height ?? config.contentHeight;
-
-    // Build theme message if theme is provided.
-    pigeon.ChatHeadThemeMessage? themeMsg;
-    if (config.theme != null) {
-      final t = config.theme!;
-      themeMsg = pigeon.ChatHeadThemeMessage(
-        badgeColor: t.badgeColor,
-        badgeTextColor: t.badgeTextColor,
-        bubbleBorderColor: t.bubbleBorderColor,
-        bubbleBorderWidth: t.bubbleBorderWidth,
-        bubbleShadowColor: t.bubbleShadowColor,
-        closeTintColor: t.closeTintColor,
-        overlayPalette: t.overlayPalette != null
-            ? Map<String?, int?>.from(t.overlayPalette!)
-            : null,
-      );
-    }
-
+    final size = ChatHeadConfigResolver.contentSize(config);
     return _hostApi.showChatHead(
       pigeon.ChatHeadConfig(
         entryPoint: config.entryPoint,
-        contentWidth: effectiveWidth,
-        contentHeight: effectiveHeight,
+        contentWidth: size.width,
+        contentHeight: size.height,
         notificationTitle: config.notification?.title,
         notificationDescription: config.notification?.description,
         notificationIconAsset: config.notification?.iconAsset,
         flag: pigeon.OverlayFlagMessage.values[config.flag.index],
         enableDrag: config.enableDrag,
-        notificationVisibility:
-            pigeon.NotificationVisibilityMessage.values[
-                (config.notification?.visibility ??
-                        NotificationVisibility.visibilityPublic)
-                    .index],
+        notificationVisibility: pigeon.NotificationVisibilityMessage.values[
+            ChatHeadConfigResolver.notificationVisibility(config.notification)
+                .index],
         snapEdge: pigeon.SnapEdgeMessage
-            .values[(config.snap?.edge ?? SnapEdge.both).index],
-        snapMargin: config.snap?.margin ?? -10,
-        persistPosition: config.snap?.persistPosition ?? false,
+            .values[ChatHeadConfigResolver.snapEdge(config.snap).index],
+        snapMargin: ChatHeadConfigResolver.snapMargin(config.snap),
+        persistPosition: ChatHeadConfigResolver.persistPosition(config.snap),
         entranceAnimation: pigeon.EntranceAnimationMessage
             .values[config.entranceAnimation.index],
-        theme: themeMsg,
+        theme: _toThemeMessage(config.theme),
         debugMode: config.debugMode,
         autoLaunchOnBackground: config.autoLaunchOnBackground,
         persistOnAppClose: config.persistOnAppClose,
-        chatheadIconSource: _toIconSourceMessage(
-          config.assets?.icon,
-        ),
-        closeIconSource: _toIconSourceMessage(
-          config.assets?.closeIcon,
-        ),
-        closeBackgroundSource: _toIconSourceMessage(
-          config.assets?.closeBackground,
-        ),
+        chatheadIconSource: _toIconSourceMessage(config.assets?.icon),
+        closeIconSource: _toIconSourceMessage(config.assets?.closeIcon),
+        closeBackgroundSource:
+            _toIconSourceMessage(config.assets?.closeBackground),
       ),
+    );
+  }
+
+  static pigeon.ChatHeadThemeMessage? _toThemeMessage(ChatHeadTheme? t) {
+    if (t == null) return null;
+    return pigeon.ChatHeadThemeMessage(
+      badgeColor: t.badgeColor,
+      badgeTextColor: t.badgeTextColor,
+      bubbleBorderColor: t.bubbleBorderColor,
+      bubbleBorderWidth: t.bubbleBorderWidth,
+      bubbleShadowColor: t.bubbleShadowColor,
+      closeTintColor: t.closeTintColor,
+      overlayPalette: t.overlayPalette != null
+          ? Map<String?, int?>.from(t.overlayPalette!)
+          : null,
     );
   }
 
