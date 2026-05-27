@@ -155,14 +155,15 @@ dependencies:
 flutter pub get
 ```
 
-**Requirements:** Dart `^3.0.0`, Flutter `>=3.10.0`, Android 7.0+ (API 24) / iOS 14.0+
+**Requirements:** Dart `^3.6.0`, Flutter `>=3.27.0`, Android 7.0+ (API 24) / iOS 14.0+
 
-Floors are picked as the *bare minimum* that the Dart code requires
-(records, sealed classes, pattern matching). On Flutter 3.44+ you'll
-see a warning that the Android plugin applies KGP — kept that way
-deliberately so consumers on older Flutter versions are not forced
-to upgrade. If you are upgrading from 1.x, see the
-[2.0 migration notes](#migrating-from-1x-to-20) below.
+The Flutter floor is set to 3.27 because the Android plugin uses
+Kotlin Gradle Plugin 2.0's `kotlin { compilerOptions {} }` DSL — the
+backwards-compatible "Built-in Kotlin" pattern from
+[Flutter's plugin migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors).
+On Flutter 3.44+ this plugin is *not* listed in the "applies
+Kotlin Gradle Plugin" warning. If you are upgrading from 1.x, see
+the [2.0 migration notes](#migrating-from-1x-to-20) below.
 
 ### 2. Platform setup
 
@@ -1225,8 +1226,8 @@ survival) is unchanged.
 
 | Floor | 1.x | 2.0 |
 |---|---|---|
-| Dart SDK | `^3.4.0` | `^3.0.0` |
-| Flutter | `>=3.22.0` | `>=3.10.0` |
+| Dart SDK | `^3.4.0` | `^3.6.0` |
+| Flutter | `>=3.22.0` | `>=3.27.0` |
 | Android `minSdk` | 23 | **24** |
 | iOS deployment | 13.0 | **14.0** |
 
@@ -1294,16 +1295,34 @@ work — the plugin's `.podspec` is still in place. To move to SPM, run
 `Podfile.lock` + `Pods/`, and let Flutter resolve the plugin through
 SPM on the next `flutter run`.
 
-### Android — Kotlin Gradle Plugin
+### Android — backwards-compatible Built-in Kotlin
 
-The plugin still applies `id "kotlin-android"` in its `build.gradle`,
-matching the standard Flutter plugin template. On Flutter 3.44+ this
-triggers a warning ("Future versions of Flutter will fail to build if
-your app uses plugins that apply KGP"). The warning is intentional
-trade-off for now — switching to Flutter's Built-in Kotlin pattern
-would require a Flutter 3.44+ floor and lock out every consumer on
-3.10–3.43. The plugin will migrate when Flutter promotes the warning
-to an error.
+The Android plugin uses the [conditional KGP pattern](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors)
+Flutter recommends for plugin authors who need to support both
+Flutter 3.27–3.43 (explicit `kotlin-android` apply) and Flutter 3.44+
+(Built-in Kotlin). The pattern looks like:
+
+```groovy
+def agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+    .tokenize('.')[0] as int
+
+if (agpMajor < 9) {
+    apply plugin: 'kotlin-android'
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    }
+}
+```
+
+On Flutter 3.44+ this plugin does **not** appear in the
+"applies Kotlin Gradle Plugin" warning. App developers consuming
+the plugin should still follow the
+[for-app-developers migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers)
+on their own `android/app/build.gradle[.kts]` so their app drops
+out of the warning too.
 
 ---
 

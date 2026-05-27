@@ -10,26 +10,43 @@
 - Android `minSdk` raised to **24** (was 23).
 - `compileSdk` bumped to 35 (Android 15).
 - Plugin Java/Kotlin JVM target raised to 11 (was 1.8).
-- Dart SDK floor `^3.0.0`, Flutter floor `>=3.10.0` — the bare
-  minimum the Dart code requires (records, sealed classes,
-  `final class`, pattern matching).
+- Dart SDK floor `^3.6.0`, Flutter floor `>=3.27.0` — the minimum
+  Flutter version that ships Kotlin Gradle Plugin 2.0 by default
+  (required by the new `kotlin { compilerOptions {} }` DSL below).
 - Pigeon constraint normalized to `^26.3.3`.
 - Depends on `floaty_chatheads_platform_interface: ^2.0.0`.
 
-### ℹ Built-in Kotlin migration deferred
+### 🔧 Backwards-compatible Built-in Kotlin
 
-The Android `build.gradle` still applies `id "kotlin-android"` and
-uses the legacy `kotlinOptions { jvmTarget = '11' }` block. This is
-intentional: switching to Flutter's "Built-in Kotlin" pattern
-(top-level `kotlin { compilerOptions { … } }` and no explicit KGP)
-requires Flutter 3.44+, which would exclude every consumer on
-Flutter 3.10–3.43.
+`android/build.gradle` adopts the
+[plugin-author conditional pattern](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors)
+recommended by Flutter:
 
-On Flutter 3.44+ you will see a warning that the plugin applies
-KGP — Flutter intends to convert this into an error in a future
-release. When the time comes, the migration is documented at
-<https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors>
-and will land in a later major release.
+```groovy
+def agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+    .tokenize('.')[0] as int
+
+if (agpMajor < 9) {
+    apply plugin: 'kotlin-android'
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    }
+}
+```
+
+- **Flutter 3.27 – 3.43** (AGP < 9): `kotlin-android` is applied
+  explicitly. These Flutter versions don't emit the
+  "plugin applies KGP" warning at all.
+- **Flutter 3.44+** (AGP ≥ 9): the explicit apply is skipped and
+  Flutter's Built-in Kotlin provides KGP. As a result this plugin
+  **no longer appears in Flutter's KGP warning** on 3.44+ builds.
+
+Either way the legacy `android { kotlinOptions {} }` block is gone;
+the JVM target is set on the top-level `kotlin { compilerOptions {} }`
+block which requires KGP 2.0+ (the reason for the Flutter 3.27 floor).
 
 ### ♻ Internals
 
