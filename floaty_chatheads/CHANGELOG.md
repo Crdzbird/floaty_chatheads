@@ -25,10 +25,18 @@ See the README "Hello World" section for the full 30-second setup.
 
 ### ⚙ Toolchain & platform floors (BREAKING)
 
-- Dart SDK floor raised to `^3.12.0` (was `^3.4.0`).
-- Flutter floor raised to `>=3.44.0` (was `>=3.22.0`) — required by
-  the Built-in Kotlin migration on the Android side. See
-  `floaty_chatheads_android` CHANGELOG for the full migration note.
+- Dart SDK floor raised to `^3.0.0` (was `^3.4.0`) — the minimum
+  that supports records, sealed classes, `final class`, and the
+  pattern matching used by the typed `ActionKey` / `StreamKey` API.
+- Flutter floor raised to `>=3.10.0` (was `>=3.22.0`) — pairs with
+  Dart 3.0.
+
+Versions deliberately picked as the **bare minimum the library
+actually requires**, rather than the latest available. On
+Flutter 3.44+ you will see a warning that the Android plugin
+applies the Kotlin Gradle Plugin (KGP) — that is intentional: it
+keeps the plugin compatible with older Flutter versions instead of
+forcing the Built-in Kotlin migration on every consumer.
 - Android `minSdk` raised to **24** (was 23). Android 7.0 (Nougat) is now the
   oldest supported OS. `compileSdk` bumped to 35 (Android 15). Plugin
   Java target raised to 11 (was 1.8) to match the example app.

@@ -155,11 +155,13 @@ dependencies:
 flutter pub get
 ```
 
-**Requirements:** Dart `^3.12.0`, Flutter `>=3.44.0`, Android 7.0+ (API 24) / iOS 14.0+
+**Requirements:** Dart `^3.0.0`, Flutter `>=3.10.0`, Android 7.0+ (API 24) / iOS 14.0+
 
-The Flutter floor is driven by the Built-in Kotlin migration on the
-Android plugin and by Swift Package Manager on the iOS side. If you are
-upgrading from 1.x, see the
+Floors are picked as the *bare minimum* that the Dart code requires
+(records, sealed classes, pattern matching). On Flutter 3.44+ you'll
+see a warning that the Android plugin applies KGP — kept that way
+deliberately so consumers on older Flutter versions are not forced
+to upgrade. If you are upgrading from 1.x, see the
 [2.0 migration notes](#migrating-from-1x-to-20) below.
 
 ### 2. Platform setup
@@ -1223,8 +1225,8 @@ survival) is unchanged.
 
 | Floor | 1.x | 2.0 |
 |---|---|---|
-| Dart SDK | `^3.4.0` | `^3.12.0` |
-| Flutter | `>=3.22.0` | `>=3.44.0` |
+| Dart SDK | `^3.4.0` | `^3.0.0` |
+| Flutter | `>=3.22.0` | `>=3.10.0` |
 | Android `minSdk` | 23 | **24** |
 | iOS deployment | 13.0 | **14.0** |
 
@@ -1292,13 +1294,16 @@ work — the plugin's `.podspec` is still in place. To move to SPM, run
 `Podfile.lock` + `Pods/`, and let Flutter resolve the plugin through
 SPM on the next `flutter run`.
 
-### Android — Built-in Kotlin
+### Android — Kotlin Gradle Plugin
 
-The plugin no longer declares the Kotlin Gradle Plugin itself; it
-inherits Kotlin tooling from the Flutter Gradle Plugin (Built-in
-Kotlin). This requires Flutter 3.44+ and an app that also follows
-the [Built-in Kotlin migration](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers)
-on its own `android/app/build.gradle[.kts]`.
+The plugin still applies `id "kotlin-android"` in its `build.gradle`,
+matching the standard Flutter plugin template. On Flutter 3.44+ this
+triggers a warning ("Future versions of Flutter will fail to build if
+your app uses plugins that apply KGP"). The warning is intentional
+trade-off for now — switching to Flutter's Built-in Kotlin pattern
+would require a Flutter 3.44+ floor and lock out every consumer on
+3.10–3.43. The plugin will migrate when Flutter promotes the warning
+to an error.
 
 ---
 
