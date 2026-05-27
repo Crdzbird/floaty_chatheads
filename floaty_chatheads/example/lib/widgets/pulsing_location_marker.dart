@@ -44,7 +44,7 @@ class _PulsingLocationMarkerState extends State<PulsingLocationMarker>
             // Pulsing outer ring
             AnimatedBuilder(
               animation: _ctrl,
-              builder: (_, _) {
+              builder: (_, __) {
                 final scale = 1.0 + _ctrl.value * 0.8; // 1.0 → 1.8
                 final opacity = 1.0 - _ctrl.value; // 1.0 → 0.0
                 return Transform.scale(
