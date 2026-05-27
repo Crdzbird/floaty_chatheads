@@ -89,6 +89,59 @@ else you can dream up.
 
 ---
 
+## Hello World (30 seconds)
+
+The shortest possible setup. No icon assets, no permission boilerplate,
+no `ChatHeadConfig` — just a top-level entry point and one method call:
+
+```dart
+import 'package:floaty_chatheads/floaty_chatheads.dart';
+import 'package:flutter/material.dart';
+
+void main() => runApp(const MaterialApp(home: Home()));
+
+// 1. Top-level overlay entry point (runs in its own Flutter engine).
+@pragma('vm:entry-point')
+void overlayMain() => FloatyOverlayApp.run(
+  const FloatySimplePanel(
+    title: 'Hello',
+    child: Text('I am a floating overlay!'),
+  ),
+);
+
+// 2. In your app: one call to show.
+class Home extends StatelessWidget {
+  const Home({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: Center(
+      child: ElevatedButton(
+        onPressed: () => Floaty.show(title: 'My Chathead'),
+        child: const Text('Show Chathead'),
+      ),
+    ),
+  );
+}
+```
+
+That's the entire setup. The plugin ships a built-in bubble icon for
+Android, asks for the overlay permission automatically (also Android
+only), and gives the overlay a styled card with a close button. On
+iOS no permissions are needed at all.
+
+**Three names to remember:**
+
+- **`Floaty.show()`** — handles permission + shows the chathead.
+- **`FloatyOverlayApp.run(child)`** — bootstraps the overlay isolate.
+- **`FloatySimplePanel`** — pre-built styled card for overlay content.
+
+Want to customize icons, theming, snap behavior, or wire up two-way
+messaging? Keep reading the full Quick Start below. Everything you
+just saw is the same `FloatyLauncher` / `FloatyChatheads` API
+underneath, just with the noisy parameters defaulted.
+
+---
+
 ## Quick Start (5 minutes)
 
 ### 1. Install

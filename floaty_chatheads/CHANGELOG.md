@@ -6,6 +6,23 @@
 > the public surface, and adds compile-time type safety to action and
 > stream routing. See the migration notes at the end of this entry.
 
+### ✨ New: minimal happy-path API
+
+Two new additions bring the simplest setup down to a top-level
+entry point and one method call:
+
+- **`Floaty`** — a static facade that wraps the most common
+  workflow (check permission → request if needed → show with sensible
+  defaults). One-liners for `show`, `close`, `toggle`, `isActive`,
+  `send`, `onData`. Drops down to [FloatyLauncher] / [FloatyChatheads]
+  for power users.
+- **`FloatySimplePanel`** — a pre-built styled Material card for
+  overlay content, with optional title and a built-in close button
+  wired to [FloatyOverlay.closeOverlay]. Eliminates the
+  Card/Material/Padding boilerplate for the common case.
+
+See the README "Hello World" section for the full 30-second setup.
+
 ### ⚙ Toolchain & platform floors (BREAKING)
 
 - Dart SDK floor raised to `^3.12.0` (was `^3.4.0`).

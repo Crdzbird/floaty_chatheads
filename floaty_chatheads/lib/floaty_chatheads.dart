@@ -58,6 +58,7 @@ export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
         SnapEdge;
 
 export 'src/animated_widget_icon.dart';
+export 'src/floaty.dart';
 export 'src/floaty_action_router.dart' show ActionKey, FloatyAction, QueueOverflowStrategy;
 export 'src/floaty_chatheads.dart';
 export 'src/floaty_connection_state.dart';
@@ -76,3 +77,4 @@ export 'src/floaty_scope.dart';
 export 'src/widget_to_icon_source.dart';
 export 'src/widgets/floaty_mini_player.dart';
 export 'src/widgets/floaty_notification_card.dart';
+export 'src/widgets/floaty_simple_panel.dart';

@@ -39,7 +39,6 @@ import 'overlays/themed_overlay.dart';
 import 'overlays/timer_overlay.dart';
 import 'overlays/todo_survival_overlay.dart';
 import 'overlays/widget_icon_overlay.dart';
-import 'utils.dart';
 
 void main() => runApp(const MaterialApp(home: GalleryPage()));
 
@@ -348,7 +347,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _sub = FloatyChatheads.onData.listen((data) {
+    // Floaty.onData is the simple stream of raw payloads from the
+    // overlay (same as FloatyChatheads.onData under the hood).
+    _sub = Floaty.onData.listen((data) {
       if (mounted) {
         setState(() {
           _received.insert(0, '$data');
@@ -358,26 +359,18 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _showChatHead() async {
-    if (!await ensureOverlayPermission()) return;
-    await FloatyChatheads.showChatHead(
-      assets: const ChatHeadAssets(
-        icon: IconSource.asset('assets/showcase_bubble.png'),
-        closeIcon: IconSource.asset('assets/showcase_close.png'),
-        closeBackground: IconSource.asset('assets/showcase_close_bg.png'),
-      ),
-      notification: const NotificationConfig(
-        title: 'Chathead Active',
-        iconAsset: 'assets/notificationIcon.png',
-      ),
-      contentWidth: 240,
-      contentHeight: 220,
-    );
-  }
+  /// Shows the chathead with the minimal API surface:
+  ///
+  /// - Permission is checked + requested automatically.
+  /// - Default bundled icons are used on Android; iOS renders via the
+  ///   overlay widget.
+  /// - The overlay opens via the entry point `overlayMain` (default).
+  Future<void> _showChatHead() =>
+      Floaty.show(title: 'Basic Chathead');
 
   void _sendData() {
     _counter++;
-    FloatyChatheads.shareData({'counter': _counter, 'from': 'main app'});
+    Floaty.send({'counter': _counter, 'from': 'main app'});
   }
 
   @override
@@ -409,7 +402,7 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => FloatyChatheads.closeChatHead(),
+                        onPressed: Floaty.close,
                         icon: const Icon(Icons.close),
                         label: const Text('Close'),
                       ),
@@ -468,13 +461,15 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _sub?.cancel();
-    FloatyChatheads.closeChatHead();
+    unawaited(Floaty.close());
     super.dispose();
   }
 }
 
 // ---------------------------------------------------------------------------
 // Basic overlay — shows received data, sends data back to main app.
+// Demonstrates [FloatySimplePanel] — the pre-built styled container that
+// gives you a card + title + dismiss button without hand-coding them.
 // ---------------------------------------------------------------------------
 
 class OverlayContent extends StatefulWidget {
@@ -501,79 +496,42 @@ class _OverlayContentState extends State<OverlayContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Center(
-        child: Card(
-          margin: const EdgeInsets.all(8),
-          color: Colors.teal.shade700,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Overlay',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _lastReceived,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: () {
-                    _sendCount++;
-                    FloatyOverlay.shareData({
-                      'message': 'Hello #$_sendCount',
-                      'from': 'overlay',
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Send to Main',
-                      style: TextStyle(
-                        color: Colors.teal,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                GestureDetector(
-                  onTap: FloatyOverlay.closeOverlay,
-                  child: const Text(
-                    'Close',
-                    style: TextStyle(color: Colors.white54, fontSize: 11),
-                  ),
-                ),
-              ],
+    // `FloatySimplePanel` wraps the child in a Material card with a
+    // title row and a dismiss button — no Card/Material/Padding
+    // boilerplate. The dismiss button calls FloatyOverlay.closeOverlay
+    // by default; pass `onClose` to override.
+    return FloatySimplePanel(
+      title: 'Overlay',
+      backgroundColor: Colors.teal.shade700,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              _lastReceived,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-        ),
+          const SizedBox(height: 8),
+          ElevatedButton(
+            onPressed: () {
+              _sendCount++;
+              FloatyOverlay.shareData({
+                'message': 'Hello #$_sendCount',
+                'from': 'overlay',
+              });
+            },
+            child: const Text('Send to Main'),
+          ),
+        ],
       ),
     );
   }
