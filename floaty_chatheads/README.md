@@ -3,7 +3,7 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
 [![coverage: 100%][coverage_badge]][coverage_link]
-[![tests: 271 passed][tests_badge]][tests_link]
+[![tests: 300 passed][tests_badge]][tests_link]
 
 **Floating bubble overlays for Flutter -- like Facebook Messenger chatheads, but for any widget.**
 
@@ -48,7 +48,7 @@ else you can dream up.
 | **Zero-boilerplate helpers** | Show a chathead in 3 lines; build an overlay widget in 1 line |
 | **Built-in messaging** | Send data back and forth between your main app and the overlay in real time |
 | **Theming & accessibility** | Full TalkBack / VoiceOver support, customizable colors, and a debug inspector |
-| **Production-ready** | 262+ tests, 100% coverage on handwritten code, MIT licensed |
+| **Production-ready** | 300+ tests, 100% coverage on handwritten code, MIT licensed |
 
 ---
 
@@ -95,14 +95,19 @@ else you can dream up.
 
 ```yaml
 dependencies:
-  floaty_chatheads: ^1.2.1
+  floaty_chatheads: ^2.0.0
 ```
 
 ```bash
 flutter pub get
 ```
 
-**Requirements:** Dart `^3.4.0`, Flutter `>=3.22.0`, Android 6.0+ (API 23) / iOS 13.0+
+**Requirements:** Dart `^3.12.0`, Flutter `>=3.44.0`, Android 7.0+ (API 24) / iOS 14.0+
+
+The Flutter floor is driven by the Built-in Kotlin migration on the
+Android plugin and by Swift Package Manager on the iOS side. If you are
+upgrading from 1.x, see the
+[2.0 migration notes](#migrating-from-1x-to-20) below.
 
 ### 2. Platform setup
 
@@ -318,7 +323,7 @@ implementations differ due to OS-level constraints:
 | **State channel** | `FloatyStateChannel<T>` bidirectional sync | `FloatyStateChannel<T>` bidirectional sync |
 | **Action routing** | `FloatyActionRouter` with offline queueing | `FloatyActionRouter` (no queueing) |
 | **Proxy RPC** | `FloatyProxyHost` / `FloatyProxyClient` | `FloatyProxyHost` / `FloatyProxyClient` |
-| **Min platform version** | Android 6.0+ (API 23) | iOS 13.0+ |
+| **Min platform version** | Android 7.0+ (API 24) | iOS 14.0+ |
 
 > **Note:** On iOS, `checkPermission()` and `requestPermission()` always return
 > `true` since no special permission is needed.
@@ -353,6 +358,15 @@ implementations differ due to OS-level constraints:
 
 The plugin ships helpers at different levels of abstraction. Pick the one that
 fits your use case -- you can always switch later.
+
+> **Imports:** the everyday helpers — `FloatyHostKit`, `FloatyOverlayKit`,
+> `FloatyMessenger`, `FloatyConnectionState`, the action / stream types
+> (`FloatyAction`, `ActionKey`, `StreamKey`), and the builder widgets —
+> all come from `package:floaty_chatheads/floaty_chatheads.dart`. The
+> three low-level primitives (`FloatyActionRouter`,
+> `FloatyStateChannel`, `FloatyProxyHost`/`FloatyProxyClient`) live in
+> `package:floaty_chatheads/advanced.dart`. Snippets below that use the
+> primitives directly need both imports.
 
 | Need | Use | Complexity |
 |---|---|---|
@@ -543,21 +557,44 @@ channel.onStateChanged.listen((state) => print(state.counter));
 
 Register named action handlers and dispatch typed `FloatyAction` objects.
 On the overlay side, actions are automatically queued when the main app is
-disconnected and flushed on reconnection:
+disconnected and flushed on reconnection.
+
+Define an `ActionKey` as a `static const` on each action class so the
+routing string and `fromJson` cannot drift apart:
 
 ```dart
-// Main app side -- register handlers:
-final router = FloatyActionRouter();
-router.on<IncrementAction>(
-  'increment',
-  fromJson: IncrementAction.fromJson,
-  handler: (action) => counter += action.amount,
-);
+class IncrementAction extends FloatyAction {
+  IncrementAction({required this.amount});
 
-// Overlay side -- dispatch (queues if disconnected):
+  factory IncrementAction.fromJson(Map<String, dynamic> json) =>
+      IncrementAction(amount: json['amount'] as int);
+
+  static const key =
+      ActionKey<IncrementAction>('increment', IncrementAction.fromJson);
+
+  final int amount;
+
+  @override
+  String get type => key.type;
+
+  @override
+  Map<String, dynamic> toJson() => {'amount': amount};
+}
+
+// Main app side — register handlers via the key:
+import 'package:floaty_chatheads/advanced.dart'; // for FloatyActionRouter
+final router = FloatyActionRouter();
+router.on(IncrementAction.key, (action) => counter += action.amount);
+
+// Overlay side — dispatch (queues if disconnected):
 final router = FloatyActionRouter.overlay();
 router.dispatch(IncrementAction(amount: 5));
 ```
+
+> The Kits (`FloatyHostKit` / `FloatyOverlayKit`) wrap the router, state
+> channel, and proxy together so you don't need to import
+> `advanced.dart` for everyday use — only when you need a primitive
+> directly.
 
 ### `FloatyProxyHost` / `FloatyProxyClient` -- overlay-to-app RPC
 
@@ -589,9 +626,11 @@ final kit = FloatyHostKit<MyState>(
   stateFromJson: MyState.fromJson,
   initialState: MyState(),
 );
-kit.router.on<IncrementAction>('increment', ...);
-kit.proxy.register('time', ...);
-await kit.state.setState(MyState(counter: 42));
+kit.onAction(IncrementAction.key, (action) => counter += action.amount);
+kit.registerService('time', (method, params) {
+  return {'iso': DateTime.now().toIso8601String()};
+});
+await kit.setState(MyState(counter: 42));
 ```
 
 ### `FloatyOverlayScope<S>` -- zero-boilerplate typed overlay scope
@@ -1035,7 +1074,8 @@ for a complete, minimal integration using all the helpers (~120 lines total).
 |---|---|
 | `FloatyActionRouter()` | Main-app constructor |
 | `FloatyActionRouter.overlay(...)` | Overlay constructor with optional `maxQueueSize`, `overflowStrategy` |
-| `on<A>(type, fromJson, handler)` | Registers a handler for a named action type |
+| `on<A>(ActionKey<A>, handler)` | Registers a handler for the action class identified by the key |
+| `off<A>(ActionKey<A>)` | Removes the handler associated with the key |
 | `dispatch(FloatyAction)` | Sends an action (queues if overlay is disconnected) |
 | `queueLength` | Number of actions currently queued |
 | `dispose()` | Tears down handler, stream, and connection subscription |
@@ -1119,6 +1159,96 @@ relay for data messages between the main app and overlay.
 
 ---
 
+## Migrating from 1.x to 2.0
+
+2.0 is a breaking release focused on modernizing the toolchain and
+adding compile-time type safety to action/stream routing. The
+behavioral surface (show/close, drag, snap, expand/collapse, app-death
+survival) is unchanged.
+
+### Platform-floor bumps
+
+| Floor | 1.x | 2.0 |
+|---|---|---|
+| Dart SDK | `^3.4.0` | `^3.12.0` |
+| Flutter | `>=3.22.0` | `>=3.44.0` |
+| Android `minSdk` | 23 | **24** |
+| iOS deployment | 13.0 | **14.0** |
+
+If you're consuming this plugin in an existing app, bump
+`IPHONEOS_DEPLOYMENT_TARGET` to 14.0 in your Xcode project and
+`minSdk` to 24 in `android/app/build.gradle[.kts]`.
+
+### Typed `ActionKey` and `StreamKey`
+
+The string-keyed `router.on<X>('name', fromJson: …, handler: …)` and
+`FloatyProxyStream<T>(name: …, toJson: …)` are gone. Define keys once
+on the action / data class:
+
+```diff
+ class IncrementAction extends FloatyAction {
++  static const key = ActionKey<IncrementAction>(
++    'increment', IncrementAction.fromJson);
+   // …
+-  @override String get type => 'increment';
++  @override String get type => key.type;
+ }
+
+-router.on<IncrementAction>(
+-  'increment',
+-  fromJson: IncrementAction.fromJson,
+-  handler: (a) => counter += a.amount,
+-);
++router.on(IncrementAction.key, (a) => counter += a.amount);
+```
+
+```diff
++static final gpsKey = StreamKey<GpsCoord>(
++  name: 'gps',
++  toJson: (c) => c.toJson(),
++  fromJson: GpsCoord.fromJson,
++);
+-final gps = FloatyProxyStream<GpsCoord>(
+-  name: 'gps', toJson: (c) => c.toJson());
++final gps = FloatyProxyStream(gpsKey);
+```
+
+### Slimmer main barrel + `advanced.dart`
+
+The main barrel
+(`package:floaty_chatheads/floaty_chatheads.dart`) no longer exports
+the low-level primitives `FloatyActionRouter`, `FloatyStateChannel`,
+`FloatyProxyHost`, or `FloatyProxyClient`. They moved to a separate
+opt-in barrel:
+
+```dart
+import 'package:floaty_chatheads/advanced.dart'; // for direct primitives
+```
+
+Most apps should keep using `FloatyHostKit` / `FloatyOverlayKit` from
+the main barrel, which still bundle all three. Only add the
+`advanced.dart` import in files that instantiate the primitives
+directly.
+
+### iOS — Swift Package Manager
+
+The plugin ships a `Package.swift` and the example app uses SPM (no
+Podfile). If your downstream app still uses CocoaPods that continues to
+work — the plugin's `.podspec` is still in place. To move to SPM, run
+`pod deintegrate` in your `ios/` directory, delete the Podfile +
+`Podfile.lock` + `Pods/`, and let Flutter resolve the plugin through
+SPM on the next `flutter run`.
+
+### Android — Built-in Kotlin
+
+The plugin no longer declares the Kotlin Gradle Plugin itself; it
+inherits Kotlin tooling from the Flutter Gradle Plugin (Built-in
+Kotlin). This requires Flutter 3.44+ and an app that also follows
+the [Built-in Kotlin migration](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers)
+on its own `android/app/build.gradle[.kts]`.
+
+---
+
 ## Migration from `floaty_chathead`
 
 This package (`floaty_chatheads`) is the successor to the original
@@ -1145,7 +1275,7 @@ It is a **complete rewrite** -- not a drop-in upgrade.
 
 ### How to migrate
 
-1. Replace `floaty_chathead` with `floaty_chatheads: ^1.2.1` in your `pubspec.yaml`.
+1. Replace `floaty_chathead` with `floaty_chatheads: ^2.0.0` in your `pubspec.yaml`.
 2. Update imports from `package:floaty_chathead/...` to `package:floaty_chatheads/floaty_chatheads.dart`.
 3. Replace method calls with the new static API on `FloatyChatheads` and `FloatyOverlay`.
 4. Add Android manifest permissions if not already present (see [Quick Start](#2-platform-setup)).
@@ -1177,5 +1307,5 @@ This project is licensed under the MIT License. See [LICENSE](../LICENSE) for de
 [very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
 [coverage_badge]: https://img.shields.io/badge/coverage-100%25-brightgreen.svg
 [coverage_link]: #test-suite--coverage
-[tests_badge]: https://img.shields.io/badge/tests-271%20passed-brightgreen.svg
+[tests_badge]: https://img.shields.io/badge/tests-300%20passed-brightgreen.svg
 [tests_link]: #test-suite--coverage
