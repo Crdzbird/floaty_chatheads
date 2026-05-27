@@ -193,8 +193,7 @@ class _GpsStreamExampleState extends State<GpsStreamExample> {
                             : 'Tap Launch to start',
                         style: TextStyle(
                           fontSize: 11,
-                          color:
-                              _chatheadActive ? Colors.green : Colors.grey,
+                          color: _chatheadActive ? Colors.green : Colors.grey,
                         ),
                       ),
                     ],

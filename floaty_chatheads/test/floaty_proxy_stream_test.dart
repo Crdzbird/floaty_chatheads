@@ -10,8 +10,7 @@ StreamKey<Map<String, double>> _doubleKey(String name) =>
       fromJson: (j) => j.cast<String, double>(),
     );
 
-StreamKey<Map<String, int>> _intKey(String name) =>
-    StreamKey<Map<String, int>>(
+StreamKey<Map<String, int>> _intKey(String name) => StreamKey<Map<String, int>>(
       name: name,
       toJson: (v) => v,
       fromJson: (j) => j.cast<String, int>(),

@@ -50,12 +50,10 @@ void main() => runApp(const MaterialApp(home: GalleryPage()));
 void overlayMain() => FloatyOverlayApp.run(const OverlayContent());
 
 @pragma('vm:entry-point')
-void messengerOverlayMain() =>
-    FloatyOverlayApp.run(const MessengerOverlay());
+void messengerOverlayMain() => FloatyOverlayApp.run(const MessengerOverlay());
 
 @pragma('vm:entry-point')
-void miniPlayerOverlayMain() =>
-    FloatyOverlayApp.run(const MiniPlayerOverlay());
+void miniPlayerOverlayMain() => FloatyOverlayApp.run(const MiniPlayerOverlay());
 
 @pragma('vm:entry-point')
 void quickActionOverlayMain() =>
@@ -69,12 +67,10 @@ void counterOverlayMain() =>
 void timerOverlayMain() => FloatyOverlayApp.run(const TimerOverlay());
 
 @pragma('vm:entry-point')
-void multiChatOverlayMain() =>
-    FloatyOverlayApp.run(const MultiChatOverlay());
+void multiChatOverlayMain() => FloatyOverlayApp.run(const MultiChatOverlay());
 
 @pragma('vm:entry-point')
-void dashboardOverlayMain() =>
-    FloatyOverlayApp.run(const DashboardOverlay());
+void dashboardOverlayMain() => FloatyOverlayApp.run(const DashboardOverlay());
 
 @pragma('vm:entry-point')
 void messengerFullscreenOverlayMain() =>
@@ -95,28 +91,24 @@ void accessibilityOverlayMain() =>
     FloatyOverlayApp.run(const AccessibilityOverlay());
 
 @pragma('vm:entry-point')
-void survivalOverlayMain() =>
-    FloatyOverlayApp.run(const SurvivalOverlay());
+void survivalOverlayMain() => FloatyOverlayApp.run(const SurvivalOverlay());
 
 @pragma('vm:entry-point')
 void todoSurvivalOverlayMain() =>
     FloatyOverlayApp.run(const TodoSurvivalOverlay());
 
 @pragma('vm:entry-point')
-void gpsStreamOverlayMain() =>
-    FloatyOverlayApp.run(const GpsStreamOverlay());
+void gpsStreamOverlayMain() => FloatyOverlayApp.run(const GpsStreamOverlay());
 
 @pragma('vm:entry-point')
 void sensorStreamOverlayMain() =>
     FloatyOverlayApp.run(const SensorStreamOverlay());
 
 @pragma('vm:entry-point')
-void autoLaunchOverlayMain() =>
-    FloatyOverlayApp.run(const AutoLaunchOverlay());
+void autoLaunchOverlayMain() => FloatyOverlayApp.run(const AutoLaunchOverlay());
 
 @pragma('vm:entry-point')
-void widgetIconOverlayMain() =>
-    FloatyOverlayApp.run(const WidgetIconOverlay());
+void widgetIconOverlayMain() => FloatyOverlayApp.run(const WidgetIconOverlay());
 
 // ---------------------------------------------------------------------------
 // Gallery — lists all examples
@@ -365,8 +357,7 @@ class _HomePageState extends State<HomePage> {
   /// - Default bundled icons are used on Android; iOS renders via the
   ///   overlay widget.
   /// - The overlay opens via the entry point `overlayMain` (default).
-  Future<void> _showChatHead() =>
-      Floaty.show(title: 'Basic Chathead');
+  Future<void> _showChatHead() => Floaty.show(title: 'Basic Chathead');
 
   void _sendData() {
     _counter++;

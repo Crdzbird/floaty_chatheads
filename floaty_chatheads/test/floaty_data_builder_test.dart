@@ -23,8 +23,7 @@ void main() {
   });
 
   group('FloatyDataBuilder', () {
-    testWidgets('renders with initialData before any messages',
-        (tester) async {
+    testWidgets('renders with initialData before any messages', (tester) async {
       await tester.pumpWidget(
         Directionality(
           textDirection: TextDirection.ltr,

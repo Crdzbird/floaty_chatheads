@@ -29,8 +29,7 @@ class PinAction extends FloatyAction {
 class NavigateAction extends FloatyAction {
   NavigateAction({required this.lat, required this.lng});
 
-  factory NavigateAction.fromJson(Map<String, dynamic> json) =>
-      NavigateAction(
+  factory NavigateAction.fromJson(Map<String, dynamic> json) => NavigateAction(
         lat: json['lat'] as double,
         lng: json['lng'] as double,
       );
@@ -61,8 +60,7 @@ class MapSyncState {
     this.tracking = false,
   });
 
-  factory MapSyncState.fromJson(Map<String, dynamic> json) =>
-      MapSyncState(
+  factory MapSyncState.fromJson(Map<String, dynamic> json) => MapSyncState(
         centerLat: json['centerLat'] as double?,
         centerLng: json['centerLng'] as double?,
         zoom: (json['zoom'] as num?)?.toDouble() ?? 13.0,

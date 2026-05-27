@@ -90,8 +90,7 @@ void main() {
 
       // Simulate overlay sending data.
       final encoded = const JSONMessageCodec().encodeMessage('test-msg');
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,
@@ -115,8 +114,7 @@ void main() {
 
       // Send a String which can't be cast to int.
       final encoded = const JSONMessageCodec().encodeMessage('not-an-int');
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,

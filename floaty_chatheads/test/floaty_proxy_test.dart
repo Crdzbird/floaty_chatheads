@@ -6,8 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 Future<void> _simulateMessage(Object? data) async {
   final encoded = const JSONMessageCodec().encodeMessage(data);
-  await TestDefaultBinaryMessengerBinding
-      .instance.defaultBinaryMessenger
+  await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .handlePlatformMessage(
     'ni.devotion.floaty_head/messenger',
     encoded,
@@ -29,11 +28,11 @@ void main() {
     test('responds to a request with the handler result', () async {
       final host = FloatyProxyHost()
         ..register('location', (method, params) async {
-        if (method == 'getPosition') {
-          return {'lat': 12.0, 'lng': -86.0};
-        }
-        return null;
-      });
+          if (method == 'getPosition') {
+            return {'lat': 12.0, 'lng': -86.0};
+          }
+          return null;
+        });
 
       // Capture what the host sends back by listening on the channel.
       // We intercept outgoing sends by setting up a client to receive.
@@ -48,13 +47,13 @@ void main() {
       FloatyChannel.dispose();
       final host2 = FloatyProxyHost()
         ..register('math', (method, params) async {
-        if (method == 'add') {
-          final a = params['a'] as int;
-          final b = params['b'] as int;
-          return {'sum': a + b};
-        }
-        return null;
-      });
+          if (method == 'add') {
+            final a = params['a'] as int;
+            final b = params['b'] as int;
+            return {'sum': a + b};
+          }
+          return null;
+        });
 
       // Send a request to the host.
       await _simulateMessage({
@@ -98,8 +97,8 @@ void main() {
     test('returns error when handler throws', () async {
       final host = FloatyProxyHost()
         ..register('failing', (method, params) {
-        throw Exception('Handler error');
-      });
+          throw Exception('Handler error');
+        });
 
       await _simulateMessage({
         '__floaty__': '_floaty_proxy',
@@ -195,8 +194,7 @@ void main() {
       client.dispose();
     });
 
-    test('client throws FloatyProxyErrorException on error response',
-        () async {
+    test('client throws FloatyProxyErrorException on error response', () async {
       final client = FloatyProxyClient(
         timeout: const Duration(seconds: 5),
       );

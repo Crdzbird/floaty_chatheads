@@ -95,8 +95,8 @@ void main() {
       FloatyOverlay.onData.listen(completer.complete);
 
       // Send a message using the handler.
-      final handler = TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger;
+      final handler =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
       final encoded = const JSONMessageCodec().encodeMessage('hello');
       await handler.handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
@@ -128,8 +128,7 @@ void main() {
       };
 
       final encoded = const JSONMessageCodec().encodeMessage(paletteMessage);
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,
@@ -156,11 +155,10 @@ void main() {
       // Send message through the pigeon channel.
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default']);
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'dev.flutter.pigeon.floaty_chatheads.'
-            'FloatyOverlayFlutterApi.onChatHeadTapped',
+        'FloatyOverlayFlutterApi.onChatHeadTapped',
         encoded,
         (data) {},
       );
@@ -176,11 +174,10 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['bubble1']);
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'dev.flutter.pigeon.floaty_chatheads.'
-            'FloatyOverlayFlutterApi.onChatHeadClosed',
+        'FloatyOverlayFlutterApi.onChatHeadClosed',
         encoded,
         (data) {},
       );
@@ -196,11 +193,10 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default']);
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'dev.flutter.pigeon.floaty_chatheads.'
-            'FloatyOverlayFlutterApi.onChatHeadExpanded',
+        'FloatyOverlayFlutterApi.onChatHeadExpanded',
         encoded,
         (data) {},
       );
@@ -216,11 +212,10 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default']);
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'dev.flutter.pigeon.floaty_chatheads.'
-            'FloatyOverlayFlutterApi.onChatHeadCollapsed',
+        'FloatyOverlayFlutterApi.onChatHeadCollapsed',
         encoded,
         (data) {},
       );
@@ -236,11 +231,10 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default', 10.0, 20.0]);
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'dev.flutter.pigeon.floaty_chatheads.'
-            'FloatyOverlayFlutterApi.onChatHeadDragStart',
+        'FloatyOverlayFlutterApi.onChatHeadDragStart',
         encoded,
         (data) {},
       );
@@ -259,11 +253,10 @@ void main() {
 
       final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
           .encodeMessage(<Object?>['default', 100.0, 200.0]);
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'dev.flutter.pigeon.floaty_chatheads.'
-            'FloatyOverlayFlutterApi.onChatHeadDragEnd',
+        'FloatyOverlayFlutterApi.onChatHeadDragEnd',
         encoded,
         (data) {},
       );
@@ -301,8 +294,7 @@ void main() {
       };
 
       final encoded = const JSONMessageCodec().encodeMessage(paletteMessage);
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,

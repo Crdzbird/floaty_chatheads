@@ -129,15 +129,11 @@ class _FeaturesShowcaseExampleState extends State<FeaturesShowcaseExample> {
           const SizedBox(height: 4),
           SegmentedButton<EntranceAnimation>(
             segments: const [
+              ButtonSegment(value: EntranceAnimation.none, label: Text('None')),
+              ButtonSegment(value: EntranceAnimation.pop, label: Text('Pop')),
               ButtonSegment(
-                  value: EntranceAnimation.none, label: Text('None')),
-              ButtonSegment(
-                  value: EntranceAnimation.pop, label: Text('Pop')),
-              ButtonSegment(
-                  value: EntranceAnimation.slideFromEdge,
-                  label: Text('Slide')),
-              ButtonSegment(
-                  value: EntranceAnimation.fade, label: Text('Fade')),
+                  value: EntranceAnimation.slideFromEdge, label: Text('Slide')),
+              ButtonSegment(value: EntranceAnimation.fade, label: Text('Fade')),
             ],
             selected: {_entranceAnimation},
             onSelectionChanged: (v) =>
@@ -148,8 +144,7 @@ class _FeaturesShowcaseExampleState extends State<FeaturesShowcaseExample> {
           // ── Persist Position ────────────────────────────────────
           SwitchListTile(
             title: const Text('Persist Position'),
-            subtitle:
-                const Text('Remember bubble position across sessions'),
+            subtitle: const Text('Remember bubble position across sessions'),
             value: _persistPosition,
             onChanged: (v) => setState(() => _persistPosition = v),
             contentPadding: EdgeInsets.zero,

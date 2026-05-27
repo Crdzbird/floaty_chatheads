@@ -284,12 +284,10 @@ final class FloatyControllerWidget extends StatefulWidget {
   }
 
   @override
-  State<FloatyControllerWidget> createState() =>
-      _FloatyControllerWidgetState();
+  State<FloatyControllerWidget> createState() => _FloatyControllerWidgetState();
 }
 
-final class _FloatyControllerWidgetState
-    extends State<FloatyControllerWidget> {
+final class _FloatyControllerWidgetState extends State<FloatyControllerWidget> {
   late FloatyController _controller;
 
   @override

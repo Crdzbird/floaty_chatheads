@@ -35,7 +35,8 @@ void main() {
       expect(find.byIcon(Icons.close), findsOneWidget);
     });
 
-    testWidgets('hides close icon when showCloseButton is false', (tester) async {
+    testWidgets('hides close icon when showCloseButton is false',
+        (tester) async {
       await pumpPanel(
         tester,
         const FloatySimplePanel(
@@ -46,7 +47,8 @@ void main() {
       expect(find.byIcon(Icons.close), findsNothing);
     });
 
-    testWidgets('renders title without close icon when both flags allow', (tester) async {
+    testWidgets('renders title without close icon when both flags allow',
+        (tester) async {
       await pumpPanel(
         tester,
         const FloatySimplePanel(
@@ -59,7 +61,8 @@ void main() {
       expect(find.byIcon(Icons.close), findsNothing);
     });
 
-    testWidgets('invokes onClose override when close button tapped', (tester) async {
+    testWidgets('invokes onClose override when close button tapped',
+        (tester) async {
       var tapped = false;
       await pumpPanel(
         tester,

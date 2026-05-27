@@ -51,8 +51,7 @@ final class FloatyChatheads {
   static AnimatedWidgetIcon? _activeIconAnimation;
 
   /// Whether an animated icon render loop is currently running.
-  static bool get isIconAnimating =>
-      _activeIconAnimation?.isRunning ?? false;
+  static bool get isIconAnimating => _activeIconAnimation?.isRunning ?? false;
 
   /// Stops the current icon animation if one is running.
   ///
@@ -257,8 +256,7 @@ final class FloatyChatheads {
   }
 
   /// {@macro floaty_chatheads_platform.remove_chat_head}
-  static Future<void> removeChatHead(String id) =>
-      _platform.removeChatHead(id);
+  static Future<void> removeChatHead(String id) => _platform.removeChatHead(id);
 
   /// {@macro floaty_chatheads_platform.update_badge}
   static Future<void> updateBadge(int count) => _platform.updateBadge(count);

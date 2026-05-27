@@ -13,8 +13,8 @@ import 'package:flutter/material.dart';
 
 @pragma('vm:entry-point')
 void overlayMain() => FloatyOverlayApp.run(
-  const FloatyScope(child: QuickstartOverlay()),
-);
+      const FloatyScope(child: QuickstartOverlay()),
+    );
 
 // ──────────────────────────────────────────────────────────────────
 // 2. Overlay widget -- your content inside the floating panel

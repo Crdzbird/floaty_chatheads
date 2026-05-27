@@ -119,9 +119,8 @@ class _TimerOverlayState extends State<TimerOverlay> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _Btn(
-                      icon: _stopwatch.isRunning
-                          ? Icons.pause
-                          : Icons.play_arrow,
+                      icon:
+                          _stopwatch.isRunning ? Icons.pause : Icons.play_arrow,
                       onTap: _stopwatch.isRunning ? _pause : _start,
                     ),
                     const SizedBox(width: 8),

@@ -237,7 +237,8 @@ class _SensorStreamExampleState extends State<SensorStreamExample> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _AxisBar(label: 'X', value: _ax, maxVal: 10, color: Colors.red),
+                    _AxisBar(
+                        label: 'X', value: _ax, maxVal: 10, color: Colors.red),
                     const SizedBox(height: 6),
                     _AxisBar(
                       label: 'Y',

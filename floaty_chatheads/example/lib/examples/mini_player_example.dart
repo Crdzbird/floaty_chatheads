@@ -120,9 +120,8 @@ class _MiniPlayerExampleState extends State<MiniPlayerExample> {
                 icon: const Icon(Icons.skip_previous, size: 36),
                 onPressed: () {
                   setState(() {
-                    _currentIndex =
-                        (_currentIndex - 1 + _playlist.length) %
-                            _playlist.length;
+                    _currentIndex = (_currentIndex - 1 + _playlist.length) %
+                        _playlist.length;
                   });
                   _pushState();
                 },

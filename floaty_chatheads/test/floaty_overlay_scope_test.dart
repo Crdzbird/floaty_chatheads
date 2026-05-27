@@ -22,8 +22,7 @@ class _TestState {
 
 Future<void> _simulateMessage(Object? data) async {
   final encoded = const JSONMessageCodec().encodeMessage(data);
-  await TestDefaultBinaryMessengerBinding
-      .instance.defaultBinaryMessenger
+  await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .handlePlatformMessage(
     'ni.devotion.floaty_head/messenger',
     encoded,
@@ -109,8 +108,7 @@ void main() {
       expect(state!.label, equals('updated'));
     });
 
-    testWidgets('of() returns the kit from nearest ancestor',
-        (tester) async {
+    testWidgets('of() returns the kit from nearest ancestor', (tester) async {
       FloatyOverlayKit<_TestState>? foundKit;
       FloatyOverlayKit<_TestState>? directKit;
 
@@ -125,8 +123,7 @@ void main() {
               directKit = k;
               return Builder(
                 builder: (innerContext) {
-                  foundKit =
-                      FloatyOverlayScope.of<_TestState>(innerContext);
+                  foundKit = FloatyOverlayScope.of<_TestState>(innerContext);
                   return const SizedBox.shrink();
                 },
               );
@@ -139,8 +136,7 @@ void main() {
       expect(foundKit, same(directKit));
     });
 
-    testWidgets('maybeOf() returns kit when ancestor exists',
-        (tester) async {
+    testWidgets('maybeOf() returns kit when ancestor exists', (tester) async {
       FloatyOverlayKit<_TestState>? result;
       FloatyOverlayKit<_TestState>? directKit;
 
@@ -155,8 +151,7 @@ void main() {
               directKit = k;
               return Builder(
                 builder: (innerContext) {
-                  result =
-                      FloatyOverlayScope.maybeOf<_TestState>(innerContext);
+                  result = FloatyOverlayScope.maybeOf<_TestState>(innerContext);
                   return const SizedBox.shrink();
                 },
               );
@@ -241,8 +236,7 @@ void main() {
       expect(connected, isTrue);
     });
 
-    testWidgets('disposes kit and subscriptions on unmount',
-        (tester) async {
+    testWidgets('disposes kit and subscriptions on unmount', (tester) async {
       await tester.pumpWidget(
         Directionality(
           textDirection: TextDirection.ltr,

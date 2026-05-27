@@ -130,16 +130,14 @@ class _MessengerOverlayState extends State<MessengerOverlay> {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: isMe
-                                    ? Colors.indigo
-                                    : Colors.grey.shade200,
+                                color:
+                                    isMe ? Colors.indigo : Colors.grey.shade200,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 msg.text,
                                 style: TextStyle(
-                                  color:
-                                      isMe ? Colors.white : Colors.black87,
+                                  color: isMe ? Colors.white : Colors.black87,
                                   fontSize: 13,
                                 ),
                               ),

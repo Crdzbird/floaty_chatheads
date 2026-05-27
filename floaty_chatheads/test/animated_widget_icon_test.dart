@@ -19,8 +19,8 @@ void main() {
   setUp(() {
     // The Flutter test harness cannot extract bytes from rasterised
     // images (toByteData hangs). Provide synthetic RGBA data instead.
-    testImageEncoder = (image, format) async =>
-        ByteData(image.width * image.height * 4);
+    testImageEncoder =
+        (image, format) async => ByteData(image.width * image.height * 4);
   });
 
   tearDown(() => testImageEncoder = null);
@@ -161,8 +161,7 @@ void main() {
       });
     });
 
-    testWidgets('tick() renders a frame and sends to platform',
-        (tester) async {
+    testWidgets('tick() renders a frame and sends to platform', (tester) async {
       final platform = MockPlatform();
       FloatyChatheadsPlatform.instance = platform;
 

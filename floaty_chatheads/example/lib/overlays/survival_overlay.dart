@@ -56,14 +56,12 @@ class _SurvivalOverlayContent extends StatefulWidget {
       _SurvivalOverlayContentState();
 }
 
-class _SurvivalOverlayContentState
-    extends State<_SurvivalOverlayContent> {
+class _SurvivalOverlayContentState extends State<_SurvivalOverlayContent> {
   String _lastProxyResult = '';
   int _optimisticDelta = 0;
   int _messageCount = 0;
 
-  int get _displayCounter =>
-      widget.state.counter + _optimisticDelta;
+  int get _displayCounter => widget.state.counter + _optimisticDelta;
 
   void _increment(int amount) {
     widget.kit.dispatch(IncrementAction(amount: amount));
@@ -141,9 +139,8 @@ class _SurvivalOverlayContentState
                       style: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
-                        color: widget.connected
-                            ? Colors.deepOrange
-                            : Colors.grey,
+                        color:
+                            widget.connected ? Colors.deepOrange : Colors.grey,
                       ),
                     ),
                     Text(
@@ -244,8 +241,7 @@ class _SurvivalOverlayContentState
                     child: Column(
                       children: [
                         Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
                               Icons.access_time,
@@ -269,8 +265,7 @@ class _SurvivalOverlayContentState
                             _lastProxyResult,
                             style: TextStyle(
                               fontSize: 8,
-                              color: _lastProxyResult
-                                      .contains('offline')
+                              color: _lastProxyResult.contains('offline')
                                   ? Colors.red.shade400
                                   : Colors.blue.shade600,
                             ),
@@ -303,8 +298,7 @@ class _SurvivalOverlayContentState
                           ),
                           decoration: BoxDecoration(
                             color: Colors.deepOrange,
-                            borderRadius:
-                                BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Center(
                             child: Text(
@@ -331,8 +325,7 @@ class _SurvivalOverlayContentState
                           border: Border.all(
                             color: Colors.grey.shade300,
                           ),
-                          borderRadius:
-                              BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Text(
                           'Close',

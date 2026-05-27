@@ -194,8 +194,7 @@ final class FloatyActionRouter {
 
     // On the overlay side, listen for reconnection to flush the queue.
     if (_isOverlay) {
-      _connectionSub =
-          FloatyConnectionState.onConnectionChanged.listen(
+      _connectionSub = FloatyConnectionState.onConnectionChanged.listen(
         (connected) async {
           if (connected) await _flushQueue();
         },

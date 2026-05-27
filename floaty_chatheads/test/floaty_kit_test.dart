@@ -40,8 +40,7 @@ class _TestState {
 
 Future<void> _simulateMessage(Object? data) async {
   final encoded = const JSONMessageCodec().encodeMessage(data);
-  await TestDefaultBinaryMessengerBinding
-      .instance.defaultBinaryMessenger
+  await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .handlePlatformMessage(
     'ni.devotion.floaty_head/messenger',
     encoded,

@@ -19,8 +19,8 @@ void main() {
   setUp(() {
     // The Flutter test harness cannot extract bytes from rasterised
     // images (toByteData hangs). Provide synthetic RGBA data instead.
-    testImageEncoder = (image, format) async =>
-        ByteData(image.width * image.height * 4);
+    testImageEncoder =
+        (image, format) async => ByteData(image.width * image.height * 4);
   });
 
   tearDown(() => testImageEncoder = null);
@@ -138,8 +138,7 @@ void main() {
 
       // Simulate overlay sending data via the messenger channel.
       final encoded = const JSONMessageCodec().encodeMessage('overlay-msg');
-      await TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .handlePlatformMessage(
         'ni.devotion.floaty_head/messenger',
         encoded,
@@ -197,8 +196,7 @@ void main() {
         expect(FloatyChatheads.isIconAnimating, isFalse);
       });
 
-      testWidgets(
-          'showChatHead with iconBuilder creates and starts animation',
+      testWidgets('showChatHead with iconBuilder creates and starts animation',
           (tester) async {
         when(() => platform.showChatHead(any())).thenAnswer((_) async {});
         when(
@@ -226,8 +224,7 @@ void main() {
         expect(FloatyChatheads.isIconAnimating, isFalse);
       });
 
-      testWidgets(
-          'showChatHead with iconWidget renders static icon',
+      testWidgets('showChatHead with iconWidget renders static icon',
           (tester) async {
         when(() => platform.showChatHead(any())).thenAnswer((_) async {});
 
@@ -242,8 +239,7 @@ void main() {
         verify(() => platform.showChatHead(any())).called(1);
       });
 
-      testWidgets(
-          'showChatHead with closeIconWidget and closeBackgroundWidget',
+      testWidgets('showChatHead with closeIconWidget and closeBackgroundWidget',
           (tester) async {
         when(() => platform.showChatHead(any())).thenAnswer((_) async {});
 
@@ -295,8 +291,7 @@ void main() {
         );
       });
 
-      testWidgets(
-          'showChatHead falls back to assets for close icon',
+      testWidgets('showChatHead falls back to assets for close icon',
           (tester) async {
         when(() => platform.showChatHead(any())).thenAnswer((_) async {});
 
@@ -347,8 +342,7 @@ void main() {
         expect(FloatyChatheads.isIconAnimating, isFalse);
       });
 
-      testWidgets('showChatHead replaces previous animation',
-          (tester) async {
+      testWidgets('showChatHead replaces previous animation', (tester) async {
         when(() => platform.showChatHead(any())).thenAnswer((_) async {});
         when(
           () => platform.updateChatHeadIcon(any(), any(), any(), any()),
@@ -381,7 +375,6 @@ void main() {
     });
 
     group('onClosed', () {
-
       test('returns a broadcast stream', () {
         FloatyChatheads.onClosed
           ..listen((_) {})
@@ -411,8 +404,7 @@ void main() {
           '__floaty__': '_floaty_closed',
           '_floaty_closed': {'id': 'default'},
         });
-        await TestDefaultBinaryMessengerBinding
-            .instance.defaultBinaryMessenger
+        await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .handlePlatformMessage(
           'ni.devotion.floaty_head/messenger',
           encoded,
@@ -445,8 +437,7 @@ void main() {
           '__floaty__': '_floaty_closed',
           '_floaty_closed': {'id': 'other-bubble'},
         });
-        await TestDefaultBinaryMessengerBinding
-            .instance.defaultBinaryMessenger
+        await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .handlePlatformMessage(
           'ni.devotion.floaty_head/messenger',
           encoded,
@@ -466,8 +457,7 @@ void main() {
           '__floaty__': '_floaty_closed',
           '_floaty_closed': {'id': 'bubble1'},
         });
-        await TestDefaultBinaryMessengerBinding
-            .instance.defaultBinaryMessenger
+        await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .handlePlatformMessage(
           'ni.devotion.floaty_head/messenger',
           encoded,
@@ -486,8 +476,7 @@ void main() {
           '__floaty__': '_floaty_closed',
           '_floaty_closed': <String, dynamic>{},
         });
-        await TestDefaultBinaryMessengerBinding
-            .instance.defaultBinaryMessenger
+        await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .handlePlatformMessage(
           'ni.devotion.floaty_head/messenger',
           encoded,
@@ -509,8 +498,7 @@ void main() {
           '__floaty__': '_floaty_closed',
           '_floaty_closed': {'id': 'bubble2'},
         });
-        await TestDefaultBinaryMessengerBinding
-            .instance.defaultBinaryMessenger
+        await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .handlePlatformMessage(
           'ni.devotion.floaty_head/messenger',
           encoded,
@@ -534,8 +522,7 @@ void main() {
           '__floaty__': '_floaty_closed',
           '_floaty_closed': {'id': 'bubble3'},
         });
-        await TestDefaultBinaryMessengerBinding
-            .instance.defaultBinaryMessenger
+        await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .handlePlatformMessage(
           'ni.devotion.floaty_head/messenger',
           encoded,

@@ -127,8 +127,8 @@ class FloatyNotificationCard extends StatelessWidget {
                             color: accent.withOpacity(0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: iconWidget ??
-                              Icon(icon, color: accent, size: 20),
+                          child:
+                              iconWidget ?? Icon(icon, color: accent, size: 20),
                         ),
                       if (iconWidget != null || icon != null)
                         const SizedBox(width: 12),

@@ -15,12 +15,12 @@ Future<void> _simulateMessage(Object? data) async {
 }
 
 Future<void> _simulateTap(String id) async {
-  final encoded = FloatyOverlayFlutterApi.pigeonChannelCodec
-      .encodeMessage(<Object?>[id]);
+  final encoded =
+      FloatyOverlayFlutterApi.pigeonChannelCodec.encodeMessage(<Object?>[id]);
   await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .handlePlatformMessage(
     'dev.flutter.pigeon.floaty_chatheads.'
-        'FloatyOverlayFlutterApi.onChatHeadTapped',
+    'FloatyOverlayFlutterApi.onChatHeadTapped',
     encoded,
     (data) {},
   );
@@ -53,8 +53,7 @@ void main() {
           textDirection: TextDirection.ltr,
           child: FloatyOverlayBuilder<int>(
             initialState: 0,
-            onData: (s, d) =>
-                d is Map && d['v'] is int ? d['v'] as int : s,
+            onData: (s, d) => d is Map && d['v'] is int ? d['v'] as int : s,
             builder: (context, state) => Text('val:$state'),
           ),
         ),

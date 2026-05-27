@@ -59,8 +59,7 @@ final class AssetIconSource extends IconSource {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is AssetIconSource && other.path == path;
+      identical(this, other) || other is AssetIconSource && other.path == path;
 
   @override
   int get hashCode => path.hashCode;
@@ -78,8 +77,7 @@ final class NetworkIconSource extends IconSource {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is NetworkIconSource && other.url == url;
+      identical(this, other) || other is NetworkIconSource && other.url == url;
 
   @override
   int get hashCode => url.hashCode;

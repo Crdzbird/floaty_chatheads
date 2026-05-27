@@ -30,8 +30,7 @@ class IncrementAction extends FloatyAction {
 class MessageAction extends FloatyAction {
   MessageAction({required this.text, required this.timestamp});
 
-  factory MessageAction.fromJson(Map<String, dynamic> json) =>
-      MessageAction(
+  factory MessageAction.fromJson(Map<String, dynamic> json) => MessageAction(
         text: json['text'] as String,
         timestamp: json['timestamp'] as int,
       );
@@ -66,8 +65,7 @@ class SurvivalState {
     this.label = 'Ready',
   });
 
-  factory SurvivalState.fromJson(Map<String, dynamic> json) =>
-      SurvivalState(
+  factory SurvivalState.fromJson(Map<String, dynamic> json) => SurvivalState(
         counter: json['counter'] as int? ?? 0,
         label: json['label'] as String? ?? 'Ready',
       );

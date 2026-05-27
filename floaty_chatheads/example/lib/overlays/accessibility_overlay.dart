@@ -76,7 +76,8 @@ class _AccessibilityOverlayState extends State<AccessibilityOverlay> {
                       label: 'Last message from main app',
                       child: Text(
                         _lastMessage,
-                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        style:
+                            const TextStyle(fontSize: 11, color: Colors.grey),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),

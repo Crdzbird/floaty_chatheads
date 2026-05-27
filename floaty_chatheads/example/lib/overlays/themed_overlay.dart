@@ -92,9 +92,7 @@ class _ThemedOverlayState extends State<ThemedOverlay> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _palette != null
-                          ? 'Palette received!'
-                          : 'No palette yet',
+                      _palette != null ? 'Palette received!' : 'No palette yet',
                       style: TextStyle(color: _onSurface, fontSize: 12),
                     ),
                     const SizedBox(height: 8),

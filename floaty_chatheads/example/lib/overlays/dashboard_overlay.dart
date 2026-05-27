@@ -224,14 +224,12 @@ class _DashboardOverlayState extends State<DashboardOverlay> {
                         SizedBox(height: 12),
                         Text(
                           'No notes yet',
-                          style:
-                              TextStyle(color: _textSecondary, fontSize: 15),
+                          style: TextStyle(color: _textSecondary, fontSize: 15),
                         ),
                         SizedBox(height: 4),
                         Text(
                           'Tap "New" to create one',
-                          style:
-                              TextStyle(color: _textSecondary, fontSize: 12),
+                          style: TextStyle(color: _textSecondary, fontSize: 12),
                         ),
                       ],
                     ),

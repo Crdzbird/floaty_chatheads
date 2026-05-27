@@ -41,8 +41,7 @@ final class FloatyHostKit<S> {
     required S Function(Map<String, dynamic> json) stateFromJson,
     required S initialState,
     int maxQueueSize = 100,
-    QueueOverflowStrategy overflowStrategy =
-        QueueOverflowStrategy.dropOldest,
+    QueueOverflowStrategy overflowStrategy = QueueOverflowStrategy.dropOldest,
   })  : _router = FloatyActionRouter(
           maxQueueSize: maxQueueSize,
           overflowStrategy: overflowStrategy,
@@ -116,8 +115,7 @@ final class FloatyHostKit<S> {
       _proxyHost.register(service, handler);
 
   /// Removes a registered service provider.
-  void unregisterService(String service) =>
-      _proxyHost.unregister(service);
+  void unregisterService(String service) => _proxyHost.unregister(service);
 
   // ── Lifecycle ─────────────────────────────────────────────────────
 
@@ -168,8 +166,7 @@ final class FloatyOverlayKit<S> {
     required S Function(Map<String, dynamic> json) stateFromJson,
     required S initialState,
     int maxQueueSize = 100,
-    QueueOverflowStrategy overflowStrategy =
-        QueueOverflowStrategy.dropOldest,
+    QueueOverflowStrategy overflowStrategy = QueueOverflowStrategy.dropOldest,
     Duration proxyTimeout = const Duration(seconds: 10),
   })  : _router = FloatyActionRouter.overlay(
           maxQueueSize: maxQueueSize,

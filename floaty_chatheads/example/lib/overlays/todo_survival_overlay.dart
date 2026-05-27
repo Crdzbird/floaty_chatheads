@@ -108,8 +108,7 @@ class _TodoOverlayContentState extends State<_TodoOverlayContent> {
       );
       if (result is Map && mounted) {
         setState(() {
-          _statsResult =
-              '${result['total']} total, ${result['done']} done, '
+          _statsResult = '${result['total']} total, ${result['done']} done, '
               '${result['pending']} pending';
         });
       }
@@ -434,9 +433,7 @@ class _TaskRow extends StatelessWidget {
           GestureDetector(
             onTap: onToggle,
             child: Icon(
-              item.done
-                  ? Icons.check_circle
-                  : Icons.radio_button_unchecked,
+              item.done ? Icons.check_circle : Icons.radio_button_unchecked,
               size: 16,
               color: item.done ? Colors.green : Colors.grey.shade400,
             ),

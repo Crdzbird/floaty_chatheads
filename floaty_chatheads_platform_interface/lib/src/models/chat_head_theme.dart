@@ -84,8 +84,7 @@ class ChatHeadTheme {
         overlayPalette == null
             ? null
             : Object.hashAllUnordered(
-                overlayPalette!.entries
-                    .map((e) => Object.hash(e.key, e.value)),
+                overlayPalette!.entries.map((e) => Object.hash(e.key, e.value)),
               ),
       );
 }

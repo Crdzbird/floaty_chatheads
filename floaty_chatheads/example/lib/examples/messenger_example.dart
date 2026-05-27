@@ -149,9 +149,7 @@ class _MessengerExampleState extends State<MessengerExample> {
                             maxWidth: MediaQuery.of(context).size.width * 0.7,
                           ),
                           decoration: BoxDecoration(
-                            color: isApp
-                                ? Colors.indigo
-                                : Colors.grey.shade200,
+                            color: isApp ? Colors.indigo : Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -163,16 +161,14 @@ class _MessengerExampleState extends State<MessengerExample> {
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
-                                  color: isApp
-                                      ? Colors.white70
-                                      : Colors.black45,
+                                  color:
+                                      isApp ? Colors.white70 : Colors.black45,
                                 ),
                               ),
                               Text(
                                 msg.text,
                                 style: TextStyle(
-                                  color:
-                                      isApp ? Colors.white : Colors.black87,
+                                  color: isApp ? Colors.white : Colors.black87,
                                 ),
                               ),
                             ],

@@ -139,13 +139,13 @@ class _AccessibilityExampleState extends State<AccessibilityExample> {
               )
             else
               ..._events.take(15).map(
-                (e) => Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Text(e, style: const TextStyle(fontSize: 12)),
+                    (e) => Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Text(e, style: const TextStyle(fontSize: 12)),
+                      ),
+                    ),
                   ),
-                ),
-              ),
           ],
         ),
       ),

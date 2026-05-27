@@ -10,9 +10,9 @@ import 'package:flutter/services.dart';
 import 'package:meta/meta.dart' show immutable, protected, visibleForTesting;
 
 Object? _extractReplyValueOrThrow(
-    List<Object?>? replyList,
-    String channelName, {
-    required bool isNullValid,
+  List<Object?>? replyList,
+  String channelName, {
+  required bool isNullValid,
 }) {
   if (replyList == null) {
     throw PlatformException(
@@ -34,8 +34,8 @@ Object? _extractReplyValueOrThrow(
   return replyList.firstOrNull;
 }
 
-
-List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty = false}) {
+List<Object?> wrapResponse(
+    {Object? result, PlatformException? error, bool empty = false}) {
   if (empty) {
     return <Object?>[];
   }
@@ -44,20 +44,21 @@ List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty
   }
   return <Object?>[error.code, error.message, error.details];
 }
+
 bool _deepEquals(Object? a, Object? b) {
   if (a is List && b is List) {
     return a.length == b.length &&
         a.indexed
-        .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
+            .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
   }
   if (a is Map && b is Map) {
-    return a.length == b.length && a.entries.every((MapEntry<Object?, Object?> entry) =>
-        (b as Map<Object?, Object?>).containsKey(entry.key) &&
-        _deepEquals(entry.value, b[entry.key]));
+    return a.length == b.length &&
+        a.entries.every((MapEntry<Object?, Object?> entry) =>
+            (b as Map<Object?, Object?>).containsKey(entry.key) &&
+            _deepEquals(entry.value, b[entry.key]));
   }
   return a == b;
 }
-
 
 enum OverlayFlagMessage {
   defaultFlag,
@@ -75,10 +76,13 @@ enum NotificationVisibilityMessage {
 enum SnapEdgeMessage {
   /// Snap to the nearest horizontal edge (left or right). Default.
   both,
+
   /// Always snap to the left edge.
   left,
+
   /// Always snap to the right edge.
   right,
+
   /// No snapping — the bubble stays where the user releases it.
   none,
 }
@@ -87,8 +91,10 @@ enum SnapEdgeMessage {
 enum IconSourceTypeMessage {
   /// Flutter asset path.
   asset,
+
   /// Network URL (downloaded on an IO thread).
   network,
+
   /// Raw image bytes.
   bytes,
 }
@@ -97,10 +103,13 @@ enum IconSourceTypeMessage {
 enum EntranceAnimationMessage {
   /// No entrance animation — bubble appears at its initial position.
   none,
+
   /// Bubble pops in with a scale spring (default).
   pop,
+
   /// Bubble slides in from the nearest edge.
   slideFromEdge,
+
   /// Bubble fades in.
   fade,
 }
@@ -132,7 +141,8 @@ class IconSourceMessage {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static IconSourceMessage decode(Object result) {
     result as List<Object?>;
@@ -157,8 +167,7 @@ class IconSourceMessage {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 /// Theming configuration for the chathead.
@@ -204,7 +213,8 @@ class ChatHeadThemeMessage {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static ChatHeadThemeMessage decode(Object result) {
     result as List<Object?>;
@@ -215,7 +225,8 @@ class ChatHeadThemeMessage {
       bubbleBorderWidth: result[3] as double?,
       bubbleShadowColor: result[4] as int?,
       closeTintColor: result[5] as int?,
-      overlayPalette: (result[6] as Map<Object?, Object?>?)?.cast<String?, int?>(),
+      overlayPalette:
+          (result[6] as Map<Object?, Object?>?)?.cast<String?, int?>(),
     );
   }
 
@@ -233,8 +244,7 @@ class ChatHeadThemeMessage {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class ChatHeadConfig {
@@ -352,7 +362,8 @@ class ChatHeadConfig {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static ChatHeadConfig decode(Object result) {
     result as List<Object?>;
@@ -397,8 +408,7 @@ class ChatHeadConfig {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class OverlayPositionMessage {
@@ -419,7 +429,8 @@ class OverlayPositionMessage {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static OverlayPositionMessage decode(Object result) {
     result as List<Object?>;
@@ -443,8 +454,7 @@ class OverlayPositionMessage {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class AddChatHeadConfig {
@@ -470,7 +480,8 @@ class AddChatHeadConfig {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static AddChatHeadConfig decode(Object result) {
     result as List<Object?>;
@@ -495,10 +506,8 @@ class AddChatHeadConfig {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
-
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -507,34 +516,34 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is OverlayFlagMessage) {
+    } else if (value is OverlayFlagMessage) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
-    }    else if (value is NotificationVisibilityMessage) {
+    } else if (value is NotificationVisibilityMessage) {
       buffer.putUint8(130);
       writeValue(buffer, value.index);
-    }    else if (value is SnapEdgeMessage) {
+    } else if (value is SnapEdgeMessage) {
       buffer.putUint8(131);
       writeValue(buffer, value.index);
-    }    else if (value is IconSourceTypeMessage) {
+    } else if (value is IconSourceTypeMessage) {
       buffer.putUint8(132);
       writeValue(buffer, value.index);
-    }    else if (value is EntranceAnimationMessage) {
+    } else if (value is EntranceAnimationMessage) {
       buffer.putUint8(133);
       writeValue(buffer, value.index);
-    }    else if (value is IconSourceMessage) {
+    } else if (value is IconSourceMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is ChatHeadThemeMessage) {
+    } else if (value is ChatHeadThemeMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is ChatHeadConfig) {
+    } else if (value is ChatHeadConfig) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    }    else if (value is OverlayPositionMessage) {
+    } else if (value is OverlayPositionMessage) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    }    else if (value is AddChatHeadConfig) {
+    } else if (value is AddChatHeadConfig) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
     } else {
@@ -550,7 +559,9 @@ class _PigeonCodec extends StandardMessageCodec {
         return value == null ? null : OverlayFlagMessage.values[value];
       case 130:
         final value = readValue(buffer) as int?;
-        return value == null ? null : NotificationVisibilityMessage.values[value];
+        return value == null
+            ? null
+            : NotificationVisibilityMessage.values[value];
       case 131:
         final value = readValue(buffer) as int?;
         return value == null ? null : SnapEdgeMessage.values[value];
@@ -580,9 +591,11 @@ class FloatyHostApi {
   /// Constructor for [FloatyHostApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  FloatyHostApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+  FloatyHostApi(
+      {BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
       : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+        pigeonVar_messageChannelSuffix =
+            messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -590,7 +603,8 @@ class FloatyHostApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<bool> checkPermission() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.checkPermission$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.checkPermission$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -600,16 +614,16 @@ class FloatyHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return pigeonVar_replyValue! as bool;
   }
 
   Future<bool> requestPermission() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.requestPermission$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.requestPermission$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -619,34 +633,35 @@ class FloatyHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return pigeonVar_replyValue! as bool;
   }
 
   Future<void> showChatHead(ChatHeadConfig config) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.showChatHead$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.showChatHead$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[config]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[config]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<void> closeChatHead() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.closeChatHead$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.closeChatHead$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -656,15 +671,15 @@ class FloatyHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<bool> isChatHeadActive() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.isChatHeadActive$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.isChatHeadActive$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -674,73 +689,76 @@ class FloatyHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return pigeonVar_replyValue! as bool;
   }
 
   Future<void> addChatHead(AddChatHeadConfig config) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.addChatHead$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.addChatHead$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[config]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[config]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<void> removeChatHead(String id) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.removeChatHead$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.removeChatHead$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[id]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[id]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   /// Updates the badge count on the chathead bubble.
   /// Pass 0 to hide the badge.
   Future<void> updateBadge(int count) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.updateBadge$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.updateBadge$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[count]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[count]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   /// Programmatically expands the chathead to show its content panel.
   Future<void> expandChatHead() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.expandChatHead$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.expandChatHead$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -750,16 +768,16 @@ class FloatyHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   /// Programmatically collapses the chathead content panel.
   Future<void> collapseChatHead() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.collapseChatHead$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.collapseChatHead$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -769,11 +787,10 @@ class FloatyHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   /// Updates the chathead icon with raw RGBA pixel data.
@@ -781,22 +798,24 @@ class FloatyHostApi {
   /// Bitmap creation from [rgbaBytes] runs off the main thread
   /// (Dispatchers.Default). The view is invalidated on main after
   /// the bitmap is ready.
-  Future<void> updateChatHeadIcon(String id, Uint8List rgbaBytes, int width, int height) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.updateChatHeadIcon$pigeonVar_messageChannelSuffix';
+  Future<void> updateChatHeadIcon(
+      String id, Uint8List rgbaBytes, int width, int height) async {
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyHostApi.updateChatHeadIcon$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[id, rgbaBytes, width, height]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[id, rgbaBytes, width, height]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 }
 
@@ -804,9 +823,11 @@ class FloatyOverlayHostApi {
   /// Constructor for [FloatyOverlayHostApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  FloatyOverlayHostApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+  FloatyOverlayHostApi(
+      {BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
       : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+        pigeonVar_messageChannelSuffix =
+            messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -814,43 +835,46 @@ class FloatyOverlayHostApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<void> resizeContent(int width, int height) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.resizeContent$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.resizeContent$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[width, height]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[width, height]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<void> updateFlag(OverlayFlagMessage flag) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.updateFlag$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.updateFlag$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[flag]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[flag]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<void> closeOverlay() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.closeOverlay$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.closeOverlay$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -860,15 +884,15 @@ class FloatyOverlayHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<OverlayPositionMessage> getOverlayPosition() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.getOverlayPosition$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.getOverlayPosition$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -878,36 +902,37 @@ class FloatyOverlayHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return pigeonVar_replyValue! as OverlayPositionMessage;
   }
 
   /// Updates the badge count from the overlay isolate.
   Future<void> updateBadgeFromOverlay(int count) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.updateBadgeFromOverlay$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.updateBadgeFromOverlay$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[count]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[count]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   /// Returns debug information when debugMode is enabled.
   Future<Map<String?, Object?>> getDebugInfo() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.getDebugInfo$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.getDebugInfo$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -917,12 +942,12 @@ class FloatyOverlayHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
-    return (pigeonVar_replyValue! as Map<Object?, Object?>).cast<String?, Object?>();
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
+    return (pigeonVar_replyValue! as Map<Object?, Object?>)
+        .cast<String?, Object?>();
   }
 }
 
@@ -945,11 +970,17 @@ abstract class FloatyOverlayFlutterApi {
   /// Called when the user stops dragging the chathead.
   void onChatHeadDragEnd(String id, double x, double y);
 
-  static void setUp(FloatyOverlayFlutterApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
-    messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  static void setUp(
+    FloatyOverlayFlutterApi? api, {
+    BinaryMessenger? binaryMessenger,
+    String messageChannelSuffix = '',
+  }) {
+    messageChannelSuffix =
+        messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
     {
       final pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadTapped$messageChannelSuffix', pigeonChannelCodec,
+          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadTapped$messageChannelSuffix',
+          pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
@@ -962,15 +993,17 @@ abstract class FloatyOverlayFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+                error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }
     }
     {
       final pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadClosed$messageChannelSuffix', pigeonChannelCodec,
+          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadClosed$messageChannelSuffix',
+          pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
@@ -983,15 +1016,17 @@ abstract class FloatyOverlayFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+                error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }
     }
     {
       final pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadExpanded$messageChannelSuffix', pigeonChannelCodec,
+          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadExpanded$messageChannelSuffix',
+          pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
@@ -1004,15 +1039,17 @@ abstract class FloatyOverlayFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+                error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }
     }
     {
       final pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadCollapsed$messageChannelSuffix', pigeonChannelCodec,
+          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadCollapsed$messageChannelSuffix',
+          pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
@@ -1025,15 +1062,17 @@ abstract class FloatyOverlayFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+                error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }
     }
     {
       final pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragStart$messageChannelSuffix', pigeonChannelCodec,
+          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragStart$messageChannelSuffix',
+          pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
@@ -1048,15 +1087,17 @@ abstract class FloatyOverlayFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+                error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }
     }
     {
       final pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragEnd$messageChannelSuffix', pigeonChannelCodec,
+          'dev.flutter.pigeon.floaty_chatheads.FloatyOverlayFlutterApi.onChatHeadDragEnd$messageChannelSuffix',
+          pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
@@ -1071,8 +1112,9 @@ abstract class FloatyOverlayFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+                error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }

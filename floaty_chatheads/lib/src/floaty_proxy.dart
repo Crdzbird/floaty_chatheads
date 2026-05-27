@@ -82,12 +82,11 @@ final class FloatyProxyHost {
   static const _prefix = '_floaty_proxy';
 
   final Map<
-    String,
-    FutureOr<Object?> Function(
-      String method,
-      Map<String, dynamic> params,
-    )
-  > _services = {};
+      String,
+      FutureOr<Object?> Function(
+        String method,
+        Map<String, dynamic> params,
+      )> _services = {};
 
   /// Registers a service provider.
   ///
@@ -116,8 +115,7 @@ final class FloatyProxyHost {
     final id = envelope['id'] as String?;
     final service = envelope['service'] as String?;
     final method = envelope['method'] as String?;
-    final params =
-        (envelope['params'] as Map?)?.cast<String, dynamic>() ??
+    final params = (envelope['params'] as Map?)?.cast<String, dynamic>() ??
         const <String, dynamic>{};
 
     if (id == null || service == null || method == null) return;

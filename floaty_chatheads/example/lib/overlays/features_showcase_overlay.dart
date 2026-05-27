@@ -25,7 +25,8 @@ class _FeaturesShowcaseOverlayState extends State<FeaturesShowcaseOverlay> {
   @override
   void initState() {
     super.initState();
-    debugPrint('FeaturesShowcaseOverlay: initState() called — overlay is running');
+    debugPrint(
+        'FeaturesShowcaseOverlay: initState() called — overlay is running');
     FloatyOverlay.setUp();
     debugPrint('FeaturesShowcaseOverlay: FloatyOverlay.setUp() complete');
 
@@ -109,14 +110,16 @@ class _FeaturesShowcaseOverlayState extends State<FeaturesShowcaseOverlay> {
                     ),
                     GestureDetector(
                       onTap: FloatyOverlay.closeOverlay,
-                      child: const Icon(Icons.close, color: Colors.white54, size: 18),
+                      child: const Icon(Icons.close,
+                          color: Colors.white54, size: 18),
                     ),
                   ],
                 ),
               ),
               // Badge controls
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: Row(
                   children: [
                     Expanded(
@@ -131,7 +134,8 @@ class _FeaturesShowcaseOverlayState extends State<FeaturesShowcaseOverlay> {
                           child: Text(
                             '🔴 Badge +1 ($_badgeCount)',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 12),
                           ),
                         ),
                       ),
@@ -140,7 +144,8 @@ class _FeaturesShowcaseOverlayState extends State<FeaturesShowcaseOverlay> {
                     GestureDetector(
                       onTap: _clearBadge,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.white10,
                           borderRadius: BorderRadius.circular(8),

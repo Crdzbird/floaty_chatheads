@@ -53,8 +53,8 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
             .values[ChatHeadConfigResolver.snapEdge(config.snap).index],
         snapMargin: ChatHeadConfigResolver.snapMargin(config.snap),
         persistPosition: ChatHeadConfigResolver.persistPosition(config.snap),
-        entranceAnimation: pigeon.EntranceAnimationMessage
-            .values[config.entranceAnimation.index],
+        entranceAnimation: pigeon
+            .EntranceAnimationMessage.values[config.entranceAnimation.index],
         theme: _toThemeMessage(config.theme),
         debugMode: config.debugMode,
         autoLaunchOnBackground: config.autoLaunchOnBackground,

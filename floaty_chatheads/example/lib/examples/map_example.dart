@@ -273,8 +273,7 @@ class _MapExampleState extends State<MapExample> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate:
-                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'dev.floaty.chatheads.example',
                 ),
                 // Live location blue dot

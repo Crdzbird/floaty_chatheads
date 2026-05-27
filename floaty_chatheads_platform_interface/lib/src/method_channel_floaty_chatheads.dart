@@ -32,21 +32,17 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
   Future<void> showChatHead(ChatHeadConfig config) {
     // Resolve size preset: if set, use preset dimensions;
     // otherwise use raw values.
-    final effectiveWidth =
-        config.sizePreset?.width ?? config.contentWidth;
-    final effectiveHeight =
-        config.sizePreset?.height ?? config.contentHeight;
+    final effectiveWidth = config.sizePreset?.width ?? config.contentWidth;
+    final effectiveHeight = config.sizePreset?.height ?? config.contentHeight;
 
     return methodChannel.invokeMethod<void>('showChatHead', {
       'entryPoint': config.entryPoint,
       'contentWidth': effectiveWidth,
       'contentHeight': effectiveHeight,
       if (config.assets?.icon != null)
-        'chatheadIconSource':
-            _serializeIconSource(config.assets!.icon),
+        'chatheadIconSource': _serializeIconSource(config.assets!.icon),
       if (config.assets?.closeIcon != null)
-        'closeIconSource':
-            _serializeIconSource(config.assets!.closeIcon),
+        'closeIconSource': _serializeIconSource(config.assets!.closeIcon),
       if (config.assets?.closeBackground != null)
         'closeBackgroundSource':
             _serializeIconSource(config.assets!.closeBackground),
@@ -55,10 +51,9 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
       'notificationIconAsset': config.notification?.iconAsset,
       'flag': config.flag.index,
       'enableDrag': config.enableDrag,
-      'notificationVisibility':
-          (config.notification?.visibility ??
+      'notificationVisibility': (config.notification?.visibility ??
               NotificationVisibility.visibilityPublic)
-              .index,
+          .index,
       'snapEdge': (config.snap?.edge ?? SnapEdge.both).index,
       'snapMargin': config.snap?.margin ?? -10,
       'persistPosition': config.snap?.persistPosition ?? false,

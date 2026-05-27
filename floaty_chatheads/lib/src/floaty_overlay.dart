@@ -28,8 +28,7 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
 
   // coverage:ignore-start
   static final FloatyOverlay _instance = FloatyOverlay._();
-  static final FloatyOverlayHostApi _overlayHostApi =
-      FloatyOverlayHostApi();
+  static final FloatyOverlayHostApi _overlayHostApi = FloatyOverlayHostApi();
   // coverage:ignore-end
 
   static final StreamController<String> _tapController =

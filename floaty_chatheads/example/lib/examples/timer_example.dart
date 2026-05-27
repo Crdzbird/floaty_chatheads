@@ -82,9 +82,7 @@ class _TimerExampleState extends State<TimerExample> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: _isRunning
-                    ? Colors.green.shade50
-                    : Colors.grey.shade100,
+                color: _isRunning ? Colors.green.shade50 : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -113,8 +111,7 @@ class _TimerExampleState extends State<TimerExample> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 FilledButton.icon(
-                  onPressed: () =>
-                      _sendCommand(_isRunning ? 'pause' : 'start'),
+                  onPressed: () => _sendCommand(_isRunning ? 'pause' : 'start'),
                   icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow),
                   label: Text(_isRunning ? 'Pause' : 'Start'),
                 ),

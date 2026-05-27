@@ -5,8 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 Future<void> _simulateMessage(Object? data) async {
   final encoded = const JSONMessageCodec().encodeMessage(data);
-  await TestDefaultBinaryMessengerBinding
-      .instance.defaultBinaryMessenger
+  await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .handlePlatformMessage(
     'ni.devotion.floaty_head/messenger',
     encoded,
@@ -42,7 +41,10 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       await _simulateMessage(
-        _sys('_floaty_state', {'full': true, 'data': {'count': 1}}),
+        _sys('_floaty_state', {
+          'full': true,
+          'data': {'count': 1}
+        }),
       );
 
       expect(received, hasLength(1));
@@ -251,7 +253,9 @@ void main() {
       FloatyChannel.rawMessages.listen(rawReceived.add);
 
       // User data that happens to contain a prefix key but no envelope.
-      await _simulateMessage({'_floaty_state': {'full': true}});
+      await _simulateMessage({
+        '_floaty_state': {'full': true}
+      });
 
       expect(rawReceived, hasLength(1));
     });

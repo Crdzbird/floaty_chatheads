@@ -103,9 +103,8 @@ class _AutoLaunchExampleState extends State<AutoLaunchExample> {
                         'app process is killed.',
                       ),
                       value: _persist,
-                      onChanged: _enabled
-                          ? null
-                          : (v) => setState(() => _persist = v),
+                      onChanged:
+                          _enabled ? null : (v) => setState(() => _persist = v),
                     ),
                   ],
                 ),

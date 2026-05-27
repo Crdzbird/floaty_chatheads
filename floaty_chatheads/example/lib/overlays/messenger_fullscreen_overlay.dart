@@ -249,8 +249,7 @@ class _MessengerFullscreenOverlayState
                         final msg = _messages[i];
                         final showAvatar =
                             !msg.isMe && (i == 0 || _messages[i - 1].isMe);
-                        return _MessageBubble(
-                            msg: msg, showAvatar: showAvatar);
+                        return _MessageBubble(msg: msg, showAvatar: showAvatar);
                       },
                     ),
                   ),
@@ -288,8 +287,7 @@ class _MessengerFullscreenOverlayState
                                       ),
                                       decoration: BoxDecoration(
                                         color: _messengerBlue,
-                                        borderRadius:
-                                            BorderRadius.circular(20),
+                                        borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
                                         text,
@@ -356,8 +354,7 @@ class _MessageBubble extends StatelessWidget {
                       height: 26,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color:
-                            _MessengerFullscreenOverlayState._messengerBlue,
+                        color: _MessengerFullscreenOverlayState._messengerBlue,
                       ),
                       child: const Center(
                         child: Text(
@@ -374,8 +371,7 @@ class _MessageBubble extends StatelessWidget {
             ),
           Flexible(
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: msg.isMe
                     ? _MessengerFullscreenOverlayState._messengerBlue

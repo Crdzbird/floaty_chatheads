@@ -368,9 +368,8 @@ class _TodoSurvivalExampleState extends State<TodoSurvivalExample> {
                           item.title,
                           style: TextStyle(
                             fontSize: 13,
-                            decoration: item.done
-                                ? TextDecoration.lineThrough
-                                : null,
+                            decoration:
+                                item.done ? TextDecoration.lineThrough : null,
                             color: item.done ? Colors.grey : null,
                           ),
                         ),

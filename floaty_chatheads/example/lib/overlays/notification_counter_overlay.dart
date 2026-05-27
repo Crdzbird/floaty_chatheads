@@ -74,8 +74,7 @@ class _CounterBadge extends StatelessWidget {
                     _PillButton(
                       label: 'Clear',
                       color: Colors.red,
-                      onTap: () =>
-                          FloatyOverlay.shareData({'action': 'clear'}),
+                      onTap: () => FloatyOverlay.shareData({'action': 'clear'}),
                     ),
                   _PillButton(
                     label: 'Close',

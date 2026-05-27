@@ -111,8 +111,7 @@ final class FloatyOverlayScope<S> extends StatefulWidget {
   }
 
   @override
-  State<FloatyOverlayScope<S>> createState() =>
-      _FloatyOverlayScopeState<S>();
+  State<FloatyOverlayScope<S>> createState() => _FloatyOverlayScopeState<S>();
 }
 
 class _FloatyOverlayScopeState<S> extends State<FloatyOverlayScope<S>> {
