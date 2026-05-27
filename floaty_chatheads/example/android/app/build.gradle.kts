@@ -3,7 +3,6 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -15,10 +14,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     defaultConfig {
@@ -41,4 +36,14 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// Built-in Kotlin (Flutter 3.44+) — the kotlin-android plugin is no
+// longer declared in `plugins {}` and the legacy
+// `android { kotlinOptions {} }` block has been replaced by the
+// top-level `kotlin { compilerOptions {} }` below.
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    }
 }

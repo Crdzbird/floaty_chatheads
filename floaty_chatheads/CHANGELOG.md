@@ -8,8 +8,10 @@
 
 ### ⚙ Toolchain & platform floors (BREAKING)
 
-- Dart SDK floor raised to `^3.5.0` (was `^3.4.0`).
-- Flutter floor raised to `>=3.27.0` (was `>=3.22.0`).
+- Dart SDK floor raised to `^3.12.0` (was `^3.4.0`).
+- Flutter floor raised to `>=3.44.0` (was `>=3.22.0`) — required by
+  the Built-in Kotlin migration on the Android side. See
+  `floaty_chatheads_android` CHANGELOG for the full migration note.
 - Android `minSdk` raised to **24** (was 23). Android 7.0 (Nougat) is now the
   oldest supported OS. `compileSdk` bumped to 35 (Android 15). Plugin
   Java target raised to 11 (was 1.8) to match the example app.

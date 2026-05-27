@@ -25,7 +25,9 @@
 
 ### ⚙ Toolchain (BREAKING)
 
-- Dart SDK floor `^3.5.0`, Flutter floor `>=3.27.0`.
+- Dart SDK floor `^3.12.0`, Flutter floor `>=3.44.0` (matches the
+  rest of the federated set; the Android sibling's Built-in Kotlin
+  migration is what drives the floor).
 
 ## 1.0.5
 

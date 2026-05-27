@@ -10,9 +10,28 @@
 - Android `minSdk` raised to **24** (was 23).
 - `compileSdk` bumped to 35 (Android 15).
 - Plugin Java/Kotlin JVM target raised to 11 (was 1.8).
-- Dart SDK floor `^3.5.0`, Flutter floor `>=3.27.0`.
+- Dart SDK floor `^3.12.0`, Flutter floor `>=3.44.0` (required by
+  Built-in Kotlin — see below).
 - Pigeon constraint normalized to `^26.3.3`.
 - Depends on `floaty_chatheads_platform_interface: ^2.0.0`.
+
+### 🚀 Built-in Kotlin (BREAKING)
+
+The plugin now relies on the Flutter Gradle Plugin to provide Kotlin
+tooling instead of declaring the Kotlin Gradle Plugin itself. This is
+the path Flutter is steering all plugins toward; without it, builds
+on future Flutter versions will fail.
+
+- `android/build.gradle` no longer applies `id "kotlin-android"`.
+- The legacy `android { kotlinOptions {} }` block was replaced by a
+  top-level `kotlin { compilerOptions { jvmTarget = … } }` block
+  using `org.jetbrains.kotlin.gradle.dsl.JvmTarget`.
+- Requires Flutter 3.44+ / Kotlin Gradle Plugin 2.0+, which is the
+  reason for the pubspec floor bump above.
+
+Downstream apps consuming this plugin should follow the
+[for-app-developers migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers)
+to do the same on their own `android/app/build.gradle[.kts]`.
 
 ### ♻ Internals
 
