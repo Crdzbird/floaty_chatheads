@@ -38,6 +38,8 @@
 /// `FakeFloatyPlatform` and other test utilities.
 library;
 
+import 'package:floaty_chatheads/floaty_chatheads.dart';
+
 export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart'
     show
         AddChatHeadConfig,
@@ -59,7 +61,8 @@ export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
 
 export 'src/animated_widget_icon.dart';
 export 'src/floaty.dart';
-export 'src/floaty_action_router.dart' show ActionKey, FloatyAction, QueueOverflowStrategy;
+export 'src/floaty_action_router.dart'
+    show ActionKey, FloatyAction, QueueOverflowStrategy;
 export 'src/floaty_chatheads.dart';
 export 'src/floaty_connection_state.dart';
 export 'src/floaty_controller.dart';

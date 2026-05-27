@@ -46,7 +46,7 @@ class _CounterBadge extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: (hasNotifications ? Colors.red : Colors.grey)
-                          .withValues(alpha: 0.4),
+                          .withOpacity(0.4),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),

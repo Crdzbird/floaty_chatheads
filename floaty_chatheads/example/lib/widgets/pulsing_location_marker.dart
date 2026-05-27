@@ -54,7 +54,7 @@ class _PulsingLocationMarkerState extends State<PulsingLocationMarker>
                     height: widget.size,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.blue.withValues(alpha: 0.35 * opacity),
+                      color: Colors.blue.withOpacity(0.35 * opacity),
                     ),
                   ),
                 );

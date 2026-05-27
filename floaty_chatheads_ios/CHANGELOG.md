@@ -9,9 +9,9 @@
 
 - iOS deployment target raised to **14.0** (was 13.0) in both
   `Package.swift` and the CocoaPods podspec.
-- Dart SDK floor `^3.6.0`, Flutter floor `>=3.27.0` — matches the
-  rest of the federated set; the Android sibling's backwards-
-  compatible Built-in Kotlin pattern drives the floor (KGP 2.0+).
+- Dart SDK floor `^3.0.0`, Flutter floor `>=3.10.0` — matches the
+  rest of the federated set; picked as the bare minimum the Dart
+  code requires.
 - Pigeon constraint normalized to `^26.3.3`.
 - Depends on `floaty_chatheads_platform_interface: ^2.0.0`.
 

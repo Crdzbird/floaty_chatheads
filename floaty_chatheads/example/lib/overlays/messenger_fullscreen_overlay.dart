@@ -150,7 +150,7 @@ class _MessengerFullscreenOverlayState
                               end: Alignment.bottomRight,
                               colors: [
                                 _messengerBlue,
-                                _messengerBlue.withValues(alpha: 0.7),
+                                _messengerBlue.withOpacity(0.7),
                               ],
                             ),
                           ),
@@ -201,7 +201,7 @@ class _MessengerFullscreenOverlayState
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.1),
+                              color: Colors.grey.withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.phone_rounded,
@@ -215,7 +215,7 @@ class _MessengerFullscreenOverlayState
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.1),
+                              color: Colors.grey.withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.videocam_rounded,
@@ -229,7 +229,7 @@ class _MessengerFullscreenOverlayState
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.1),
+                              color: Colors.grey.withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.close_rounded,
@@ -405,7 +405,7 @@ class _MessageBubble extends StatelessWidget {
                     msg.time,
                     style: TextStyle(
                       color: msg.isMe
-                          ? Colors.white.withValues(alpha: 0.6)
+                          ? Colors.white.withOpacity(0.6)
                           : _MessengerFullscreenOverlayState._textLight,
                       fontSize: 10,
                     ),

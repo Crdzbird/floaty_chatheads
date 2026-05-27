@@ -25,22 +25,31 @@ See the README "Hello World" section for the full 30-second setup.
 
 ### ⚙ Toolchain & platform floors (BREAKING)
 
-- Dart SDK floor raised to `^3.6.0` (was `^3.4.0`).
-- Flutter floor raised to `>=3.27.0` (was `>=3.22.0`).
+- Dart SDK floor raised to `^3.0.0` (was `^3.4.0`) — the minimum
+  that supports `final class`, `sealed class`, records, and the
+  pattern matching used by the typed `ActionKey` / `StreamKey` API.
+- Flutter floor raised to `>=3.10.0` (was `>=3.22.0`) — pairs with
+  Dart 3.0.
 
-The floors are driven by the Android plugin's adoption of the
-**backwards-compatible Built-in Kotlin pattern**: the
-`kotlin { compilerOptions {} }` DSL requires Kotlin Gradle Plugin
-2.0+, which Flutter started bundling at 3.27. The pattern works on
-both Flutter 3.27–3.43 (explicit `kotlin-android` apply) and
-Flutter 3.44+ (Built-in Kotlin). See the `floaty_chatheads_android`
-CHANGELOG for the full Gradle snippet.
+Picked as the **bare minimum that the library code actually
+requires**. Anyone on Flutter 3.10+ (released May 2023) can consume
+the plugin.
 
-The practical win on Flutter 3.44+: this plugin **no longer appears
-in the "applies Kotlin Gradle Plugin" warning** that Flutter
-emits — only the third-party plugins (e.g. `package_info_plus`,
-`shared_preferences_android`) remain there until they migrate
-upstream.
+Trade-offs deliberately taken to keep the floor low:
+
+- The two pre-built widgets (`FloatyMiniPlayer`,
+  `FloatyNotificationCard`) use `Color.withOpacity(x)` rather than
+  the newer `Color.withValues(alpha: x)` (introduced in Flutter
+  3.27). `withOpacity` is deprecated on Flutter 3.27+ but still
+  functional. A file-level `// ignore_for_file: deprecated_member_use`
+  in each widget suppresses the lint.
+- The Android plugin keeps applying `id "kotlin-android"`
+  explicitly with the legacy `android { kotlinOptions {} }` block.
+  On Flutter 3.44+ this triggers the
+  "Future versions of Flutter will fail to build if your app uses
+  plugins that apply KGP" warning. Migrating to Built-in Kotlin
+  would lock out the Flutter 3.10–3.43 install base, so the warning
+  is accepted for now.
 - Android `minSdk` raised to **24** (was 23). Android 7.0 (Nougat) is now the
   oldest supported OS. `compileSdk` bumped to 35 (Android 15). Plugin
   Java target raised to 11 (was 1.8) to match the example app.

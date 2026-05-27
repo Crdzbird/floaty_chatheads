@@ -149,7 +149,7 @@ class _WidgetIconExampleState extends State<WidgetIconExample> {
                 color: Colors.red,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.red.withValues(alpha: 0.4 * pulse),
+                    color: Colors.red.withOpacity(0.4 * pulse),
                     blurRadius: 12 * pulse,
                     spreadRadius: 4 * pulse,
                   ),

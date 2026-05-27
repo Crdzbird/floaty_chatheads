@@ -25,9 +25,9 @@
 
 ### ⚙ Toolchain (BREAKING)
 
-- Dart SDK floor `^3.6.0`, Flutter floor `>=3.27.0` — matches the
-  rest of the federated set; the Android sibling's backwards-
-  compatible Built-in Kotlin pattern drives the floor (KGP 2.0+).
+- Dart SDK floor `^3.0.0`, Flutter floor `>=3.10.0` — matches the
+  rest of the federated set; picked as the bare minimum the Dart
+  code requires.
 
 ## 1.0.5
 

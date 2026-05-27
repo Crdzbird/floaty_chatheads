@@ -1,4 +1,4 @@
-import 'package:floaty_chatheads/src/floaty_overlay.dart';
+import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
 
 /// {@template floaty_simple_panel}
@@ -82,11 +82,12 @@ class FloatySimplePanel extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (_hasHeader) _PanelHeader(
-              title: title,
-              showCloseButton: showCloseButton,
-              onClose: onClose ?? FloatyOverlay.closeOverlay,
-            ),
+            if (_hasHeader)
+              _PanelHeader(
+                title: title,
+                showCloseButton: showCloseButton,
+                onClose: onClose ?? FloatyOverlay.closeOverlay,
+              ),
             Padding(padding: padding, child: child),
           ],
         ),

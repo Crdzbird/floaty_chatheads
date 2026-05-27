@@ -148,7 +148,7 @@ class _DashboardOverlayState extends State<DashboardOverlay> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.indigo.withValues(alpha: 0.3),
+                    color: Colors.indigo.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -286,7 +286,7 @@ class _ActionChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
+          color: color.withOpacity(0.15),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -330,7 +330,7 @@ class _StatBadge extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
+            color: color.withOpacity(0.12),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 18),

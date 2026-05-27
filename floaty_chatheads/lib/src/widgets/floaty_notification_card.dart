@@ -1,3 +1,9 @@
+// Color.withOpacity is deprecated in Flutter 3.27+ in favor of
+// Color.withValues(alpha:), but withOpacity continues to work and lets
+// this file build on Flutter 3.10+. Switch when Flutter actually
+// removes withOpacity.
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 /// {@template floaty_notification_card}
@@ -93,7 +99,7 @@ class FloatyNotificationCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
+              color: Colors.black.withOpacity(0.15),
               blurRadius: elevation,
               offset: const Offset(0, 2),
             ),
@@ -118,7 +124,7 @@ class FloatyNotificationCard extends StatelessWidget {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.12),
+                            color: accent.withOpacity(0.12),
                             shape: BoxShape.circle,
                           ),
                           child: iconWidget ??
@@ -146,7 +152,7 @@ class FloatyNotificationCard extends StatelessWidget {
                               Text(
                                 body!,
                                 style: TextStyle(
-                                  color: fg.withValues(alpha: 0.6),
+                                  color: fg.withOpacity(0.6),
                                   fontSize: 12,
                                 ),
                                 maxLines: 2,
@@ -161,7 +167,7 @@ class FloatyNotificationCard extends StatelessWidget {
                         IconButton(
                           icon: Icon(
                             Icons.close,
-                            color: fg.withValues(alpha: 0.4),
+                            color: fg.withOpacity(0.4),
                             size: 18,
                           ),
                           onPressed: onDismiss,

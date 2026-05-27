@@ -89,7 +89,7 @@ class _MultiChatOverlayState extends State<MultiChatOverlay> {
                 Text(
                   'Tap another bubble to switch',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: Colors.white.withOpacity(0.7),
                     fontSize: 10,
                   ),
                   textAlign: TextAlign.center,
@@ -103,7 +103,7 @@ class _MultiChatOverlayState extends State<MultiChatOverlay> {
                         vertical: 7,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.25),
+                        color: Colors.white.withOpacity(0.25),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Row(
@@ -129,7 +129,7 @@ class _MultiChatOverlayState extends State<MultiChatOverlay> {
                     child: Text(
                       'Close',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: Colors.white.withOpacity(0.5),
                         fontSize: 11,
                       ),
                     ),

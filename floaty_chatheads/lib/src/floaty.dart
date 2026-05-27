@@ -1,6 +1,4 @@
-import 'package:floaty_chatheads/src/floaty_chatheads.dart';
-import 'package:floaty_chatheads/src/floaty_launcher.dart';
-import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
+import 'package:floaty_chatheads/floaty_chatheads.dart';
 
 /// {@template floaty}
 /// The shortest path to a working chathead.
@@ -65,9 +63,7 @@ final class Floaty {
         entryPoint: entryPoint,
         sizePreset: size,
         entranceAnimation: entranceAnimation,
-        notification: title != null
-            ? NotificationConfig(title: title)
-            : null,
+        notification: title != null ? NotificationConfig(title: title) : null,
       );
 
   /// {@template floaty.toggle}
@@ -86,9 +82,7 @@ final class Floaty {
         entryPoint: entryPoint,
         sizePreset: size,
         entranceAnimation: entranceAnimation,
-        notification: title != null
-            ? NotificationConfig(title: title)
-            : null,
+        notification: title != null ? NotificationConfig(title: title) : null,
       );
 
   /// {@template floaty.close}
@@ -107,8 +101,7 @@ final class Floaty {
   /// For typed bidirectional messaging with state and actions, use
   /// [FloatyHostKit] instead.
   /// {@endtemplate}
-  static Future<void> send(Object? data) =>
-      FloatyChatheads.shareData(data);
+  static Future<void> send(Object? data) => FloatyChatheads.shareData(data);
 
   /// {@template floaty.on_data}
   /// Stream of raw data received from the overlay.

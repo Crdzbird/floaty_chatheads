@@ -1,5 +1,6 @@
 plugins {
     id "com.android.library"
+    id "kotlin-android"
 }
 
 group 'ni.devotion.floaty_chatheads'
@@ -22,6 +23,10 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = '11'
     }
 
     sourceSets {
@@ -55,28 +60,4 @@ android {
     }
 }
 
-// Backwards-compatible Built-in Kotlin pattern (Flutter 3.27 – 3.44+).
-//
-// - On AGP < 9 (Flutter 3.27 – 3.43): the Kotlin Gradle Plugin is not
-//   provided by Flutter, so we apply it explicitly. These Flutter
-//   versions do not emit the "plugin applies KGP" warning.
-// - On AGP >= 9 (Flutter 3.44+): Built-in Kotlin is in effect and
-//   Flutter provides KGP via its own Gradle plugin. We skip the
-//   explicit apply, so this plugin is *not* listed in Flutter's KGP
-//   warning.
-//
-// Either way the `kotlin { compilerOptions {} }` block below is the
-// modern replacement for the legacy `android { kotlinOptions {} }`
-// block and works once KGP 2.0+ is on the classpath (Flutter 3.27+).
-def agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0] as int
-
-if (agpMajor < 9) {
-    apply plugin: 'kotlin-android'
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
-    }
-}
 

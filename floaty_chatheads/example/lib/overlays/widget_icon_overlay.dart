@@ -34,7 +34,7 @@ class WidgetIconOverlay extends StatelessWidget {
                   'No image assets used!',
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: Colors.white.withOpacity(0.7),
                   ),
                 ),
                 const SizedBox(height: 10),

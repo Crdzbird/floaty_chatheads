@@ -56,7 +56,7 @@ class _ThemedOverlayState extends State<ThemedOverlay> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: _primary.withValues(alpha: 0.3),
+                color: _primary.withOpacity(0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -115,7 +115,7 @@ class _ThemedOverlayState extends State<ThemedOverlay> {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: _primary.withValues(alpha: 0.08),
+                        color: _primary.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -161,7 +161,7 @@ class _ThemedOverlayState extends State<ThemedOverlay> {
                       child: Text(
                         'Close',
                         style: TextStyle(
-                          color: _onSurface.withValues(alpha: 0.5),
+                          color: _onSurface.withOpacity(0.5),
                           fontSize: 11,
                         ),
                       ),
