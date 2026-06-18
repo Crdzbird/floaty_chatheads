@@ -41,7 +41,7 @@ jobs:
         working-directory: floaty_chatheads/example
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           distribution: "temurin"
           java-version: "11"
@@ -85,7 +85,7 @@ jobs:
         working-directory: floaty_chatheads/example
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
 
@@ -110,7 +110,7 @@ jobs:
         working-directory: floaty_chatheads/example
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
 
@@ -133,7 +133,7 @@ jobs:
         working-directory: floaty_chatheads/example
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
 
@@ -151,7 +151,7 @@ jobs:
         working-directory: floaty_chatheads/example
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
 
@@ -169,7 +169,7 @@ jobs:
         working-directory: floaty_chatheads/example
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
 
