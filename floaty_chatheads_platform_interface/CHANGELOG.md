@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.0
+
+> **Breaking release.** Minimum Flutter 3.44 / Dart 3.12, iOS 15, Android
+> API 24. Built-in Kotlin end to end. See the migration notes at the end.
+
+- `ChatHeadConfig.entryPointLibrary` (nullable) added and serialized over
+  the method channel.
+- Minimum Flutter 3.44 / Dart 3.12.
+
 ## 2.1.0
 
 ### New: `PanelAnchor`

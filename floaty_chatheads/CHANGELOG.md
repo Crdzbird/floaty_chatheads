@@ -1,5 +1,65 @@
 # Changelog
 
+## 3.0.0
+
+> **Breaking release.** Minimum Flutter 3.44 / Dart 3.12, iOS 15, Android
+> API 24. Built-in Kotlin end to end. See the migration notes at the end.
+
+### Simpler integration
+
+- **`Floaty` is now the single entry point.** `Floaty.show` / `Floaty.toggle`
+  handle the overlay permission and expose every option the plugin
+  supports (panel size and anchor, theming, snapping, widget and animated
+  icons, notification text, `autoLaunchOnBackground`, `persistOnAppClose`,
+  `debugMode`). `Floaty.expand`, `Floaty.collapse`, `Floaty.updateBadge`,
+  `Floaty.onClosed` and `Floaty.ensurePermission` were added.
+- **`FloatyLauncher` removed.** Replace `FloatyLauncher.show(sizePreset: x)`
+  with `Floaty.show(size: x)`; every other parameter keeps its name.
+  `FloatyController` now routes through `Floaty` and gained
+  `autoLaunchOnBackground`, `persistOnAppClose` and `entryPointLibrary`.
+- **Entry point in any file.** New `entryPointLibrary` parameter
+  (`'package:my_app/overlay.dart'`) lets the overlay entry point live
+  outside `main.dart`. Previously only root-library functions resolved,
+  and a wrong name failed silently on iOS; it is now a reported error.
+- Passing `contentWidth` / `contentHeight` to `Floaty.show` now takes
+  precedence over the `size` preset instead of being ignored.
+
+### Native fixes
+
+- Android 13+: `POST_NOTIFICATIONS` is declared and requested, so the
+  foreground-service notification actually appears.
+- Android: `NotificationConfig.visibility` is honored; the notification
+  channel name and "is running" text are localizable string resources
+  consumers can override; the foreground service declares its type
+  explicitly on Android 14+.
+- Android: `showChatHead` no longer reports success while doing nothing
+  when no Activity is attached, and the overlay engine restore after
+  process death no longer hijacks the main app's plugin instance.
+- Android: unused `WAKE_LOCK` permission and a 300-line unused color
+  resource file no longer merge into consumer apps; consumer ProGuard
+  rules ship with the plugin.
+- iOS: the overlay engine now registers the app's plugins, so
+  `shared_preferences`, `path_provider` and friends work inside the
+  overlay isolate.
+
+### Toolchain
+
+- Flutter 3.44+ / Dart 3.12+; Pigeon 29; very_good_analysis 11.
+- Android: AGP 9.4, built-in Kotlin (no Kotlin Gradle Plugin applied),
+  Java 17, compileSdk 36, androidx.core 1.18, Material 1.14.
+- iOS: deployment target 15.0 (Flutter 3.47 minimum), SwiftPM package
+  declares the `FlutterFramework` dependency per the current template.
+
+### Migration from 2.x
+
+1. Bump your app to Flutter 3.44+ and iOS 15.
+2. `FloatyLauncher.show(...)` -> `Floaty.show(...)` (rename `sizePreset:`
+   to `size:`). `FloatyLauncher.toggle` -> `Floaty.toggle`.
+3. If your overlay entry point is not in `main.dart`, pass
+   `entryPointLibrary: 'package:<your_app>/<file>.dart'`.
+4. Remove any `<uses-permission>` lines you added for this plugin: the
+   plugin manifest declares them all.
+
 ## 2.1.0
 
 ### New: `PanelAnchor`

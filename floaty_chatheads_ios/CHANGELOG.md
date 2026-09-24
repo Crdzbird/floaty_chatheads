@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.0.0
+
+> **Breaking release.** Minimum Flutter 3.44 / Dart 3.12, iOS 15, Android
+> API 24. Built-in Kotlin end to end. See the migration notes at the end.
+
+- The overlay engine registers the host app's plugins
+  (`GeneratedPluginRegistrant`), so other plugins work in the overlay.
+- `entryPointLibrary` support via `run(withEntrypoint:libraryURI:)`.
+- `showChatHead` reports an `overlay_engine` error when the entry point
+  cannot be started instead of succeeding silently.
+- Deployment target 15.0; `Package.swift` declares the `FlutterFramework`
+  dependency. Pigeon 29 with completion-style signatures.
+- Minimum Flutter 3.44 / Dart 3.12.
+
 ## 2.1.0
 
 ### New: `PanelAnchor`

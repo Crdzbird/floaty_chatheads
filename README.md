@@ -93,28 +93,22 @@ else you can dream up.
 
 ```yaml
 dependencies:
-  floaty_chatheads: ^1.2.1
+  floaty_chatheads: ^3.0.0
 ```
 
 ```bash
 flutter pub get
 ```
 
-**Requirements:** Dart `^3.4.0`, Flutter `>=3.22.0`, Android 6.0+ (API 23) / iOS 13.0+
+**Requirements:** Flutter `>=3.44.0` / Dart `^3.12.0`, Android 7.0+ (API 24), iOS 15.0+
 
-### 2. Platform setup
+### 2. Platform setup — nothing to add
 
-**Android** -- add these permissions to `android/app/src/main/AndroidManifest.xml`
-(inside the `<manifest>` tag, before `<application>`):
-
-```xml
-<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-<uses-permission android:name="android.permission.WAKE_LOCK" />
-```
-
-**iOS** -- nothing to do! No permissions needed.
+The plugin's own manifest declares every Android permission and the
+foreground service it needs (`SYSTEM_ALERT_WINDOW`, `FOREGROUND_SERVICE`,
+`FOREGROUND_SERVICE_SPECIAL_USE`, `POST_NOTIFICATIONS`) and ships a default
+bubble icon; iOS needs no permissions or `Info.plist` keys. The only step
+you own is the Google Play `specialUse` foreground-service declaration.
 
 ### 3. Add your bubble icon to assets
 
@@ -222,7 +216,7 @@ when you need it. Here is a roadmap:
 | Level | What to use | Good for |
 |---|---|---|
 | **Beginner** | `showChatHead()` + `shareData()` / `onData` | Simple overlays, quick prototypes |
-| **Intermediate** | `FloatyOverlayApp.run()`, `FloatyScope`, `FloatyLauncher`, `FloatyController` | Less boilerplate, lifecycle management |
+| **Intermediate** | `FloatyOverlayApp.run()`, `FloatyScope`, `FloatyController` | Less boilerplate, lifecycle management |
 | **Advanced** | `FloatyStateChannel`, `FloatyActionRouter`, `FloatyProxyHost/Client`, `FloatyHostKit` | Complex state sync, RPC, offline queueing |
 
 All levels use the same underlying plugin -- the helpers just reduce boilerplate.
@@ -252,7 +246,7 @@ implementations differ due to OS-level constraints:
 | **Overlay survival** | Survives app death (service-owned engine) | N/A |
 | **Bidirectional messaging** | Yes | Yes |
 | **Multi-bubble** | Messenger-style row | Via Flutter API callback |
-| **Min platform version** | Android 6.0+ (API 23) | iOS 13.0+ |
+| **Min platform version** | Android 7.0+ (API 24) | iOS 15.0+ |
 
 > **Note:** On iOS, `checkPermission()` and `requestPermission()` always return
 > `true` since no special permission is needed.
@@ -291,7 +285,7 @@ fits your use case -- you can always switch later.
 | Need | Use | Complexity |
 |---|---|---|
 | Bootstrap an overlay entry point | `FloatyOverlayApp.run()` / `.runScoped()` | Beginner |
-| Launch with auto permission handling | `FloatyLauncher` | Beginner |
+| Launch with auto permission handling and every option | `Floaty` | Beginner |
 | Lifecycle-aware show/close tied to a widget | `FloatyControllerWidget` / `FloatyController` | Beginner |
 | Auto-wired overlay context with all streams | `FloatyScope` / `FloatyOverlayScope` | Intermediate |
 | Display incoming overlay data reactively (main app) | `FloatyDataBuilder<T>` | Intermediate |
@@ -322,21 +316,21 @@ Use `runScoped()` to additionally wrap the child in a `FloatyScope`, so
 void overlayMain() => FloatyOverlayApp.runScoped(const MyOverlayWidget());
 ```
 
-### `FloatyLauncher` -- one-call launch with auto permissions
+### `Floaty` -- one-call launch with every option
 
 Combines permission check + request + show into a single `Future<bool>`:
 
 ```dart
-final shown = await FloatyLauncher.show(
+final shown = await Floaty.show(
   entryPoint: 'overlayMain',
   assets: const ChatHeadAssets(
     icon: IconSource.asset('assets/icon.png'),
   ),
-  sizePreset: ContentSizePreset.card,
+  size: ContentSizePreset.card,
 );
 ```
 
-Also provides `FloatyLauncher.toggle()` to show/close with one call.
+Also provides `Floaty.toggle()` to show/close with one call.
 
 ### `FloatyController` -- lifecycle-aware declarative control
 
@@ -976,7 +970,7 @@ It is a **complete rewrite** -- not a drop-in upgrade.
 
 ### How to migrate
 
-1. Replace `floaty_chathead` with `floaty_chatheads: ^1.2.1` in your `pubspec.yaml`.
+1. Replace `floaty_chathead` with `floaty_chatheads: ^3.0.0` in your `pubspec.yaml`.
 2. Update imports from `package:floaty_chathead/...` to `package:floaty_chatheads/floaty_chatheads.dart`.
 3. Replace method calls with the new static API on `FloatyChatheads` and `FloatyOverlay`.
 4. Add Android manifest permissions if not already present (see [Quick Start](#2-platform-setup)).

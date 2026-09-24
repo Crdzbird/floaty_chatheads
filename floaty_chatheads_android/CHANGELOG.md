@@ -1,5 +1,28 @@
 # Changelog
 
+## 3.0.0
+
+> **Breaking release.** Minimum Flutter 3.44 / Dart 3.12, iOS 15, Android
+> API 24. Built-in Kotlin end to end. See the migration notes at the end.
+
+- `entryPointLibrary` support (three-argument `DartEntrypoint`), persisted
+  with the rest of the config.
+- `POST_NOTIFICATIONS` declared and requested on Android 13+.
+- `NotificationConfig.visibility` honored; channel name and running text
+  moved to overridable string resources; explicit `specialUse` foreground
+  service type on Android 14+.
+- `showChatHead` fails with `not_attached` instead of silently succeeding
+  without an engine; the Activity is no longer required to show.
+- Restore-after-death: the auto-registered overlay-engine plugin instance
+  no longer claims the main-app slot.
+- Removed unused `WAKE_LOCK` permission, unused `colors.xml`, and the
+  deprecated `package` attribute from the manifest; added
+  `consumer-rules.pro`.
+- Built-in Kotlin: no Kotlin Gradle Plugin is applied; `kotlin {}`
+  compiler options, Java 17. AGP 9.4, compileSdk 36, androidx.core 1.18,
+  Material 1.14. Pigeon 29 with callback-style native signatures.
+- Minimum Flutter 3.44 / Dart 3.12.
+
 ## 2.1.0
 
 ### New: `PanelAnchor`
