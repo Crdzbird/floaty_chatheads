@@ -96,6 +96,14 @@ void main() {
       expect(args['panelAnchor'], equals(PanelAnchor.below.index));
     });
 
+    test('showChatHead serializes entryPointLibrary', () async {
+      await methodChannel.showChatHead(
+        const ChatHeadConfig(entryPointLibrary: 'package:app/overlay.dart'),
+      );
+      final args = log.first.arguments as Map<Object?, Object?>;
+      expect(args['entryPointLibrary'], equals('package:app/overlay.dart'));
+    });
+
     test('showChatHead serializes non-default panelAnchor by index', () async {
       await methodChannel.showChatHead(
         const ChatHeadConfig(panelAnchor: PanelAnchor.above),

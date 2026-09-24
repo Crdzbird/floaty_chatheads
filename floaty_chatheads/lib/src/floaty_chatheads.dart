@@ -155,6 +155,7 @@ final class FloatyChatheads {
   /// Priority: [iconBuilder] > [iconWidget] > [assets] > defaults.
   static Future<void> showChatHead({
     String entryPoint = 'overlayMain',
+    String? entryPointLibrary,
     int? contentWidth,
     int? contentHeight,
     OverlayFlag flag = OverlayFlag.defaultFlag,
@@ -198,6 +199,7 @@ final class FloatyChatheads {
     await _platform.showChatHead(
       ChatHeadConfig(
         entryPoint: entryPoint,
+        entryPointLibrary: entryPointLibrary,
         contentWidth: contentWidth,
         contentHeight: contentHeight,
         flag: flag,
@@ -252,7 +254,7 @@ final class FloatyChatheads {
         pixelRatio: iconPixelRatio,
       );
     }
-    return _platform.addChatHead(
+    return await _platform.addChatHead(
       AddChatHeadConfig(id: id, iconSource: effectiveSource),
     );
   }

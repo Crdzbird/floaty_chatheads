@@ -23,16 +23,20 @@ import kotlinx.coroutines.withTimeoutOrNull
 import ni.devotion.floaty_chatheads.generated.AddChatHeadConfig
 import ni.devotion.floaty_chatheads.generated.ChatHeadConfig
 import ni.devotion.floaty_chatheads.generated.FloatyHostApi
+import ni.devotion.floaty_chatheads.generated.FlutterError
+import ni.devotion.floaty_chatheads.generated.NotificationVisibilityMessage
 import ni.devotion.floaty_chatheads.generated.IconSourceTypeMessage
 import ni.devotion.floaty_chatheads.services.AutoLaunchLifecycleCallbacks
 import ni.devotion.floaty_chatheads.services.ConfigPersistence
 import ni.devotion.floaty_chatheads.services.FloatyContentJobService
 import ni.devotion.floaty_chatheads.services.OverlayBitmapPool
+import ni.devotion.floaty_chatheads.services.OverlayEngineManager
 import ni.devotion.floaty_chatheads.services.OverlayIconLoader
 import ni.devotion.floaty_chatheads.services.OverlayPermissionHandler
 import ni.devotion.floaty_chatheads.utils.Constants
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
 import ni.devotion.floaty_chatheads.utils.ImageHelper
+import ni.devotion.floaty_chatheads.utils.NotificationVisibility
 import ni.devotion.floaty_chatheads.utils.OverlayConfig
 import ni.devotion.floaty_chatheads.utils.PanelAnchor
 import ni.devotion.floaty_chatheads.utils.SnapEdge
@@ -101,8 +105,9 @@ class FloatyChatheadsPlugin :
         // Guard: FlutterEngineGroup auto-registers plugins on the
         // overlay engine.  Only the first attachment (the main engine)
         // should set up the messenger relay.
-        if (activeInstance != null) {
-            // This is the overlay engine — skip setup entirely.
+        if (activeInstance != null || OverlayEngineManager.creatingOverlayEngine) {
+            // This is the overlay engine — skip setup entirely. The flag
+            // covers restore-after-death, where no main instance exists yet.
             return
         }
 
@@ -203,11 +208,21 @@ class FloatyChatheadsPlugin :
         config: ChatHeadConfig,
         callback: (Result<Unit>) -> Unit,
     ) {
-        val currentActivity = activity ?: run {
-            callback(Result.success(Unit))
+        val appContext = context ?: run {
+            callback(
+                Result.failure(
+                    FlutterError(
+                        "not_attached",
+                        "floaty_chatheads is not attached to a Flutter engine.",
+                        null,
+                    ),
+                ),
+            )
             return
         }
-        val appContext = currentActivity.applicationContext
+        // Android 13+: the foreground-service notification needs this to
+        // show. No Activity (headless start) means it is simply skipped.
+        permissions.requestNotificationPermission(activity)
 
         // Tear down any existing overlay so the new entry point takes
         // effect. Use closeWindow(false) to avoid stopping the service
@@ -405,6 +420,12 @@ class FloatyChatheadsPlugin :
     private fun applyConfigToOverlayConfig(config: ChatHeadConfig) {
         config.notificationTitle?.let { OverlayConfig.notificationTitle = it }
         OverlayConfig.notificationDescription = config.notificationDescription
+        OverlayConfig.notificationVisibility = when (config.notificationVisibility) {
+            NotificationVisibilityMessage.VISIBILITY_PUBLIC -> NotificationVisibility.PUBLIC
+            NotificationVisibilityMessage.VISIBILITY_SECRET -> NotificationVisibility.SECRET
+            NotificationVisibilityMessage.VISIBILITY_PRIVATE -> NotificationVisibility.PRIVATE
+        }
+        OverlayConfig.entryPointLibrary = config.entryPointLibrary
         OverlayConfig.contentWidth = config.contentWidth?.toInt()
         OverlayConfig.contentHeight = config.contentHeight?.toInt()
 

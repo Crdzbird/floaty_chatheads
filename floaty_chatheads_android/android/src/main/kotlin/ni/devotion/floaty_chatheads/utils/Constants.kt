@@ -9,6 +9,8 @@ object Constants {
     // SharedPreferences keys for overlay survival after app death.
     const val PREFS_NAME = "floaty_chatheads_prefs"
     const val PREF_ENTRY_POINT = "entry_point"
+    const val PREF_ENTRY_POINT_LIBRARY = "entry_point_library"
+    const val PREF_NOTIFICATION_VISIBILITY = "notification_visibility"
     const val PREF_CONTENT_WIDTH = "content_width"
     const val PREF_CONTENT_HEIGHT = "content_height"
     const val PREF_SNAP_EDGE = "snap_edge"

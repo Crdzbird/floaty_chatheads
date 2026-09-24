@@ -1,4 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- Consumers can override these by defining the same names in their
+         own res/values (app resources win over library resources). -->
+    <string name="floaty_notification_channel_name">Floating chathead</string>
+    <string name="floaty_notification_running">%1$s is running</string>
 </resources>

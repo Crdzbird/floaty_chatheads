@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.graphics.Color
 import ni.devotion.floaty_chatheads.utils.Constants
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
+import ni.devotion.floaty_chatheads.utils.NotificationVisibility
 import ni.devotion.floaty_chatheads.utils.OverlayConfig
 import ni.devotion.floaty_chatheads.utils.PanelAnchor
 import ni.devotion.floaty_chatheads.utils.SnapEdge
@@ -24,6 +25,9 @@ internal class ConfigPersistence(private val context: Context) {
         prefs().edit().apply {
             putBoolean(Constants.PREF_HAS_SAVED_CONFIG, true)
             putString(Constants.PREF_ENTRY_POINT, entryPoint)
+            OverlayConfig.entryPointLibrary?.let { putString(Constants.PREF_ENTRY_POINT_LIBRARY, it) }
+                ?: remove(Constants.PREF_ENTRY_POINT_LIBRARY)
+            putString(Constants.PREF_NOTIFICATION_VISIBILITY, OverlayConfig.notificationVisibility.name)
             OverlayConfig.contentWidth?.let { putInt(Constants.PREF_CONTENT_WIDTH, it) }
                 ?: remove(Constants.PREF_CONTENT_WIDTH)
             OverlayConfig.contentHeight?.let { putInt(Constants.PREF_CONTENT_HEIGHT, it) }
@@ -69,6 +73,12 @@ internal class ConfigPersistence(private val context: Context) {
         if (!prefs.getBoolean(Constants.PREF_HAS_SAVED_CONFIG, false)) return null
 
         val entryPoint = prefs.getString(Constants.PREF_ENTRY_POINT, null) ?: return null
+        OverlayConfig.entryPointLibrary = prefs.getString(Constants.PREF_ENTRY_POINT_LIBRARY, null)
+        OverlayConfig.notificationVisibility = try {
+            NotificationVisibility.valueOf(
+                prefs.getString(Constants.PREF_NOTIFICATION_VISIBILITY, "PUBLIC") ?: "PUBLIC",
+            )
+        } catch (_: Exception) { NotificationVisibility.PUBLIC }
 
         OverlayConfig.contentWidth = if (prefs.contains(Constants.PREF_CONTENT_WIDTH)) {
             prefs.getInt(Constants.PREF_CONTENT_WIDTH, 0)

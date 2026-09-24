@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 
@@ -21,6 +22,7 @@ import ni.devotion.floaty_chatheads.floating_chathead.WindowManagerHelper
 import ni.devotion.floaty_chatheads.generated.FloatyOverlayFlutterApi
 import ni.devotion.floaty_chatheads.generated.FloatyOverlayHostApi
 import ni.devotion.floaty_chatheads.utils.Constants
+import ni.devotion.floaty_chatheads.utils.NotificationVisibility
 import ni.devotion.floaty_chatheads.utils.OverlayConfig
 
 class FloatyContentJobService : Service(), FloatyOverlayHostApi {
@@ -493,7 +495,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 Constants.NOTIFICATION_CHANNEL_ID,
-                "Floaty Chathead Service",
+                getString(R.string.floaty_notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW,
             )
             val manager = getSystemService(NotificationManager::class.java)
@@ -523,13 +525,20 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
                 if (OverlayConfig.notificationDescription != null)
                     OverlayConfig.notificationTitle
                 else
-                    "${OverlayConfig.notificationTitle} is running"
+                    getString(R.string.floaty_notification_running, OverlayConfig.notificationTitle)
             )
             .apply {
                 OverlayConfig.notificationDescription?.let { setContentText(it) }
             }
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setVisibility(
+                when (OverlayConfig.notificationVisibility) {
+                    NotificationVisibility.PUBLIC -> NotificationCompat.VISIBILITY_PUBLIC
+                    NotificationVisibility.SECRET -> NotificationCompat.VISIBILITY_SECRET
+                    NotificationVisibility.PRIVATE -> NotificationCompat.VISIBILITY_PRIVATE
+                },
+            )
 
         if (OverlayConfig.notificationIcon != null) {
             builder.setLargeIcon(OverlayConfig.notificationIcon)
@@ -537,7 +546,15 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
 
         builder.setSmallIcon(R.drawable.ic_chathead)
 
-        startForeground(Constants.NOTIFICATION_ID, builder.build())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                Constants.NOTIFICATION_ID,
+                builder.build(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+            )
+        } else {
+            startForeground(Constants.NOTIFICATION_ID, builder.build())
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

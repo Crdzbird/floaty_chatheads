@@ -1,6 +1,10 @@
 package ni.devotion.floaty_chatheads.services
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -19,6 +23,7 @@ internal class OverlayPermissionHandler {
 
     companion object {
         const val PERMISSION_REQUEST_CODE = 2084
+        const val NOTIFICATION_PERMISSION_REQUEST_CODE = 2085
     }
 
     private var pendingCallback: ((Result<Boolean>) -> Unit)? = null
@@ -57,6 +62,23 @@ internal class OverlayPermissionHandler {
             Uri.parse("package:${activity.packageName}"),
         )
         activity.startActivityForResult(intent, PERMISSION_REQUEST_CODE)
+    }
+
+    /**
+     * Asks for POST_NOTIFICATIONS on Android 13+ so the foreground-service
+     * notification is visible. Fire-and-forget: the overlay works either way.
+     */
+    fun requestNotificationPermission(activity: Activity?) {
+        if (activity == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ContextCompat.checkSelfPermission(
+            activity, Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+        if (granted) return
+        ActivityCompat.requestPermissions(
+            activity,
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            NOTIFICATION_PERMISSION_REQUEST_CODE,
+        )
     }
 
     /**

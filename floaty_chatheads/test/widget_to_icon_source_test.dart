@@ -39,7 +39,7 @@ void main() {
       final image = await renderWidgetToImage(
         testWidget,
         size: testSize,
-        pixelRatio: 2.0,
+        pixelRatio: 2,
       );
       expect(image.width, equals(20));
       expect(image.height, equals(20));

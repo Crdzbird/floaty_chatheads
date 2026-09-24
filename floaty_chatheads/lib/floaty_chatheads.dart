@@ -8,9 +8,10 @@
 /// Most apps need only this barrel. Pick the right entry point for your
 /// situation:
 ///
-/// - **Show a chathead from your app:** [FloatyChatheads], or use
-///   [FloatyLauncher] / [FloatyPermissionGate] for a one-call setup with
-///   permission handling.
+/// - **Show a chathead from your app:** [Floaty.show] — one call that
+///   handles the overlay permission and exposes every option. Use
+///   [FloatyChatheads] only to skip permission handling, and
+///   [FloatyController] for a declarative, `ChangeNotifier`-driven setup.
 /// - **Build the overlay UI:** wrap your overlay in [FloatyOverlayApp] or
 ///   [FloatyOverlayScope]; use [FloatyOverlayBuilder] for reactive
 ///   rebuilds without touching streams.
@@ -69,7 +70,6 @@ export 'src/floaty_connection_state.dart';
 export 'src/floaty_controller.dart';
 export 'src/floaty_data_builder.dart';
 export 'src/floaty_kit.dart';
-export 'src/floaty_launcher.dart';
 export 'src/floaty_messenger.dart';
 export 'src/floaty_overlay.dart';
 export 'src/floaty_overlay_app.dart';

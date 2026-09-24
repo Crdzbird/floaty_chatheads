@@ -18,6 +18,13 @@ import ni.devotion.floaty_chatheads.utils.OverlayConfig
  */
 internal class OverlayEngineManager(private val context: Context) {
 
+    companion object {
+        /** True while the overlay engine is being created. Plugins auto-register
+         *  on that engine synchronously; the main-app plugin uses this to skip
+         *  claiming the overlay attachment as its own. */
+        @Volatile var creatingOverlayEngine = false
+    }
+
     /** The overlay-side messenger for main <-> overlay communication. */
     var overlayMessenger: BasicMessageChannel<Any?>? = null
         private set
@@ -41,11 +48,19 @@ internal class OverlayEngineManager(private val context: Context) {
 
         OverlayConfig.logD("ensureEngine: creating engine for '$entryPoint'")
         val engineGroup = FlutterEngineGroup(context)
-        val dartEntrypoint = DartExecutor.DartEntrypoint(
-            FlutterInjector.instance().flutterLoader().findAppBundlePath(),
-            entryPoint,
-        )
-        val engine = engineGroup.createAndRunEngine(context, dartEntrypoint)
+        val bundlePath = FlutterInjector.instance().flutterLoader().findAppBundlePath()
+        val library = OverlayConfig.entryPointLibrary
+        val dartEntrypoint = if (library.isNullOrEmpty()) {
+            DartExecutor.DartEntrypoint(bundlePath, entryPoint)
+        } else {
+            DartExecutor.DartEntrypoint(bundlePath, library, entryPoint)
+        }
+        creatingOverlayEngine = true
+        val engine = try {
+            engineGroup.createAndRunEngine(context, dartEntrypoint)
+        } finally {
+            creatingOverlayEngine = false
+        }
         FlutterEngineCache.getInstance()
             .put(Constants.OVERLAY_ENGINE_CACHE_TAG, engine)
 

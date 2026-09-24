@@ -37,6 +37,7 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
 
     return methodChannel.invokeMethod<void>('showChatHead', {
       'entryPoint': config.entryPoint,
+      'entryPointLibrary': config.entryPointLibrary,
       'contentWidth': effectiveWidth,
       'contentHeight': effectiveHeight,
       if (config.assets?.icon != null)

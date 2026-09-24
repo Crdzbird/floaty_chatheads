@@ -40,19 +40,25 @@ abstract class FloatyOverlayHostApi {
 
 @FlutterApi()
 abstract class FloatyOverlayFlutterApi {
+  @asyncCallback
   void onChatHeadTapped(String id);
 
+  @asyncCallback
   void onChatHeadClosed(String id);
 
   /// Called when the content panel is expanded.
+  @asyncCallback
   void onChatHeadExpanded(String id);
 
   /// Called when the content panel is collapsed.
+  @asyncCallback
   void onChatHeadCollapsed(String id);
 
   /// Called when the user starts dragging the chathead.
+  @asyncCallback
   void onChatHeadDragStart(String id, double x, double y);
 
   /// Called when the user stops dragging the chathead.
+  @asyncCallback
   void onChatHeadDragEnd(String id, double x, double y);
 }

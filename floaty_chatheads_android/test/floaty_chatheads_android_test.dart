@@ -41,6 +41,12 @@ void main() {
 
       await FloatyChatheadsAndroid().showChatHead(const ChatHeadConfig());
       expect(received?.panelAnchor, pigeon.PanelAnchorMessage.below);
+      expect(received?.entryPointLibrary, isNull);
+
+      await FloatyChatheadsAndroid().showChatHead(
+        const ChatHeadConfig(entryPointLibrary: 'package:app/overlay.dart'),
+      );
+      expect(received?.entryPointLibrary, 'package:app/overlay.dart');
     });
   });
 }

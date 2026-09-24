@@ -123,6 +123,7 @@ class ChatHeadThemeMessage {
 class ChatHeadConfig {
   ChatHeadConfig({
     required this.entryPoint,
+    this.entryPointLibrary,
     this.contentWidth,
     this.contentHeight,
     this.chatheadIconAsset,
@@ -148,6 +149,10 @@ class ChatHeadConfig {
   });
 
   final String entryPoint;
+
+  /// Library URI of [entryPoint] (`package:my_app/overlay.dart`).
+  /// Null means the app's root library.
+  final String? entryPointLibrary;
   final int? contentWidth;
   final int? contentHeight;
   final String? chatheadIconAsset;
@@ -215,17 +220,17 @@ class AddChatHeadConfig {
 abstract class FloatyHostApi {
   bool checkPermission();
 
-  @async
+  @asyncCallback
   bool requestPermission();
 
-  @async
+  @asyncCallback
   void showChatHead(ChatHeadConfig config);
 
   void closeChatHead();
 
   bool isChatHeadActive();
 
-  @async
+  @asyncCallback
   void addChatHead(AddChatHeadConfig config);
 
   void removeChatHead(String id);
@@ -279,19 +284,25 @@ abstract class FloatyOverlayHostApi {
 
 @FlutterApi()
 abstract class FloatyOverlayFlutterApi {
+  @asyncCallback
   void onChatHeadTapped(String id);
 
+  @asyncCallback
   void onChatHeadClosed(String id);
 
   /// Called when the content panel is expanded.
+  @asyncCallback
   void onChatHeadExpanded(String id);
 
   /// Called when the content panel is collapsed.
+  @asyncCallback
   void onChatHeadCollapsed(String id);
 
   /// Called when the user starts dragging the chathead.
+  @asyncCallback
   void onChatHeadDragStart(String id, double x, double y);
 
   /// Called when the user stops dragging the chathead.
+  @asyncCallback
   void onChatHeadDragEnd(String id, double x, double y);
 }

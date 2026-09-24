@@ -114,6 +114,19 @@ void main() {
     });
   });
 
+  group('entryPointLibrary', () {
+    test('defaults to null (root library)', () {
+      expect(const ChatHeadConfig().entryPointLibrary, isNull);
+    });
+
+    test('participates in equality', () {
+      const a = ChatHeadConfig(entryPointLibrary: 'package:app/a.dart');
+      const b = ChatHeadConfig(entryPointLibrary: 'package:app/b.dart');
+      expect(a, isNot(equals(b)));
+      expect(a, equals(const ChatHeadConfig(entryPointLibrary: 'package:app/a.dart')));
+    });
+  });
+
   group('PanelAnchor', () {
     test('ChatHeadConfig defaults to below', () {
       const config = ChatHeadConfig();

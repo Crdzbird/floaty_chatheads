@@ -30,6 +30,7 @@ class ChatHeadConfig {
   /// {@macro chat_head_config}
   const ChatHeadConfig({
     this.entryPoint = 'overlayMain',
+    this.entryPointLibrary,
     this.contentWidth,
     this.contentHeight,
     this.flag = OverlayFlag.defaultFlag,
@@ -53,6 +54,15 @@ class ChatHeadConfig {
   /// Defaults to `"overlayMain"`.
   /// {@endtemplate}
   final String entryPoint;
+
+  /// {@template chat_head_config.entry_point_library}
+  /// Library URI that defines [entryPoint], for example
+  /// `package:my_app/overlay.dart`.
+  ///
+  /// When `null` the entry point must be a top-level function of the
+  /// app's root library (the file containing `main()`).
+  /// {@endtemplate}
+  final String? entryPointLibrary;
 
   /// {@template chat_head_config.content_width}
   /// Width of the content panel in logical pixels.
@@ -167,6 +177,7 @@ class ChatHeadConfig {
       identical(this, other) ||
       other is ChatHeadConfig &&
           other.entryPoint == entryPoint &&
+          other.entryPointLibrary == entryPointLibrary &&
           other.contentWidth == contentWidth &&
           other.contentHeight == contentHeight &&
           other.flag == flag &&
@@ -185,6 +196,7 @@ class ChatHeadConfig {
   @override
   int get hashCode => Object.hashAll([
         entryPoint,
+        entryPointLibrary,
         contentWidth,
         contentHeight,
         flag,

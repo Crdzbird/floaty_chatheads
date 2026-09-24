@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:floaty_chatheads/src/floaty.dart';
 import 'package:floaty_chatheads/src/floaty_chatheads.dart';
-import 'package:floaty_chatheads/src/floaty_launcher.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
 import 'package:flutter/widgets.dart';
 
@@ -45,6 +45,7 @@ final class FloatyController extends ChangeNotifier {
   /// {@macro floaty_controller}
   FloatyController({
     this.entryPoint = 'overlayMain',
+    this.entryPointLibrary,
     this.contentWidth,
     this.contentHeight,
     this.sizePreset,
@@ -53,6 +54,8 @@ final class FloatyController extends ChangeNotifier {
     this.enableDrag = true,
     this.entranceAnimation = EntranceAnimation.none,
     this.panelAnchor = PanelAnchor.below,
+    this.autoLaunchOnBackground = false,
+    this.persistOnAppClose = false,
     this.debugMode = false,
     bool autoShow = false,
     this.onData,
@@ -68,6 +71,9 @@ final class FloatyController extends ChangeNotifier {
   /// Dart entry-point function for the overlay isolate.
   /// {@endtemplate}
   final String entryPoint;
+
+  /// {@macro chat_head_config.entry_point_library}
+  final String? entryPointLibrary;
 
   /// {@template floaty_controller.content_width}
   /// Content panel width in dp/pt.
@@ -109,6 +115,12 @@ final class FloatyController extends ChangeNotifier {
   /// {@endtemplate}
   final PanelAnchor panelAnchor;
 
+  /// {@macro chat_head_config.auto_launch_on_background}
+  final bool autoLaunchOnBackground;
+
+  /// {@macro chat_head_config.persist_on_app_close}
+  final bool persistOnAppClose;
+
   /// {@template floaty_controller.debug_mode}
   /// Whether the native debug inspector is enabled (Android).
   /// {@endtemplate}
@@ -145,16 +157,19 @@ final class FloatyController extends ChangeNotifier {
   /// was denied.
   Future<bool> show() async {
     try {
-      final shown = await FloatyLauncher.show(
+      final shown = await Floaty.show(
         entryPoint: entryPoint,
+        entryPointLibrary: entryPointLibrary,
         contentWidth: contentWidth,
         contentHeight: contentHeight,
-        sizePreset: sizePreset,
+        size: sizePreset,
         theme: theme,
         flag: flag,
         enableDrag: enableDrag,
         entranceAnimation: entranceAnimation,
         panelAnchor: panelAnchor,
+        autoLaunchOnBackground: autoLaunchOnBackground,
+        persistOnAppClose: persistOnAppClose,
         debugMode: debugMode,
         assets: assets,
         notification: notification,
@@ -189,7 +204,7 @@ final class FloatyController extends ChangeNotifier {
       await close();
       return false;
     }
-    return show();
+    return await show();
   }
 
   /// Sends data to the overlay isolate.

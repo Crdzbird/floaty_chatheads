@@ -39,6 +39,7 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
     return _hostApi.showChatHead(
       pigeon.ChatHeadConfig(
         entryPoint: config.entryPoint,
+        entryPointLibrary: config.entryPointLibrary,
         contentWidth: size.width,
         contentHeight: size.height,
         notificationTitle: config.notification?.title,

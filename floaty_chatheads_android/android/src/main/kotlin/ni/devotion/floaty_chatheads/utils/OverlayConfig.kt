@@ -13,6 +13,9 @@ enum class EntranceAnimation { NONE, POP, SLIDE_FROM_EDGE, FADE }
 /** Where the expanded content panel is anchored relative to the bubble. */
 enum class PanelAnchor { BELOW, ABOVE, AUTO }
 
+/** Lock-screen visibility of the foreground-service notification. */
+enum class NotificationVisibility { PUBLIC, SECRET, PRIVATE }
+
 /**
  * Holds the overlay configuration that is shared across the plugin,
  * service, and native views.
@@ -35,6 +38,7 @@ object OverlayConfig {
     // ── Notification ─────────────────────────────────────────────────
     var notificationTitle: String = "Floaty Chathead"
     var notificationDescription: String? = null
+    var notificationVisibility: NotificationVisibility = NotificationVisibility.PUBLIC
     @Volatile var notificationIcon: Bitmap? = null
 
     // ── Content panel ────────────────────────────────────────────────
@@ -53,6 +57,10 @@ object OverlayConfig {
 
     // ── Entrance animation ───────────────────────────────────────────
     var entranceAnimation: EntranceAnimation = EntranceAnimation.NONE
+
+    // ── Overlay entry point ──────────────────────────────────────────
+    /** Library URI of the entry point; null = the app's root library. */
+    var entryPointLibrary: String? = null
 
     // ── Panel anchor ─────────────────────────────────────────────────
     /** Where the expanded content panel opens relative to the bubble. */

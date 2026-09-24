@@ -74,7 +74,16 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     }
 
     func showChatHead(config: ChatHeadConfig, completion: @escaping (Result<Void, any Error>) -> Void) {
-        createOverlayWindow(config: config)
+        guard createOverlayWindow(config: config) else {
+            completion(.failure(PigeonError(
+                code: "overlay_engine",
+                message: "Could not start the overlay engine with entry point "
+                    + "'\(config.entryPoint)'. It must be a top-level function in "
+                    + "your app's main library annotated with @pragma('vm:entry-point').",
+                details: nil
+            )))
+            return
+        }
         completion(.success(()))
     }
 
@@ -190,7 +199,8 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
 
     // MARK: - Private — Window Lifecycle
 
-    private func createOverlayWindow(config: ChatHeadConfig) {
+    /// Returns `false` when the overlay engine could not start.
+    private func createOverlayWindow(config: ChatHeadConfig) -> Bool {
         destroyOverlayWindow()
 
         // Store config
@@ -203,11 +213,18 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         currentPanelAnchor = config.panelAnchor
 
         let engine = FlutterEngine(name: "floaty_chatheads_overlay")
-        let started = engine.run(withEntrypoint: config.entryPoint)
-        if !started {
-            print("[FloatyChatheads] Failed to start overlay engine with entrypoint: \(config.entryPoint)")
+        guard engine.run(withEntrypoint: config.entryPoint, libraryURI: config.entryPointLibrary) else {
+            engine.destroyContext()
+            return false
         }
         overlayEngine = engine
+
+        // Register the host app's plugins on the overlay engine so the
+        // overlay isolate can use them (shared_preferences, path_provider,
+        // ...). The registrant is generated into the host app, so it is
+        // looked up dynamically. This runs before the plugin's own channel
+        // wiring below so those handlers take precedence.
+        registerAppPlugins(on: engine)
 
         // Reset to defaults before applying config so previous session
         // dimensions don't leak when the new config omits width/height.
@@ -298,6 +315,15 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
             animation: config.entranceAnimation,
             screenWidth: screenBounds.width,
         )
+        return true
+    }
+
+    private func registerAppPlugins(on engine: FlutterEngine) {
+        let selector = NSSelectorFromString("registerWithRegistry:")
+        guard let registrant = NSClassFromString("GeneratedPluginRegistrant") else { return }
+        let registrantClass = registrant as AnyObject
+        guard registrantClass.responds(to: selector) else { return }
+        _ = registrantClass.perform(selector, with: engine)
     }
 
     private func destroyOverlayWindow() {
