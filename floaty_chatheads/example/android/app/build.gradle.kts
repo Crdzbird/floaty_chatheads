@@ -12,8 +12,8 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     defaultConfig {
@@ -38,19 +38,8 @@ flutter {
     source = "../.."
 }
 
-// Backwards-compatible Built-in Kotlin pattern — see the plugin's
-// android/build.gradle for the full explanation.
-val agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
-    .substringBefore('.').toInt()
-
-if (agpMajor < 9) {
-    apply(plugin = "kotlin-android")
-}
-
-project.extensions.configure(
-    org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension::class.java,
-) {
+kotlin {
     compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }

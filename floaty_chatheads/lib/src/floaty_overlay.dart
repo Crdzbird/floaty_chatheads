@@ -201,23 +201,27 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
 
   // FloatyOverlayFlutterApi implementation
   @override
-  void onChatHeadTapped(String id) => _tapController.add(id);
+  Future<void> onChatHeadTapped(String id) async =>
+      _tapController.add(id);
 
   @override
-  void onChatHeadClosed(String id) => _closeController.add(id);
+  Future<void> onChatHeadClosed(String id) async =>
+      _closeController.add(id);
 
   @override
-  void onChatHeadExpanded(String id) => _expandController.add(id);
+  Future<void> onChatHeadExpanded(String id) async =>
+      _expandController.add(id);
 
   @override
-  void onChatHeadCollapsed(String id) => _collapseController.add(id);
+  Future<void> onChatHeadCollapsed(String id) async =>
+      _collapseController.add(id);
 
   @override
-  void onChatHeadDragStart(String id, double x, double y) =>
+  Future<void> onChatHeadDragStart(String id, double x, double y) async =>
       _dragStartController.add(ChatHeadDragEvent(id: id, x: x, y: y));
 
   @override
-  void onChatHeadDragEnd(String id, double x, double y) =>
+  Future<void> onChatHeadDragEnd(String id, double x, double y) async =>
       _dragEndController.add(ChatHeadDragEvent(id: id, x: x, y: y));
 }
 
@@ -261,7 +265,7 @@ class ChatHeadDragEvent {
 /// ```
 /// {@endtemplate}
 class OverlayColorPalette {
-  OverlayColorPalette._({required Map<String, int> colors}) : _colors = colors;
+  OverlayColorPalette._({required this._colors});
 
   factory OverlayColorPalette._fromMap(Map<String, int> map) {
     return OverlayColorPalette._(colors: Map.unmodifiable(map));

@@ -92,21 +92,24 @@ void main() {
       });
 
       test('stop sets isRunning to false', () {
-        icon.start();
-        icon.stop();
+        icon
+          ..start()
+          ..stop();
         expect(icon.isRunning, isFalse);
       });
 
       test('start after stop resumes', () {
-        icon.start();
-        icon.stop();
-        icon.start();
+        icon
+          ..start()
+          ..stop()
+          ..start();
         expect(icon.isRunning, isTrue);
       });
 
       test('double start is no-op', () {
-        icon.start();
-        icon.start(); // should not throw
+        icon
+          ..start()
+          ..start(); // should not throw
         expect(icon.isRunning, isTrue);
       });
     });
@@ -117,8 +120,7 @@ void main() {
           id: 'test',
           builder: (_) => const SizedBox.shrink(),
           fps: 1,
-        );
-        icon.start();
+        )..start();
         expect(icon.isRunning, isTrue);
         icon.dispose();
         expect(icon.isRunning, isFalse);
@@ -140,7 +142,7 @@ void main() {
           id: 'test',
           builder: (_) => const SizedBox(width: 10, height: 10),
           size: 10,
-          pixelRatio: 1.0,
+          pixelRatio: 1,
         );
         await icon.init();
         expect(icon.initialFrame, isA<IconSource>());
@@ -174,13 +176,11 @@ void main() {
         builder: (_) => const SizedBox(width: 10, height: 10),
         fps: 30,
         size: 10,
-        pixelRatio: 1.0,
-        duration: const Duration(seconds: 1),
-      );
-
-      // Start stopwatch so elapsed > 0 for the animation value.
-      icon.start();
-      icon.stop();
+        pixelRatio: 1,
+      )
+        // Start stopwatch so elapsed > 0 for the animation value.
+        ..start()
+        ..stop();
 
       // Directly invoke tick() — avoids Timer + toImage deadlock
       // in the faked async test zone.
@@ -212,8 +212,7 @@ void main() {
         builder: (_) => const SizedBox(width: 10, height: 10),
         fps: 30,
         size: 10,
-        pixelRatio: 1.0,
-        duration: const Duration(seconds: 1),
+        pixelRatio: 1,
       );
 
       // First tick starts rendering (stalls on completer).

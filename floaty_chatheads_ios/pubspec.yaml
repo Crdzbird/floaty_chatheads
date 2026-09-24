@@ -2,7 +2,7 @@ name: floaty_chatheads_ios
 description: >
   iOS implementation of floaty_chatheads with UIWindow-based PiP overlay,
   snap-to-edge physics, theming, and VoiceOver accessibility.
-version: 2.1.0
+version: 3.0.0
 homepage: https://github.com/crdzbird/floaty_chatheads
 repository: https://github.com/crdzbird/floaty_chatheads/tree/main/floaty_chatheads_ios
 issue_tracker: https://github.com/crdzbird/floaty_chatheads/issues
@@ -13,8 +13,8 @@ topics:
   - ios
 
 environment:
-  sdk: ^3.6.0
-  flutter: ">=3.27.0"
+  sdk: ^3.12.0
+  flutter: ">=3.44.0"
 
 flutter:
   plugin:
@@ -25,7 +25,7 @@ flutter:
         dartPluginClass: FloatyChatheadsIOS
 
 dependencies:
-  floaty_chatheads_platform_interface: ^2.1.0
+  floaty_chatheads_platform_interface: ^3.0.0
   flutter:
     sdk: flutter
   meta: ^1.11.0
@@ -33,6 +33,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pigeon: ^26.3.3
+  pigeon: ^29.0.2
   plugin_platform_interface: ^2.1.8
-  very_good_analysis: ^10.2.0
+  very_good_analysis: ^11.0.0

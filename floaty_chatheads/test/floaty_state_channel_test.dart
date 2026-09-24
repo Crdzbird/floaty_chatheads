@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:floaty_chatheads/advanced.dart';
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:floaty_chatheads/src/floaty_channel.dart';
@@ -53,7 +55,7 @@ void main() {
       expect(channel.state.count, 5);
       expect(channel.state.label, 'hello');
 
-      channel.dispose();
+      await channel.dispose();
     });
 
     test('updateState sends a partial message and updates local state',
@@ -70,7 +72,7 @@ void main() {
       expect(channel.state.count, 10);
       expect(channel.state.label, 'start');
 
-      channel.dispose();
+      unawaited(channel.dispose());
     });
 
     test('receiving a full state updates the state getter', () async {
@@ -91,7 +93,7 @@ void main() {
       expect(channel.state.count, 42);
       expect(channel.state.label, 'received');
 
-      channel.dispose();
+      await channel.dispose();
     });
 
     test('receiving a partial state merges correctly (shallow merge)',
@@ -114,7 +116,7 @@ void main() {
       expect(channel.state.count, 5); // preserved
       expect(channel.state.label, 'updated'); // updated
 
-      channel.dispose();
+      unawaited(channel.dispose());
     });
 
     test('onStateChanged stream emits on changes', () async {
@@ -147,7 +149,7 @@ void main() {
       expect(states[0].count, 1);
       expect(states[1].count, 2);
 
-      channel.dispose();
+      await channel.dispose();
     });
 
     test('default constructor works for main app side', () {
@@ -158,7 +160,7 @@ void main() {
       );
 
       expect(channel.state.count, 0);
-      channel.dispose();
+      unawaited(channel.dispose());
     });
 
     test('.overlay() constructor works for overlay side', () {
@@ -171,7 +173,7 @@ void main() {
 
       expect(channel.state.count, 99);
       expect(channel.state.label, 'overlay');
-      channel.dispose();
+      unawaited(channel.dispose());
     });
 
     test('dispose unregisters the handler', () async {
@@ -179,7 +181,8 @@ void main() {
         toJson: (s) => s.toJson(),
         fromJson: _TestState.fromJson,
         initialState: _TestState(),
-      )..dispose();
+      );
+      await channel.dispose();
 
       // After dispose, state messages should go to rawMessages.
       final rawReceived = <Object?>[];
@@ -221,7 +224,7 @@ void main() {
       expect(states, isEmpty);
       expect(channel.state.count, 7); // unchanged
 
-      channel.dispose();
+      await channel.dispose();
     });
 
     test('onStateChanged stream is broadcast', () {
@@ -236,7 +239,7 @@ void main() {
         ..listen((_) {}); // second listener should not throw
       expect(stream.isBroadcast, isTrue);
 
-      channel.dispose();
+      unawaited(channel.dispose());
     });
   });
 }

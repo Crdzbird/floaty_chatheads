@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:floaty_chatheads/testing.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
@@ -22,7 +24,7 @@ void main() {
         deserialize: (raw) => raw! as Map<String, dynamic>,
       );
       expect(messenger, isNotNull);
-      messenger.dispose();
+      unawaited(messenger.dispose());
     });
 
     test('creates overlay messenger', () {
@@ -31,7 +33,7 @@ void main() {
         deserialize: (raw) => raw! as String,
       );
       expect(messenger, isNotNull);
-      messenger.dispose();
+      unawaited(messenger.dispose());
     });
 
     test('messages stream is broadcast', () {
@@ -43,16 +45,16 @@ void main() {
       messenger.messages
         ..listen((_) {})
         ..listen((_) {});
-      messenger.dispose();
+      unawaited(messenger.dispose());
     });
 
     test('dispose can be called multiple times', () {
-      FloatyMessenger<String>(
+      final messenger = FloatyMessenger<String>(
         serialize: (value) => value,
         deserialize: (raw) => raw! as String,
-      )
-        ..dispose()
-        ..dispose(); // Should not throw.
+      );
+      unawaited(messenger.dispose());
+      unawaited(messenger.dispose()); // Should not throw.
     });
 
     test('send serializes and sends via main app channel', () async {
@@ -63,7 +65,7 @@ void main() {
 
       // send should not throw even without a native handler.
       await messenger.send({'action': 'test'});
-      messenger.dispose();
+      await messenger.dispose();
     });
 
     test('send serializes and sends via overlay channel', () async {
@@ -75,7 +77,7 @@ void main() {
 
       // send should not throw.
       await messenger.send('hello');
-      messenger.dispose();
+      await messenger.dispose();
       FloatyOverlay.dispose();
     });
 
@@ -100,7 +102,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(received, contains('test-msg'));
 
-      messenger.dispose();
+      await messenger.dispose();
     });
 
     test('messages stream forwards deserialization errors', () async {
@@ -124,7 +126,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(errors, isNotEmpty);
 
-      messenger.dispose();
+      await messenger.dispose();
     });
 
     test('messages getter returns same stream on repeated calls', () {
@@ -137,7 +139,7 @@ void main() {
       final stream2 = messenger.messages;
       expect(identical(stream1, stream2), isTrue);
 
-      messenger.dispose();
+      unawaited(messenger.dispose());
     });
   });
 }

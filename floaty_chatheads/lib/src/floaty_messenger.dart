@@ -47,11 +47,9 @@ final class FloatyMessenger<T> {
   /// Uses [FloatyChatheads.shareData] and [FloatyChatheads.onData].
   /// {@endtemplate}
   FloatyMessenger({
-    required Object? Function(T value) serialize,
-    required T Function(Object? raw) deserialize,
-  })  : _serialize = serialize,
-        _deserialize = deserialize,
-        _isOverlay = false;
+    required this._serialize,
+    required this._deserialize,
+  })  : _isOverlay = false;
 
   /// {@template floaty_messenger.overlay}
   /// Creates a messenger for the **overlay** side.
@@ -59,11 +57,9 @@ final class FloatyMessenger<T> {
   /// Uses [FloatyOverlay.shareData] and [FloatyOverlay.onData].
   /// {@endtemplate}
   FloatyMessenger.overlay({
-    required Object? Function(T value) serialize,
-    required T Function(Object? raw) deserialize,
-  })  : _serialize = serialize,
-        _deserialize = deserialize,
-        _isOverlay = true;
+    required this._serialize,
+    required this._deserialize,
+  })  : _isOverlay = true;
 
   final Object? Function(T value) _serialize;
   final T Function(Object? raw) _deserialize;

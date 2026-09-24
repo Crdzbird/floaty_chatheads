@@ -159,7 +159,7 @@ void main() {
 
     test('unregisterService removes service', () {
       kit
-        ..registerService('temp', (_, __) => null)
+        ..registerService('temp', (_, _) => null)
         ..unregisterService('temp');
       // No crash, service removed.
     });
@@ -175,7 +175,7 @@ void main() {
     });
 
     test('dispose tears down all components', () async {
-      kit.dispose();
+      await kit.dispose();
 
       // After dispose, prefixed messages should flow to rawMessages.
       final rawReceived = <Object?>[];
@@ -407,7 +407,7 @@ void main() {
     });
 
     test('dispose tears down all overlay components', () async {
-      FloatyOverlayKit<_TestState>(
+      await FloatyOverlayKit<_TestState>(
         stateToJson: (s) => s.toJson(),
         stateFromJson: _TestState.fromJson,
         initialState: _TestState(),

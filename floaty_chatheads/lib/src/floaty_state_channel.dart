@@ -48,12 +48,10 @@ final class FloatyStateChannel<S> {
   /// Creates a state channel for the **main app** side.
   /// {@endtemplate}
   FloatyStateChannel({
-    required Map<String, dynamic> Function(S state) toJson,
-    required S Function(Map<String, dynamic> json) fromJson,
+    required this._toJson,
+    required this._fromJson,
     required S initialState,
-  })  : _toJson = toJson,
-        _fromJson = fromJson,
-        _state = initialState {
+  })  : _state = initialState {
     _init();
   }
 

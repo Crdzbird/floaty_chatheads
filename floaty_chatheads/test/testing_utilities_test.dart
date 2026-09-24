@@ -110,8 +110,8 @@ void main() {
       source = FakeOverlayDataSource();
     });
 
-    tearDown(() {
-      source.dispose();
+    tearDown(() async {
+      await source.dispose();
     });
 
     test('emitData adds to data stream', () async {

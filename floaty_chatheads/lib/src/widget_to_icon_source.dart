@@ -130,7 +130,7 @@ Future<ByteData> _encodeImage(
   ui.ImageByteFormat format,
 ) async {
   if (testImageEncoder != null) {
-    return testImageEncoder!(image, format);
+    return await testImageEncoder!(image, format);
   }
   return (await image.toByteData(format: format))!; // coverage:ignore-line
 }

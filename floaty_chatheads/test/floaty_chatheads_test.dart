@@ -1,7 +1,5 @@
-import 'dart:typed_data';
 
 import 'package:floaty_chatheads/floaty_chatheads.dart';
-import 'package:floaty_chatheads/src/widget_to_icon_source.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -190,7 +188,7 @@ void main() {
         id: 'w1',
         iconWidget: const SizedBox(width: 10, height: 10),
         iconSize: 10,
-        iconPixelRatio: 1.0,
+        iconPixelRatio: 1,
       );
       final captured =
           verify(() => platform.addChatHead(captureAny())).captured;
@@ -225,7 +223,7 @@ void main() {
           iconBuilder: (_) => const SizedBox(width: 10, height: 10),
           animateIcon: true,
           iconSize: 10,
-          iconPixelRatio: 1.0,
+          iconPixelRatio: 1,
         );
 
         expect(FloatyChatheads.isIconAnimating, isTrue);
@@ -249,7 +247,7 @@ void main() {
         await FloatyChatheads.showChatHead(
           iconWidget: const SizedBox(width: 10, height: 10),
           iconSize: 10,
-          iconPixelRatio: 1.0,
+          iconPixelRatio: 1,
         );
 
         // No animation — just a static widget icon.
@@ -266,7 +264,7 @@ void main() {
           closeIconWidget: const SizedBox(width: 10, height: 10),
           closeBackgroundWidget: const SizedBox(width: 10, height: 10),
           iconSize: 10,
-          iconPixelRatio: 1.0,
+          iconPixelRatio: 1,
         );
 
         final captured =
@@ -294,7 +292,7 @@ void main() {
           closeIconWidget: const SizedBox(width: 10, height: 10),
           assets: customAssets,
           iconSize: 10,
-          iconPixelRatio: 1.0,
+          iconPixelRatio: 1,
         );
 
         final captured =
@@ -324,7 +322,7 @@ void main() {
           closeBackgroundWidget: const SizedBox(width: 10, height: 10),
           assets: customAssets,
           iconSize: 10,
-          iconPixelRatio: 1.0,
+          iconPixelRatio: 1,
         );
 
         final captured =
@@ -348,7 +346,7 @@ void main() {
           iconBuilder: (_) => const SizedBox(width: 10, height: 10),
           animateIcon: true,
           iconSize: 10,
-          iconPixelRatio: 1.0,
+          iconPixelRatio: 1,
         );
         expect(FloatyChatheads.isIconAnimating, isTrue);
 
@@ -370,7 +368,7 @@ void main() {
           iconBuilder: (_) => const SizedBox(width: 10, height: 10),
           animateIcon: true,
           iconSize: 10,
-          iconPixelRatio: 1.0,
+          iconPixelRatio: 1,
         );
         expect(FloatyChatheads.isIconAnimating, isTrue);
 
@@ -378,7 +376,7 @@ void main() {
         await FloatyChatheads.showChatHead(
           iconWidget: const SizedBox(width: 10, height: 10),
           iconSize: 10,
-          iconPixelRatio: 1.0,
+          iconPixelRatio: 1,
         );
         expect(FloatyChatheads.isIconAnimating, isFalse);
       });

@@ -17,7 +17,7 @@ Pod::Spec.new do |s|
     'floaty_chatheads_ios_privacy' => ['floaty_chatheads_ios/Sources/floaty_chatheads_ios/PrivacyInfo.xcprivacy']
   }
   s.dependency 'Flutter'
-  s.platform = :ios, '14.0'
+  s.platform = :ios, '15.0'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '6.1'
 end

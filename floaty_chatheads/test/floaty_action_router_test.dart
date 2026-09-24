@@ -202,9 +202,8 @@ void main() {
     });
 
     test('dispose clears handlers and unregisters from channel', () async {
-      FloatyActionRouter()
-        ..on(_PingAction.key, (_) {})
-        ..dispose();
+      final router = FloatyActionRouter()..on(_PingAction.key, (_) {});
+      await router.dispose();
 
       // After dispose, action messages should go to rawMessages.
       final rawReceived = <Object?>[];
