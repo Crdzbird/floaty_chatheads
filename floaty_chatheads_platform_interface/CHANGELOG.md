@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.1.0
+
+### New: `PanelAnchor`
+
+- **feat**: new `PanelAnchor` enum (`below` / `above` / `auto`) on
+  `ChatHeadConfig.panelAnchor` controls where the expanded content panel
+  opens relative to the bubble. The panel is always clamped to the screen
+  bounds; `auto` picks below when there is room, otherwise above.
+
+### Behavior change (non-breaking API)
+
+- The content panel now opens **below the bubble by default**. Previously
+  the panel rendered from the top of the screen with the bubble row
+  overlapping its top edge (Android) or grew down-right from the bubble's
+  corner (iOS). Full-screen panels are unaffected (clamping keeps them at
+  the top). Overlays that reserved top padding for the bubble row on
+  card-sized panels should remove it.
+- `MethodChannelFloatyChatheads` serializes `panelAnchor` by index.
+
 ## 2.0.0
 
 > **Released as part of the floaty_chatheads 2.0 line.** See the main

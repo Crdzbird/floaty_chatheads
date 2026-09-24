@@ -1,5 +1,42 @@
 # Changelog
 
+## 2.1.0
+
+### New: `PanelAnchor`
+
+- **feat**: new `PanelAnchor` enum (`below` / `above` / `auto`) on
+  `ChatHeadConfig.panelAnchor` controls where the expanded content panel
+  opens relative to the bubble. The panel is always clamped to the screen
+  bounds; `auto` picks below when there is room, otherwise above.
+
+### Behavior change (non-breaking API)
+
+- The content panel now opens **below the bubble by default**. Previously
+  the panel rendered from the top of the screen with the bubble row
+  overlapping its top edge (Android) or grew down-right from the bubble's
+  corner (iOS). Full-screen panels are unaffected (clamping keeps them at
+  the top). Overlays that reserved top padding for the bubble row on
+  card-sized panels should remove it.
+- **fix**: collapsing now returns the bubble to its pre-expand position
+  (previously the bubble stayed at the panel's top-left corner). Dragging
+  the expanded panel keeps the new position on collapse.
+
+- **fix**: calling `FloatyOverlay.getOverlayPosition()` from the overlay
+  isolate crashed with a decode error — the overlay isolate's Pigeon codec
+  assigns different type tags than the platform contract serving the same
+  channels. Shared overlay channels now use only standard-codec payloads
+  (`getOverlayPosition` returns a map, `updateFlag` takes the enum index).
+
+### Chores
+
+- Podspec version synced with the package (was stale at 0.0.1) and
+  metadata placeholders replaced.
+- Added `PrivacyInfo.xcprivacy` (UserDefaults declared-reason API) to the
+  SwiftPM target and CocoaPods resource bundle.
+- Renamed `FloatyCheaheadsPlugin.swift` → `FloatyChatheadsPlugin.swift`.
+- Pigeon regenerated with 26.3.x; animation and position-reporting
+  helpers deduplicated.
+
 ## 2.0.0
 
 > **Released as part of the floaty_chatheads 2.0 line.** See the main

@@ -1,5 +1,39 @@
 # Changelog
 
+## 2.1.0
+
+### New: `PanelAnchor`
+
+- **feat**: new `PanelAnchor` enum (`below` / `above` / `auto`) on
+  `ChatHeadConfig.panelAnchor` controls where the expanded content panel
+  opens relative to the bubble. The panel is always clamped to the screen
+  bounds; `auto` picks below when there is room, otherwise above.
+
+### Behavior change (non-breaking API)
+
+- The content panel now opens **below the bubble by default**. Previously
+  the panel rendered from the top of the screen with the bubble row
+  overlapping its top edge (Android) or grew down-right from the bubble's
+  corner (iOS). Full-screen panels are unaffected (clamping keeps them at
+  the top). Overlays that reserved top padding for the bubble row on
+  card-sized panels should remove it.
+- `FloatyChatheads.showChatHead`, `FloatyLauncher.show`/`toggle`, and
+  `FloatyController` accept the new `panelAnchor` parameter.
+
+- **fix**: calling `FloatyOverlay.getOverlayPosition()` from the overlay
+  isolate crashed with a decode error — the overlay isolate's Pigeon codec
+  assigns different type tags than the platform contract serving the same
+  channels. Shared overlay channels now use only standard-codec payloads
+  (`getOverlayPosition` returns a map, `updateFlag` takes the enum index).
+
+### Chores
+
+- Example app migrated to AGP 9.2 / Gradle 9.4.1. The
+  `android.builtInKotlin` / `android.newDsl` opt-outs remain — Flutter
+  3.44's Gradle tooling still applies KGP to plugin projects and does
+  not support AGP 9's new DSL yet.
+- Pigeon regenerated with 26.3.x.
+
 ## 2.0.0
 
 > **2.0 is a breaking release.** It modernizes the toolchain, simplifies

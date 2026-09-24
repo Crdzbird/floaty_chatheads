@@ -926,6 +926,7 @@ swipes away the main app, the overlay remains visible and functional:
 | `flag` | `OverlayFlag` | `.defaultFlag` | Window behavior flag (e.g. click-through) | Both |
 | `enableDrag` | `bool` | `true` | Whether the bubble can be dragged | Both |
 | `entranceAnimation` | `EntranceAnimation` | `.none` | How the bubble appears (`pop`, `slideInFromLeft`, `slideInFromRight`, `fadeIn`) | Android |
+| `panelAnchor` | `PanelAnchor` | `.below` | Where the expanded panel opens relative to the bubble (`below`, `above`, `auto`). Clamped to screen bounds | Both |
 | `theme` | `ChatHeadTheme?` | `null` | Colors, borders, shadows, and overlay palette | Android |
 | `sizePreset` | `ContentSizePreset?` | `null` | Named size (overrides `contentWidth` / `contentHeight`) | Both |
 | `debugMode` | `bool` | `false` | Enable debug inspector and verbose native logs | Android |
@@ -1205,7 +1206,7 @@ floaty_chatheads_android/            # Android native code
 
 floaty_chatheads_ios/                # iOS native code
   ios/.../Sources/
-    FloatyCheaheadsPlugin.swift      # UIWindow overlay + pan gesture
+    FloatyChatheadsPlugin.swift      # UIWindow overlay + pan gesture
     FloatyChatheadsApi.g.swift       # Pigeon-generated Swift bindings
 ```
 

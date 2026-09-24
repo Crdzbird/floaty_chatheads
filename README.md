@@ -940,7 +940,7 @@ floaty_chatheads_android/            # Android native code
 
 floaty_chatheads_ios/                # iOS native code
   ios/.../Sources/
-    FloatyCheaheadsPlugin.swift      # UIWindow overlay + pan gesture
+    FloatyChatheadsPlugin.swift      # UIWindow overlay + pan gesture
     FloatyChatheadsApi.g.swift       # Pigeon-generated Swift bindings
 ```
 

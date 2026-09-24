@@ -1,5 +1,50 @@
 # Changelog
 
+## 2.1.0
+
+### New: `PanelAnchor`
+
+- **feat**: new `PanelAnchor` enum (`below` / `above` / `auto`) on
+  `ChatHeadConfig.panelAnchor` controls where the expanded content panel
+  opens relative to the bubble. The panel is always clamped to the screen
+  bounds; `auto` picks below when there is room, otherwise above.
+
+### Behavior change (non-breaking API)
+
+- The content panel now opens **below the bubble by default**. Previously
+  the panel rendered from the top of the screen with the bubble row
+  overlapping its top edge (Android) or grew down-right from the bubble's
+  corner (iOS). Full-screen panels are unaffected (clamping keeps them at
+  the top). Overlays that reserved top padding for the bubble row on
+  card-sized panels should remove it.
+- On Android, `above` snaps the expanded bubble row to the bottom of the
+  screen so the panel has room above it. The anchor is resolved once per
+  expand (no mid-animation flips) and survives `persistOnAppClose`
+  restarts.
+
+- **fix**: calling `FloatyOverlay.getOverlayPosition()` from the overlay
+  isolate crashed with a decode error — the overlay isolate's Pigeon codec
+  assigns different type tags than the platform contract serving the same
+  channels. Shared overlay channels now use only standard-codec payloads
+  (`getOverlayPosition` returns a map, `updateFlag` takes the enum index).
+
+- **fix**: the expanded panel was hard-coded to x=0 (assumed a
+  full-width panel) — card-sized panels on wide/tablet screens rendered at
+  the left edge while the bubble sat on the right. The panel now follows
+  the active bubble's edge and is clamped on-screen; the scale-animation
+  pivot tracks the bubble.
+
+### Chores
+
+- `compileSdk` 35 → 36; standalone build AGP 8.12 → 9.2. The
+  dual-compat conditional KGP pattern is retained: it keeps Flutter
+  3.27–3.43 consumers building today and activates Built-in Kotlin
+  automatically once Flutter's tooling stops applying KGP to plugins.
+- Pigeon regenerated with 26.3.x.
+- Internal cleanup: expand logic deduplicated (was copied in three
+  places), window-flag toggling extracted into a helper, velocity
+  thresholds named.
+
 ## 2.0.0
 
 > **Released as part of the floaty_chatheads 2.0 line.** See the main
