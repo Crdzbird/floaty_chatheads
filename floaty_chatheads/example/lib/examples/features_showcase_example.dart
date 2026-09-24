@@ -24,6 +24,7 @@ class _FeaturesShowcaseExampleState extends State<FeaturesShowcaseExample> {
   // Configurable options
   SnapEdge _snapEdge = SnapEdge.both;
   EntranceAnimation _entranceAnimation = EntranceAnimation.pop;
+  PanelAnchor _panelAnchor = PanelAnchor.below;
   bool _persistPosition = false;
   @override
   void initState() {
@@ -62,6 +63,7 @@ class _FeaturesShowcaseExampleState extends State<FeaturesShowcaseExample> {
         persistPosition: _persistPosition,
       ),
       entranceAnimation: _entranceAnimation,
+      panelAnchor: _panelAnchor,
     );
     if (mounted) {
       setState(() => _events.insert(0, '🚀 Chathead shown'));
@@ -120,6 +122,23 @@ class _FeaturesShowcaseExampleState extends State<FeaturesShowcaseExample> {
             ],
             selected: {_snapEdge},
             onSelectionChanged: (v) => setState(() => _snapEdge = v.first),
+          ),
+          const SizedBox(height: 12),
+
+          // ── Panel Anchor ───────────────────────────────────────
+          const Text(
+            'Panel Anchor',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          SegmentedButton<PanelAnchor>(
+            segments: const [
+              ButtonSegment(value: PanelAnchor.below, label: Text('Below')),
+              ButtonSegment(value: PanelAnchor.above, label: Text('Above')),
+              ButtonSegment(value: PanelAnchor.auto, label: Text('Auto')),
+            ],
+            selected: {_panelAnchor},
+            onSelectionChanged: (v) => setState(() => _panelAnchor = v.first),
           ),
           const SizedBox(height: 12),
 

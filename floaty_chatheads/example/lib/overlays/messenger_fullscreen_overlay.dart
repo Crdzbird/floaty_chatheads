@@ -50,6 +50,10 @@ class _MessengerFullscreenOverlayState
 
   /// Height reserved for the native chathead bubble row above the content.
   /// CHAT_HEAD_SIZE(64dp) + CHAT_HEAD_EXPANDED_MARGIN_TOP(4dp) + padding.
+  ///
+  /// Still needed with the `PanelAnchor.below` default: a full-screen
+  /// panel is clamped to y=0, so the bubble row overlaps its top strip.
+  /// Only card-sized panels physically move below the bubble.
   static const _bubbleTopSpacing = 72.0;
 
   @override

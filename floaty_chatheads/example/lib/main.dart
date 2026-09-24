@@ -14,6 +14,7 @@ import 'examples/messenger_fullscreen_example.dart';
 import 'examples/mini_player_example.dart';
 import 'examples/multi_chathead_example.dart';
 import 'examples/notification_counter_example.dart';
+import 'examples/panel_anchor_example.dart';
 import 'examples/quick_action_example.dart';
 import 'examples/sensor_stream_example.dart';
 import 'examples/survival_example.dart';
@@ -32,6 +33,7 @@ import 'overlays/messenger_overlay.dart';
 import 'overlays/mini_player_overlay.dart';
 import 'overlays/multi_chat_overlay.dart';
 import 'overlays/notification_counter_overlay.dart';
+import 'overlays/panel_anchor_overlay.dart';
 import 'overlays/quick_action_overlay.dart';
 import 'overlays/sensor_stream_overlay.dart';
 import 'overlays/survival_overlay.dart';
@@ -109,6 +111,10 @@ void autoLaunchOverlayMain() => FloatyOverlayApp.run(const AutoLaunchOverlay());
 
 @pragma('vm:entry-point')
 void widgetIconOverlayMain() => FloatyOverlayApp.run(const WidgetIconOverlay());
+
+@pragma('vm:entry-point')
+void panelAnchorOverlayMain() =>
+    FloatyOverlayApp.run(const PanelAnchorOverlay());
 
 // ---------------------------------------------------------------------------
 // Gallery — lists all examples
@@ -243,6 +249,14 @@ class GalleryPage extends StatelessWidget {
       icon: Icons.widgets,
       color: Colors.deepPurple,
     ),
+    _ExampleInfo(
+      title: 'Panel Anchor Playground',
+      description:
+          'NEW in 2.1.0 — open the panel below, above, or auto-flip, with '
+          'live position reporting and anchored resize.',
+      icon: Icons.swap_vert,
+      color: Colors.pink,
+    ),
   ];
 
   Widget _buildRoute(int index) {
@@ -266,6 +280,7 @@ class GalleryPage extends StatelessWidget {
       16 => const SensorStreamExample(),
       17 => const AutoLaunchExample(),
       18 => const WidgetIconExample(),
+      19 => const PanelAnchorExample(),
       _ => const HomePage(),
     };
   }
