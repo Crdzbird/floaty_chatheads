@@ -1,6 +1,6 @@
-rootProject.name = 'floaty_chatheads_android'
+rootProject.name = "floaty_chatheads_android"
 
 plugins {
-    id("com.android.library") version "8.12.0" apply false
+    id("com.android.library") version "9.2.0" apply false
     id("org.jetbrains.kotlin.android") version "2.3.21" apply false
 }

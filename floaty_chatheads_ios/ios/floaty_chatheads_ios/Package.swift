@@ -17,6 +17,7 @@ let package = Package(
             name: "floaty_chatheads_ios",
             dependencies: [],
             resources: [
+                .process("PrivacyInfo.xcprivacy"),
             ],
             swiftSettings: [
             ]

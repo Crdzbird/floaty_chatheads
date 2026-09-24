@@ -12,35 +12,30 @@ allprojects {
     }
 }
 
-android {
+// Configured through the public DSL interface (AGP 7+) instead of the
+// legacy `android {}` accessor, which is an error-level deprecation on
+// the AGP 9 script classpath.
+configure<com.android.build.api.dsl.LibraryExtension> {
     namespace = "ni.devotion.floaty_chatheads"
 
-    compileSdk = 35
+    compileSdk = 36
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    sourceSets["main"].java.srcDirs("src/main/kotlin")
-    sourceSets["test"].java.srcDirs("src/test/kotlin")
+    sourceSets.getByName("main").java.srcDirs("src/main/kotlin")
+    sourceSets.getByName("test").java.srcDirs("src/test/kotlin")
 
     defaultConfig {
         minSdk = 24
     }
 
-    dependencies {
-        implementation("com.facebook.rebound:rebound:0.3.8")
-        implementation("com.google.android.material:material:1.12.0")
-        implementation("androidx.core:core-ktx:1.15.0")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
-        testImplementation("org.jetbrains.kotlin:kotlin-test")
-        testImplementation("org.mockito:mockito-core:5.23.0")
-    }
-
     testOptions {
         unitTests.all {
             it.useJUnitPlatform()
+            it.outputs.upToDateWhen { false }
             it.testLogging {
                 events(
                     "passed",
@@ -49,15 +44,22 @@ android {
                     "standardOut",
                     "standardError",
                 )
-                outputs.upToDateWhen { false }
                 showStandardStreams = true
             }
         }
     }
 }
 
-// Backwards-compatible Built-in Kotlin pattern (parked for a future
-// release — see CHANGELOG and branch description).
+dependencies {
+    "implementation"("com.facebook.rebound:rebound:0.3.8")
+    "implementation"("com.google.android.material:material:1.12.0")
+    "implementation"("androidx.core:core-ktx:1.15.0")
+    "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+    "testImplementation"("org.jetbrains.kotlin:kotlin-test")
+    "testImplementation"("org.mockito:mockito-core:5.23.0")
+}
+
+// Backwards-compatible Built-in Kotlin pattern.
 //
 // - On AGP < 9 (Flutter 3.27–3.43) the Kotlin Gradle Plugin is not
 //   provided by Flutter; apply it explicitly so the build wires KGP.
