@@ -20,6 +20,7 @@ export 'src/models/notification_config.dart';
 export 'src/models/notification_visibility.dart';
 export 'src/models/overlay_flag.dart';
 export 'src/models/overlay_position.dart';
+export 'src/models/panel_anchor.dart';
 export 'src/models/snap_config.dart';
 export 'src/models/snap_edge.dart';
 

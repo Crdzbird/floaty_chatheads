@@ -34,6 +34,7 @@ import ni.devotion.floaty_chatheads.utils.Constants
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
 import ni.devotion.floaty_chatheads.utils.ImageHelper
 import ni.devotion.floaty_chatheads.utils.OverlayConfig
+import ni.devotion.floaty_chatheads.utils.PanelAnchor
 import ni.devotion.floaty_chatheads.utils.SnapEdge
 import java.nio.ByteBuffer
 
@@ -424,6 +425,14 @@ class FloatyChatheadsPlugin :
                 EntranceAnimation.SLIDE_FROM_EDGE
             ni.devotion.floaty_chatheads.generated.EntranceAnimationMessage.FADE ->
                 EntranceAnimation.FADE
+        }
+        OverlayConfig.panelAnchor = when (config.panelAnchor) {
+            ni.devotion.floaty_chatheads.generated.PanelAnchorMessage.BELOW ->
+                PanelAnchor.BELOW
+            ni.devotion.floaty_chatheads.generated.PanelAnchorMessage.ABOVE ->
+                PanelAnchor.ABOVE
+            ni.devotion.floaty_chatheads.generated.PanelAnchorMessage.AUTO ->
+                PanelAnchor.AUTO
         }
         OverlayConfig.debugMode = config.debugMode
         OverlayConfig.autoLaunchOnBackground = config.autoLaunchOnBackground

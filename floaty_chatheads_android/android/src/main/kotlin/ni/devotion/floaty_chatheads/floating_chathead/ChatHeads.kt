@@ -18,6 +18,7 @@ import ni.devotion.floaty_chatheads.FlutterContentPanel
 import ni.devotion.floaty_chatheads.services.FloatyContentJobService
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
 import ni.devotion.floaty_chatheads.utils.OverlayConfig
+import ni.devotion.floaty_chatheads.utils.PanelAnchor
 
 
 class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
@@ -34,6 +35,15 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         private const val CLOSE_DELAY_MS = 200L
         private const val HIDE_DELAY_MS = 300L
         private const val EXPAND_CONTENT_DELAY_MS = 200L
+
+        /** Horizontal velocity beyond which a release is treated as a fling. */
+        private const val FLING_VELOCITY_THRESHOLD = 3500.0
+        /** Vertical velocity above which the bubble keeps its Y momentum on snap. */
+        private const val DIRECTIONAL_SNAP_VELOCITY = 20.0
+        /** Hard clamp applied to Y velocity when the bubble leaves the screen. */
+        private const val EDGE_Y_VELOCITY_CLAMP = 3000.0
+        /** Soft clamp applied to Y velocity near the vertical bounds. */
+        private const val SOFT_Y_VELOCITY_CLAMP = 500.0
         fun distance(x1: Float, x2: Float, y1: Float, y2: Float): Float {
             return ((x1 - x2).pow(2) + (y1-y2).pow(2))
         }
@@ -57,6 +67,10 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
     private var horizontalSpringChain: SpringChain? = null
     private var verticalSpringChain: SpringChain? = null
     private var isOnRight = false
+
+    /** Anchor resolved once per expand — never re-evaluated per spring tick,
+     *  so an AUTO anchor cannot flip-flop mid-animation. */
+    private var effectiveAnchor = PanelAnchor.BELOW
     private var velocityTracker: VelocityTracker? = null
     private var motionTracker = LinearLayout(context)
     var topChatHead: ChatHead? = null
@@ -282,11 +296,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             it.isActive = false
         }
         content.hideContent()
-        motionTrackerParams.flags = motionTrackerParams.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
-        FloatyContentJobService.instance?.windowManager?.updateViewLayout(motionTracker, motionTrackerParams)
-
-        params.flags = ((params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE) and WindowManager.LayoutParams.FLAG_DIM_BEHIND.inv()) and WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL.inv() or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        FloatyContentJobService.instance?.windowManager?.updateViewLayout(this, params)
+        setExpandedTouchRouting(expanded = false)
 
         // Accessibility: announce state + move focus back to bubble
         announceForAccessibility("Chat collapsed")
@@ -355,21 +365,29 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
     fun expand() {
         OverlayConfig.logD("expand() called. toggled=$toggled, topChatHead=${topChatHead?.id}")
         if (toggled || topChatHead == null) return
-        val metrics = WindowManagerHelper.getScreenSize()
+        performExpand()
+    }
 
+    /**
+     * Shared expand body used by [expand] and the tap handler: snaps the
+     * bubbles into the anchored row, makes the overlay touchable, and
+     * schedules the content reveal. Callers must ensure `!toggled` and a
+     * non-null [topChatHead].
+     */
+    private fun performExpand() {
         toggled = true
+        effectiveAnchor = resolveAnchor()
+        val rowY = expandedRowY()
         chatHeads.forEachIndexed { index, it ->
             it.springX.springConfig = SpringConfigs.NOT_DRAGGING
             it.springY.springConfig = SpringConfigs.NOT_DRAGGING
-            it.springY.endValue = CHAT_HEAD_EXPANDED_MARGIN_TOP.toDouble()
-            it.springX.endValue = metrics.widthPixels - topChatHead!!.width.toDouble() - (chatHeads.size - 1 - index) * (it.width + CHAT_HEAD_EXPANDED_PADDING).toDouble()
+            it.springY.endValue = rowY
+            it.springX.endValue = expandedRowX(index, it.width)
         }
-        motionTrackerParams.flags = motionTrackerParams.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-        FloatyContentJobService.instance?.windowManager?.updateViewLayout(motionTracker, motionTrackerParams)
-        params.flags = (params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()) or WindowManager.LayoutParams.FLAG_DIM_BEHIND or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
-        FloatyContentJobService.instance?.windowManager?.updateViewLayout(this, params)
+        setExpandedTouchRouting(expanded = true)
         topChatHead!!.isActive = true
         changeContent()
+        OverlayConfig.logD("EXPAND: anchor=$effectiveAnchor, rowY=$rowY, scheduling showContent() in ${EXPAND_CONTENT_DELAY_MS}ms")
         Handler(Looper.getMainLooper()).postDelayed(
             {
                 content.showContent()
@@ -381,6 +399,91 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                 FloatyContentJobService.instance?.notifyChatHeadExpanded(topChatHead?.id ?: "default")
             }, EXPAND_CONTENT_DELAY_MS
         )
+    }
+
+    /** X position of the bubble at [index] in the expanded row (right-aligned). */
+    internal fun expandedRowX(index: Int, bubbleWidth: Int): Double =
+        overlayWidthPx() - bubbleWidth.toDouble() -
+            (chatHeads.size - 1 - index) * (bubbleWidth + CHAT_HEAD_EXPANDED_PADDING).toDouble()
+
+    /** Y position of the expanded bubble row for the resolved anchor. */
+    internal fun expandedRowY(): Double = when (effectiveAnchor) {
+        PanelAnchor.ABOVE ->
+            // Same 25dp bottom inset used when a dragged bubble settles at
+            // the bottom edge — keeps the row clear of the gesture-nav bar.
+            overlayHeightPx() - CHAT_HEAD_SIZE -
+                WindowManagerHelper.dpToPx(25f).toDouble()
+        else -> CHAT_HEAD_EXPANDED_MARGIN_TOP.toDouble()
+    }
+
+    /** Resolves [OverlayConfig.panelAnchor]; AUTO picks BELOW when the panel
+     *  fits under the top bubble row, otherwise ABOVE. */
+    private fun resolveAnchor(): PanelAnchor = when (OverlayConfig.panelAnchor) {
+        PanelAnchor.AUTO -> {
+            val rowBottom = CHAT_HEAD_EXPANDED_MARGIN_TOP + CHAT_HEAD_SIZE
+            if (rowBottom + CHAT_HEAD_EXPANDED_MARGIN_TOP + contentHeightPx() <= overlayHeightPx()) {
+                PanelAnchor.BELOW
+            } else {
+                PanelAnchor.ABOVE
+            }
+        }
+        else -> OverlayConfig.panelAnchor
+    }
+
+    /**
+     * Routes touch input for the expanded/collapsed state: expanded sends
+     * touches to the overlay (dimmed, focusable) and mutes the motion
+     * tracker; collapsed does the reverse.
+     */
+    private fun setExpandedTouchRouting(expanded: Boolean) {
+        val wm = FloatyContentJobService.instance?.windowManager ?: return
+        motionTrackerParams.flags = if (expanded) {
+            motionTrackerParams.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        } else {
+            motionTrackerParams.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+        }
+        wm.updateViewLayout(motionTracker, motionTrackerParams)
+        params.flags = if (expanded) {
+            (params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()) or WindowManager.LayoutParams.FLAG_DIM_BEHIND or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+        } else {
+            ((params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE) and WindowManager.LayoutParams.FLAG_DIM_BEHIND.inv()) and WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL.inv() or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        }
+        wm.updateViewLayout(this, params)
+    }
+
+    /** Usable overlay width in px: the view's own laid-out width (child
+     *  coordinates live in view space), raw metrics before first layout. */
+    private fun overlayWidthPx(): Int =
+        if (width > 0) width else WindowManagerHelper.getScreenSize().widthPixels
+
+    /** Usable overlay height in px. The overlay window is offset from the
+     *  physical screen top (status bar), so raw display metrics overshoot
+     *  the bottom by that offset — the view's own height is the truth. */
+    private fun overlayHeightPx(): Int =
+        if (height > 0) height else WindowManagerHelper.getScreenSize().heightPixels
+
+    /** Panel height in px: measured when laid out, otherwise the configured
+     *  dp height, otherwise the full screen height. */
+    private fun contentHeightPx(): Int {
+        if (content.height > 0) return content.height
+        val configured = OverlayConfig.contentHeight
+        return if (configured != null && configured > 0) {
+            WindowManagerHelper.dpToPx(configured.toFloat())
+        } else {
+            WindowManagerHelper.getScreenSize().heightPixels
+        }
+    }
+
+    /** Panel width in px: measured when laid out, otherwise the configured
+     *  dp width, otherwise the full screen width. */
+    private fun contentWidthPx(): Int {
+        if (content.width > 0) return content.width
+        val configured = OverlayConfig.contentWidth
+        return if (configured != null && configured > 0) {
+            WindowManagerHelper.dpToPx(configured.toFloat())
+        } else {
+            WindowManagerHelper.getScreenSize().widthPixels
+        }
     }
 
     /** Replace the icon bitmap of a specific chathead. */
@@ -408,16 +511,35 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         }
         val tmpChatHead = if (collapsing) top else if (chatHead.isActive) chatHead else null
         if (tmpChatHead != null) {
-            val newX = tmpChatHead.springX.currentValue.toFloat() - metrics.widthPixels.toFloat() + ((chatHeads.size - 1 - chatHeads.indexOf(tmpChatHead)) * (tmpChatHead.width + CHAT_HEAD_EXPANDED_PADDING)) + tmpChatHead.width
-            val newY = tmpChatHead.springY.currentValue.toFloat() - CHAT_HEAD_EXPANDED_MARGIN_TOP
-            content.x = newX
-            content.y = newY
-            content.pivotX = metrics.widthPixels.toFloat() - chatHead.width / 2 - ((chatHeads.size - 1 - chatHeads.indexOf(tmpChatHead)) * (tmpChatHead.width + CHAT_HEAD_EXPANDED_PADDING))
+            val panelWidth = contentWidthPx()
+            val panelHeight = contentHeightPx()
+            val bubbleX = tmpChatHead.springX.currentValue.toFloat()
+            val bubbleY = tmpChatHead.springY.currentValue.toFloat()
+            // Panel right edge follows the active bubble's right edge (a
+            // full-width panel resolves to x=0), clamped on-screen.
+            val rawX = bubbleX + tmpChatHead.width - panelWidth
+            val maxX = (overlayWidthPx() - panelWidth).toFloat().coerceAtLeast(0f)
+            // Panel top edge: glued under the bubble for BELOW, above it for
+            // ABOVE — then clamped so the panel never leaves the screen.
+            val rawY = when (effectiveAnchor) {
+                PanelAnchor.ABOVE ->
+                    bubbleY - CHAT_HEAD_EXPANDED_MARGIN_TOP - panelHeight
+                else ->
+                    bubbleY + tmpChatHead.height + CHAT_HEAD_EXPANDED_MARGIN_TOP
+            }
+            val maxY = (overlayHeightPx() - panelHeight).toFloat().coerceAtLeast(0f)
+            content.x = rawX.coerceIn(0f, maxX)
+            content.y = rawY.coerceIn(0f, maxY)
+            // Scale animation originates from the bubble: pivot at the
+            // bubble's center X (in the panel's own coordinate space) and
+            // the bubble-facing edge.
+            content.pivotX = (bubbleX + tmpChatHead.width / 2f - content.x)
+                .coerceIn(0f, panelWidth.toFloat())
+            content.pivotY = if (effectiveAnchor == PanelAnchor.ABOVE) panelHeight.toFloat() else 0f
             if (toggled && totalVelocity % 100 == 0) {
-                OverlayConfig.logD("onSpringUpdate: content.x=$newX, content.y=$newY, content.visibility=${content.visibility}, content.scaleX=${content.scaleX}, content.scaleY=${content.scaleY}, content.w=${content.width}, content.h=${content.height}")
+                OverlayConfig.logD("onSpringUpdate: content.x=${content.x}, content.y=${content.y}, anchor=$effectiveAnchor, content.visibility=${content.visibility}, content.scaleX=${content.scaleX}, content.scaleY=${content.scaleY}, content.w=${content.width}, content.h=${content.height}")
             }
         }
-        content.pivotY = chatHead.height.toFloat()
         if (!moving && distance(close.x, top.springX.currentValue.toFloat(), close.y, top.springY.currentValue.toFloat()) < CLOSE_CAPTURE_DISTANCE * CLOSE_CAPTURE_DISTANCE && !captured && close.visibility == View.VISIBLE) {
             top.springX.springConfig = SpringConfigs.CAPTURING
             top.springY.springConfig = SpringConfigs.CAPTURING
@@ -431,17 +553,17 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         if (wasMoving) {
             motionTrackerParams.x = if (isOnRight) metrics.widthPixels - chatHead.width else 0
             lastY = chatHead.springY.currentValue
-            if (abs(chatHead.springY.velocity) > 3000 && (chatHead.springX.currentValue > metrics.widthPixels - chatHead.width + CHAT_HEAD_OUT_OF_SCREEN_X / 2 || chatHead.springX.currentValue < -CHAT_HEAD_OUT_OF_SCREEN_X / 2) && abs(initialVelocityX) > 3000) {
-                chatHead.springY.velocity = 3000.0 * if (initialVelocityY < 0) -1 else 1
+            if (abs(chatHead.springY.velocity) > EDGE_Y_VELOCITY_CLAMP && (chatHead.springX.currentValue > metrics.widthPixels - chatHead.width + CHAT_HEAD_OUT_OF_SCREEN_X / 2 || chatHead.springX.currentValue < -CHAT_HEAD_OUT_OF_SCREEN_X / 2) && abs(initialVelocityX) > EDGE_Y_VELOCITY_CLAMP) {
+                chatHead.springY.velocity = EDGE_Y_VELOCITY_CLAMP * if (initialVelocityY < 0) -1 else 1
             }
-            if ((chatHead.springX.currentValue < -CHAT_HEAD_OUT_OF_SCREEN_X / 2 && initialVelocityX < -3000 || chatHead.springX.currentValue > metrics.widthPixels - chatHead.width  + CHAT_HEAD_OUT_OF_SCREEN_X / 2) && abs(initialVelocityY) < abs(initialVelocityX)) {
+            if ((chatHead.springX.currentValue < -CHAT_HEAD_OUT_OF_SCREEN_X / 2 && initialVelocityX < -EDGE_Y_VELOCITY_CLAMP || chatHead.springX.currentValue > metrics.widthPixels - chatHead.width  + CHAT_HEAD_OUT_OF_SCREEN_X / 2) && abs(initialVelocityY) < abs(initialVelocityX)) {
                 chatHead.springY.velocity = 0.0
             }
-            if (abs(chatHead.springY.velocity) > 500) {
+            if (abs(chatHead.springY.velocity) > SOFT_Y_VELOCITY_CLAMP) {
                 if (chatHead.springY.currentValue < 0) {
-                    chatHead.springY.velocity = -500.0
+                    chatHead.springY.velocity = -SOFT_Y_VELOCITY_CLAMP
                 } else if (chatHead.springY.currentValue > metrics.heightPixels) {
-                    chatHead.springY.velocity = 500.0
+                    chatHead.springY.velocity = SOFT_Y_VELOCITY_CLAMP
                 }
             }
 
@@ -521,32 +643,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                 if (!moving) {
                     if (!toggled) {
                         OverlayConfig.logD("EXPAND: toggled=false, entering expand flow. topChatHead=${topChatHead?.id}, chatHeads.size=${chatHeads.size}")
-                        toggled = true
-                        chatHeads.forEachIndexed { index, it ->
-                            it.springX.springConfig = SpringConfigs.NOT_DRAGGING
-                            it.springY.springConfig = SpringConfigs.NOT_DRAGGING
-                            it.springY.endValue = CHAT_HEAD_EXPANDED_MARGIN_TOP.toDouble()
-                            it.springX.endValue = metrics.widthPixels - topChatHead!!.width.toDouble() - (chatHeads.size - 1 - index) * (it.width + CHAT_HEAD_EXPANDED_PADDING).toDouble()
-                        }
-                        motionTrackerParams.flags = motionTrackerParams.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                        FloatyContentJobService.instance?.windowManager?.updateViewLayout(motionTracker, motionTrackerParams)
-                        params.flags = (params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()) or WindowManager.LayoutParams.FLAG_DIM_BEHIND or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
-                        FloatyContentJobService.instance?.windowManager?.updateViewLayout(this, params)
-                        topChatHead!!.isActive = true
-                        changeContent()
-                        OverlayConfig.logD("EXPAND: scheduling showContent() in 200ms. content.visibility=${content.visibility}, content.childCount=${content.childCount}")
-                        Handler(Looper.getMainLooper()).postDelayed(
-                            {
-                                OverlayConfig.logD("EXPAND: postDelayed fired. Calling content.showContent(). content.visibility=${content.visibility}")
-                                content.showContent()
-                                // Accessibility: announce state + move focus to content panel
-                                announceForAccessibility("Chat expanded")
-                                content.sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED)
-
-                                // Notify lifecycle: expanded
-                                FloatyContentJobService.instance?.notifyChatHeadExpanded(topChatHead?.id ?: "default")
-                            }, EXPAND_CONTENT_DELAY_MS
-                        )
+                        performExpand()
                     } else {
                         OverlayConfig.logD("EXPAND: toggled=true, already expanded — skipping")
                     }
@@ -566,17 +663,17 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                         topChatHead?.springY?.currentValue ?: 0.0,
                     )
 
-                    if (xVelocity < -3500) {
+                    if (xVelocity < -FLING_VELOCITY_THRESHOLD) {
                         val newVelocity = ((-topChatHead!!.springX.currentValue -  CHAT_HEAD_OUT_OF_SCREEN_X) * SpringConfigs.DRAGGING.friction)
                         maxVelocityX = newVelocity - 5000
                         if (xVelocity > maxVelocityX)
                             xVelocity = newVelocity - 500
-                    } else if (xVelocity > 3500) {
+                    } else if (xVelocity > FLING_VELOCITY_THRESHOLD) {
                         val newVelocity = ((metrics.widthPixels - topChatHead!!.springX.currentValue - topChatHead!!.width + CHAT_HEAD_OUT_OF_SCREEN_X) * SpringConfigs.DRAGGING.friction)
                         maxVelocityX = newVelocity + 5000
                         if (maxVelocityX > xVelocity)
                             xVelocity = newVelocity + 500
-                    } else if (yVelocity > 20 || yVelocity < -20) {
+                    } else if (abs(yVelocity) > DIRECTIONAL_SNAP_VELOCITY) {
                         topChatHead!!.springX.springConfig = SpringConfigs.NOT_DRAGGING
                         val (snapX, snapRight) = ChatHeadSnapResolver.resolve(
                             topChatHead!!.springX.currentValue,

@@ -52,6 +52,7 @@ final class FloatyController extends ChangeNotifier {
     this.flag = OverlayFlag.defaultFlag,
     this.enableDrag = true,
     this.entranceAnimation = EntranceAnimation.none,
+    this.panelAnchor = PanelAnchor.below,
     this.debugMode = false,
     bool autoShow = false,
     this.onData,
@@ -103,6 +104,11 @@ final class FloatyController extends ChangeNotifier {
   /// {@endtemplate}
   final EntranceAnimation entranceAnimation;
 
+  /// {@template floaty_controller.panel_anchor}
+  /// Where the expanded content panel opens relative to the bubble.
+  /// {@endtemplate}
+  final PanelAnchor panelAnchor;
+
   /// {@template floaty_controller.debug_mode}
   /// Whether the native debug inspector is enabled (Android).
   /// {@endtemplate}
@@ -148,6 +154,7 @@ final class FloatyController extends ChangeNotifier {
         flag: flag,
         enableDrag: enableDrag,
         entranceAnimation: entranceAnimation,
+        panelAnchor: panelAnchor,
         debugMode: debugMode,
         assets: assets,
         notification: notification,

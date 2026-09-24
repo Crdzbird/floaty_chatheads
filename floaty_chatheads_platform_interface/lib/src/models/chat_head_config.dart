@@ -4,6 +4,7 @@ import 'package:floaty_chatheads_platform_interface/src/models/content_size_pres
 import 'package:floaty_chatheads_platform_interface/src/models/entrance_animation.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/notification_config.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/overlay_flag.dart';
+import 'package:floaty_chatheads_platform_interface/src/models/panel_anchor.dart';
 import 'package:floaty_chatheads_platform_interface/src/models/snap_config.dart';
 import 'package:flutter/foundation.dart' show immutable;
 
@@ -34,6 +35,7 @@ class ChatHeadConfig {
     this.flag = OverlayFlag.defaultFlag,
     this.enableDrag = true,
     this.entranceAnimation = EntranceAnimation.none,
+    this.panelAnchor = PanelAnchor.below,
     this.theme,
     this.sizePreset,
     this.debugMode = false,
@@ -82,6 +84,13 @@ class ChatHeadConfig {
   /// Defaults to [EntranceAnimation.none].
   /// {@endtemplate}
   final EntranceAnimation entranceAnimation;
+
+  /// {@template chat_head_config.panel_anchor}
+  /// Where the expanded content panel opens relative to the bubble.
+  ///
+  /// Defaults to [PanelAnchor.below]. See [PanelAnchor] for details.
+  /// {@endtemplate}
+  final PanelAnchor panelAnchor;
 
   /// {@template chat_head_config.theme}
   /// Optional theme configuration for badge colors, bubble border,
@@ -163,6 +172,7 @@ class ChatHeadConfig {
           other.flag == flag &&
           other.enableDrag == enableDrag &&
           other.entranceAnimation == entranceAnimation &&
+          other.panelAnchor == panelAnchor &&
           other.theme == theme &&
           other.sizePreset == sizePreset &&
           other.debugMode == debugMode &&
@@ -180,6 +190,7 @@ class ChatHeadConfig {
         flag,
         enableDrag,
         entranceAnimation,
+        panelAnchor,
         theme,
         sizePreset,
         debugMode,

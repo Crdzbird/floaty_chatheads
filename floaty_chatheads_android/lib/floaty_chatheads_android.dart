@@ -55,6 +55,8 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
         persistPosition: ChatHeadConfigResolver.persistPosition(config.snap),
         entranceAnimation: pigeon
             .EntranceAnimationMessage.values[config.entranceAnimation.index],
+        panelAnchor:
+            pigeon.PanelAnchorMessage.values[config.panelAnchor.index],
         theme: _toThemeMessage(config.theme),
         debugMode: config.debugMode,
         autoLaunchOnBackground: config.autoLaunchOnBackground,
@@ -118,7 +120,7 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
   /// {@macro floaty_chatheads_platform.update_flag}
   @override
   Future<void> updateFlag(OverlayFlag flag) =>
-      _overlayHostApi.updateFlag(pigeon.OverlayFlagMessage.values[flag.index]);
+      _overlayHostApi.updateFlag(flag.index);
 
   /// {@macro floaty_chatheads_platform.close_overlay}
   @override
@@ -128,7 +130,10 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
   @override
   Future<OverlayPosition> getOverlayPosition() async {
     final pos = await _overlayHostApi.getOverlayPosition();
-    return OverlayPosition(x: pos.x, y: pos.y);
+    return OverlayPosition(
+      x: (pos['x']! as num).toDouble(),
+      y: (pos['y']! as num).toDouble(),
+    );
   }
 
   /// {@macro floaty_chatheads_platform.update_badge}

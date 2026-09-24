@@ -219,7 +219,6 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
         val currentChatHead = chatHeads.chatHeads.find { it == v }!!
-        val metrics = WindowManagerHelper.getScreenSize()
         when (event!!.action) {
             MotionEvent.ACTION_DOWN -> {
                 initialX = x
@@ -240,8 +239,8 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
                         chatHeads.changeContent()
                     }
                 } else {
-                    springX.endValue = metrics.widthPixels - width - (chatHeads.chatHeads.size - 1 - chatHeads.chatHeads.indexOf(this)) * (width + ChatHeads.CHAT_HEAD_EXPANDED_PADDING).toDouble()
-                    springY.endValue = ChatHeads.CHAT_HEAD_EXPANDED_MARGIN_TOP.toDouble()
+                    springX.endValue = chatHeads.expandedRowX(chatHeads.chatHeads.indexOf(this), width)
+                    springY.endValue = chatHeads.expandedRowY()
                     if (isActive) {
                         chatHeads.content.showContent()
                     }

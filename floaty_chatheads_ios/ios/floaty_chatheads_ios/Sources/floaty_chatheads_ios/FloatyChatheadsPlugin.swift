@@ -134,8 +134,9 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         }
     }
 
-    func updateFlag(flag: OverlayFlagMessage) throws {
-        guard let window = overlayWindow else { return }
+    func updateFlag(flagIndex: Int64) throws {
+        guard let window = overlayWindow,
+              let flag = OverlayFlagMessage(rawValue: Int(flagIndex)) else { return }
         switch flag {
         case .clickThrough:
             window.isUserInteractionEnabled = false
@@ -148,14 +149,14 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         destroyOverlayWindow()
     }
 
-    func getOverlayPosition() throws -> OverlayPositionMessage {
-        guard let window = overlayWindow else {
-            return OverlayPositionMessage(x: 0, y: 0)
-        }
-        return OverlayPositionMessage(
-            x: Double(window.frame.origin.x),
-            y: Double(window.frame.origin.y)
-        )
+    func getOverlayPosition() throws -> [String?: Any?] {
+        let origin = windowPosition()
+        return ["x": Double(origin.x), "y": Double(origin.y)]
+    }
+
+    /// Current window origin (0,0 when no overlay).
+    private func windowPosition() -> CGPoint {
+        return overlayWindow?.frame.origin ?? .zero
     }
 
     func updateBadgeFromOverlay(count: Int64) throws {
@@ -352,15 +353,9 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
             origin.x = max(0, min(origin.x, screen.width - window.frame.width))
         }
 
-        UIView.animate(
-            withDuration: 0.3,
-            delay: 0,
-            usingSpringWithDamping: 0.7,
-            initialSpringVelocity: 0.5,
-            options: [],
-            animations: {
-                window.frame.origin = origin
-            },
+        springAnimate(
+            damping: 0.7,
+            animations: { window.frame.origin = origin },
             completion: { [weak self] _ in
                 guard let self = self else { return }
                 if self.currentPersistPosition {
@@ -377,6 +372,25 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         UserDefaults.standard.set(origin.y, forKey: FloatyChatheadsPlugin.positionYKey)
     }
 
+    // MARK: - Animation Helper
+
+    /// Shared spring animation for expand, collapse, and edge snapping.
+    private func springAnimate(
+        damping: CGFloat = 0.8,
+        animations: @escaping () -> Void,
+        completion: ((Bool) -> Void)? = nil
+    ) {
+        UIView.animate(
+            withDuration: 0.3,
+            delay: 0,
+            usingSpringWithDamping: damping,
+            initialSpringVelocity: 0.5,
+            options: [],
+            animations: animations,
+            completion: completion
+        )
+    }
+
     // MARK: - Expand / Collapse
 
     private func performExpand() {
@@ -390,15 +404,8 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         effectiveAnchor = resolveAnchor(forBubble: bubbleFrame)
         let target = anchoredPanelFrame(forBubble: bubbleFrame)
 
-        UIView.animate(
-            withDuration: 0.3,
-            delay: 0,
-            usingSpringWithDamping: 0.8,
-            initialSpringVelocity: 0.5,
-            options: [],
-            animations: {
-                window.frame = target
-            },
+        springAnimate(
+            animations: { window.frame = target },
             completion: { [weak self] _ in
                 guard let self = self else { return }
                 self.overlayFlutterApi?.onChatHeadExpanded(id: self.currentChatHeadId) { _ in }
@@ -414,15 +421,8 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         let origin = collapsedOrigin ?? window.frame.origin
         collapsedOrigin = nil
 
-        UIView.animate(
-            withDuration: 0.3,
-            delay: 0,
-            usingSpringWithDamping: 0.8,
-            initialSpringVelocity: 0.5,
-            options: [],
-            animations: {
-                window.frame = CGRect(origin: origin, size: self.bubbleSize)
-            },
+        springAnimate(
+            animations: { window.frame = CGRect(origin: origin, size: self.bubbleSize) },
             completion: { [weak self] _ in
                 guard let self = self else { return }
                 self.overlayFlutterApi?.onChatHeadCollapsed(id: self.currentChatHeadId) { _ in }
@@ -451,7 +451,9 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         case .below, .auto:
             rawY = bubbleFrame.maxY + Self.panelGap
         }
-        let x = min(max(bubbleFrame.origin.x, 0), max(screen.width - contentSize.width, 0))
+        // Panel right edge follows the bubble's right edge (matches the
+        // Android implementation), clamped on-screen.
+        let x = min(max(bubbleFrame.maxX - contentSize.width, 0), max(screen.width - contentSize.width, 0))
         let y = min(max(rawY, 0), max(screen.height - contentSize.height, 0))
         return CGRect(x: x, y: y, width: contentSize.width, height: contentSize.height)
     }
@@ -474,11 +476,8 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         switch gesture.state {
         case .began:
             panOrigin = window.frame.origin
-            overlayFlutterApi?.onChatHeadDragStart(
-                id: currentChatHeadId,
-                x: Double(window.frame.origin.x),
-                y: Double(window.frame.origin.y)
-            ) { _ in }
+            let pos = windowPosition()
+            overlayFlutterApi?.onChatHeadDragStart(id: currentChatHeadId, x: pos.x, y: pos.y) { _ in }
         case .changed:
             let newX = panOrigin.x + translation.x
             let newY = panOrigin.y + translation.y
@@ -488,11 +487,8 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
             if isExpanded { collapsedOrigin = nil }
         case .ended, .cancelled:
             snapToEdge(window: window)
-            overlayFlutterApi?.onChatHeadDragEnd(
-                id: currentChatHeadId,
-                x: Double(window.frame.origin.x),
-                y: Double(window.frame.origin.y)
-            ) { _ in }
+            let pos = windowPosition()
+            overlayFlutterApi?.onChatHeadDragEnd(id: currentChatHeadId, x: pos.x, y: pos.y) { _ in }
         default:
             break
         }

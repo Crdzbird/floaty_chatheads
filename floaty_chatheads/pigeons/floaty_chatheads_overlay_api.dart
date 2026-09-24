@@ -5,34 +5,29 @@ import 'package:pigeon/pigeon.dart';
 /// Only the Dart output is used — the native side is generated in the
 /// platform-specific packages. The channel names MUST match the platform
 /// packages so the overlay isolate talks to the same native handlers.
+///
+/// CONTRACT: every method here MUST use only standard-codec types
+/// (int, double, String, Map, List — no custom classes or enums).
+/// The native handlers are generated from the *platform* packages'
+/// schemas, whose codecs assign different tags to custom types; a custom
+/// type on these shared channels fails to decode across that boundary.
 @ConfigurePigeon(
   PigeonOptions(
     dartOut: 'lib/src/generated/floaty_chatheads_overlay_api.g.dart',
     dartPackageName: 'floaty_chatheads',
   ),
 )
-enum OverlayFlagMessage {
-  defaultFlag,
-  clickThrough,
-  focusPointer,
-}
-
-class OverlayPositionMessage {
-  OverlayPositionMessage({required this.x, required this.y});
-
-  final double x;
-  final double y;
-}
-
 @HostApi()
 abstract class FloatyOverlayHostApi {
   void resizeContent(int width, int height);
 
-  void updateFlag(OverlayFlagMessage flag);
+  /// [flagIndex] is the `OverlayFlag` enum index (standard-codec safe).
+  void updateFlag(int flagIndex);
 
   void closeOverlay();
 
-  OverlayPositionMessage getOverlayPosition();
+  /// Returns the overlay position as `{'x': double, 'y': double}`.
+  Map<String?, Object?> getOverlayPosition();
 
   /// Updates the badge count from the overlay isolate.
   void updateBadgeFromOverlay(int count);

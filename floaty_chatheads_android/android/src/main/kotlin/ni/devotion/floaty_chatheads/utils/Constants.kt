@@ -15,6 +15,7 @@ object Constants {
     const val PREF_SNAP_MARGIN = "snap_margin"
     const val PREF_PERSIST_POSITION = "persist_position"
     const val PREF_ENTRANCE_ANIMATION = "entrance_animation"
+    const val PREF_PANEL_ANCHOR = "panel_anchor"
     const val PREF_DEBUG_MODE = "debug_mode"
     const val PREF_NOTIFICATION_TITLE = "notification_title"
     const val PREF_NOTIFICATION_DESCRIPTION = "notification_description"

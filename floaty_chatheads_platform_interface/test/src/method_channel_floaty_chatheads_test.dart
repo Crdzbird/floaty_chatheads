@@ -90,6 +90,20 @@ void main() {
       expect(log.first.method, equals('showChatHead'));
     });
 
+    test('showChatHead serializes panelAnchor.below by default', () async {
+      await methodChannel.showChatHead(const ChatHeadConfig());
+      final args = log.first.arguments as Map<Object?, Object?>;
+      expect(args['panelAnchor'], equals(PanelAnchor.below.index));
+    });
+
+    test('showChatHead serializes non-default panelAnchor by index', () async {
+      await methodChannel.showChatHead(
+        const ChatHeadConfig(panelAnchor: PanelAnchor.above),
+      );
+      final args = log.first.arguments as Map<Object?, Object?>;
+      expect(args['panelAnchor'], equals(PanelAnchor.above.index));
+    });
+
     test('addChatHead', () async {
       await methodChannel.addChatHead(
         const AddChatHeadConfig(id: 'test'),

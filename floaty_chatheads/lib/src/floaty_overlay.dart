@@ -148,9 +148,7 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
 
   /// {@macro floaty_chatheads_platform.update_flag}
   static Future<void> updateFlag(OverlayFlag flag) =>
-      _overlayHostApi.updateFlag(
-        OverlayFlagMessage.values[flag.index],
-      );
+      _overlayHostApi.updateFlag(flag.index);
 
   /// {@macro floaty_chatheads_platform.close_overlay}
   static Future<void> closeOverlay() => _overlayHostApi.closeOverlay();
@@ -158,7 +156,10 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
   /// {@macro floaty_chatheads_platform.get_overlay_position}
   static Future<OverlayPosition> getOverlayPosition() async {
     final msg = await _overlayHostApi.getOverlayPosition();
-    return OverlayPosition(x: msg.x, y: msg.y);
+    return OverlayPosition(
+      x: (msg['x']! as num).toDouble(),
+      y: (msg['y']! as num).toDouble(),
+    );
   }
 
   /// {@macro floaty_chatheads_platform.update_badge}

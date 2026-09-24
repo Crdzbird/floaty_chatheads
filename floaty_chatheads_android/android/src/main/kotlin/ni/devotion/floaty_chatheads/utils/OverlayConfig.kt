@@ -10,6 +10,9 @@ enum class SnapEdge { BOTH, LEFT, RIGHT, NONE }
 /** Entrance animation style. */
 enum class EntranceAnimation { NONE, POP, SLIDE_FROM_EDGE, FADE }
 
+/** Where the expanded content panel is anchored relative to the bubble. */
+enum class PanelAnchor { BELOW, ABOVE, AUTO }
+
 /**
  * Holds the overlay configuration that is shared across the plugin,
  * service, and native views.
@@ -50,6 +53,10 @@ object OverlayConfig {
 
     // ── Entrance animation ───────────────────────────────────────────
     var entranceAnimation: EntranceAnimation = EntranceAnimation.NONE
+
+    // ── Panel anchor ─────────────────────────────────────────────────
+    /** Where the expanded content panel opens relative to the bubble. */
+    var panelAnchor: PanelAnchor = PanelAnchor.BELOW
 
     // ── Theming ──────────────────────────────────────────────────────
     var badgeColor: Int = Color.RED

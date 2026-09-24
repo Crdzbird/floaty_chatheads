@@ -114,6 +114,36 @@ void main() {
     });
   });
 
+  group('PanelAnchor', () {
+    test('ChatHeadConfig defaults to below', () {
+      const config = ChatHeadConfig();
+      expect(config.panelAnchor, PanelAnchor.below);
+    });
+
+    test('is stored on ChatHeadConfig', () {
+      const config = ChatHeadConfig(panelAnchor: PanelAnchor.auto);
+      expect(config.panelAnchor, PanelAnchor.auto);
+    });
+
+    test('enum order is a wire contract (index-serialized)', () {
+      // Serialized by index over the method channel and mapped by index
+      // into both Pigeon contracts — reordering is a breaking change.
+      expect(PanelAnchor.values, const [
+        PanelAnchor.below,
+        PanelAnchor.above,
+        PanelAnchor.auto,
+      ]);
+    });
+
+    test('participates in ChatHeadConfig equality and hashCode', () {
+      const below = ChatHeadConfig();
+      const above = ChatHeadConfig(panelAnchor: PanelAnchor.above);
+      expect(below, equals(const ChatHeadConfig()));
+      expect(below, isNot(equals(above)));
+      expect(below.hashCode, isNot(equals(above.hashCode)));
+    });
+  });
+
   group('ChatHeadConfig grouped configs', () {
     test('assets are stored correctly', () {
       const config = ChatHeadConfig(

@@ -20,8 +20,6 @@ import ni.devotion.floaty_chatheads.floating_chathead.ChatHeads
 import ni.devotion.floaty_chatheads.floating_chathead.WindowManagerHelper
 import ni.devotion.floaty_chatheads.generated.FloatyOverlayFlutterApi
 import ni.devotion.floaty_chatheads.generated.FloatyOverlayHostApi
-import ni.devotion.floaty_chatheads.generated.OverlayFlagMessage
-import ni.devotion.floaty_chatheads.generated.OverlayPositionMessage
 import ni.devotion.floaty_chatheads.utils.Constants
 import ni.devotion.floaty_chatheads.utils.OverlayConfig
 
@@ -439,7 +437,7 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         }
     }
 
-    override fun updateFlag(flag: OverlayFlagMessage) {
+    override fun updateFlag(flagIndex: Long) {
         // Placeholder for future flag updates on the overlay window
     }
 
@@ -448,16 +446,12 @@ class FloatyContentJobService : Service(), FloatyOverlayHostApi {
         FloatyChatheadsPlugin.isServiceRunning = false
     }
 
-    override fun getOverlayPosition(): OverlayPositionMessage {
+    override fun getOverlayPosition(): Map<String?, Any?> {
         val topChatHead = chatHeads?.topChatHead
-        return if (topChatHead != null) {
-            OverlayPositionMessage(
-                x = topChatHead.springX.currentValue,
-                y = topChatHead.springY.currentValue,
-            )
-        } else {
-            OverlayPositionMessage(x = 0.0, y = 0.0)
-        }
+        return mapOf(
+            "x" to (topChatHead?.springX?.currentValue ?: 0.0),
+            "y" to (topChatHead?.springY?.currentValue ?: 0.0),
+        )
     }
 
     override fun updateBadgeFromOverlay(count: Long) {

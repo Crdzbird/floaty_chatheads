@@ -58,6 +58,7 @@ class MethodChannelFloatyChatheads extends FloatyChatheadsPlatform {
       'snapMargin': config.snap?.margin ?? -10,
       'persistPosition': config.snap?.persistPosition ?? false,
       'entranceAnimation': config.entranceAnimation.index,
+      'panelAnchor': config.panelAnchor.index,
       'debugMode': config.debugMode,
       'autoLaunchOnBackground': config.autoLaunchOnBackground,
       'persistOnAppClose': config.persistOnAppClose,

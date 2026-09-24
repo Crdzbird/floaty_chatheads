@@ -56,6 +56,7 @@ export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
         NotificationVisibility,
         OverlayFlag,
         OverlayPosition,
+        PanelAnchor,
         SnapConfig,
         SnapEdge;
 

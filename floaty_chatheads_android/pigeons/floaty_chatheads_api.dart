@@ -16,6 +16,7 @@ enum OverlayFlagMessage {
   focusPointer,
 }
 
+
 enum NotificationVisibilityMessage {
   visibilityPublic,
   visibilitySecret,
@@ -79,6 +80,20 @@ enum EntranceAnimationMessage {
   fade,
 }
 
+/// Where the expanded content panel is anchored relative to the bubble.
+enum PanelAnchorMessage {
+  /// Panel opens below the bubble (default).
+  below,
+
+  /// Panel opens above the bubble; the expanded bubble row snaps to the
+  /// bottom of the screen.
+  above,
+
+  /// Below when there is room on screen, otherwise above. Resolved once
+  /// each time the panel expands.
+  auto,
+}
+
 /// Theming configuration for the chathead.
 ///
 /// All color values are ARGB integers.
@@ -122,6 +137,7 @@ class ChatHeadConfig {
     required this.snapMargin,
     required this.persistPosition,
     required this.entranceAnimation,
+    required this.panelAnchor,
     this.theme,
     required this.debugMode,
     required this.autoLaunchOnBackground,
@@ -156,6 +172,9 @@ class ChatHeadConfig {
   /// The entrance animation when the chathead first appears.
   final EntranceAnimationMessage entranceAnimation;
 
+  /// Where the expanded content panel opens relative to the bubble.
+  final PanelAnchorMessage panelAnchor;
+
   /// Optional theme configuration.
   final ChatHeadThemeMessage? theme;
 
@@ -181,12 +200,6 @@ class ChatHeadConfig {
   final String? notificationDescription;
 }
 
-class OverlayPositionMessage {
-  OverlayPositionMessage({required this.x, required this.y});
-
-  final double x;
-  final double y;
-}
 
 class AddChatHeadConfig {
   AddChatHeadConfig({required this.id, this.iconAsset, this.iconSource});
@@ -244,11 +257,18 @@ abstract class FloatyHostApi {
 abstract class FloatyOverlayHostApi {
   void resizeContent(int width, int height);
 
-  void updateFlag(OverlayFlagMessage flag);
+  /// [flagIndex] is the `OverlayFlag` enum index (standard-codec safe).
+  void updateFlag(int flagIndex);
 
   void closeOverlay();
 
-  OverlayPositionMessage getOverlayPosition();
+  /// Returns the overlay position as `{'x': double, 'y': double}`.
+  ///
+  /// CONTRACT: overlay-channel methods must use only standard-codec
+  /// types — the overlay isolate decodes replies with the codec from
+  /// floaty_chatheads/pigeons/floaty_chatheads_overlay_api.dart, which
+  /// assigns different tags to custom classes/enums.
+  Map<String?, Object?> getOverlayPosition();
 
   /// Updates the badge count from the overlay isolate.
   void updateBadgeFromOverlay(int count);

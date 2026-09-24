@@ -6,6 +6,7 @@ import android.graphics.Color
 import ni.devotion.floaty_chatheads.utils.Constants
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
 import ni.devotion.floaty_chatheads.utils.OverlayConfig
+import ni.devotion.floaty_chatheads.utils.PanelAnchor
 import ni.devotion.floaty_chatheads.utils.SnapEdge
 import org.json.JSONObject
 
@@ -31,6 +32,7 @@ internal class ConfigPersistence(private val context: Context) {
             putFloat(Constants.PREF_SNAP_MARGIN, OverlayConfig.snapMargin)
             putBoolean(Constants.PREF_PERSIST_POSITION, OverlayConfig.persistPosition)
             putString(Constants.PREF_ENTRANCE_ANIMATION, OverlayConfig.entranceAnimation.name)
+            putString(Constants.PREF_PANEL_ANCHOR, OverlayConfig.panelAnchor.name)
             putBoolean(Constants.PREF_DEBUG_MODE, OverlayConfig.debugMode)
             putBoolean(Constants.PREF_AUTO_LAUNCH_ON_BACKGROUND, OverlayConfig.autoLaunchOnBackground)
             putBoolean(Constants.PREF_PERSIST_ON_APP_CLOSE, OverlayConfig.persistOnAppClose)
@@ -88,6 +90,10 @@ internal class ConfigPersistence(private val context: Context) {
                 prefs.getString(Constants.PREF_ENTRANCE_ANIMATION, "NONE") ?: "NONE",
             )
         } catch (_: Exception) { EntranceAnimation.NONE }
+
+        OverlayConfig.panelAnchor = try {
+            PanelAnchor.valueOf(prefs.getString(Constants.PREF_PANEL_ANCHOR, "BELOW") ?: "BELOW")
+        } catch (_: Exception) { PanelAnchor.BELOW }
 
         OverlayConfig.debugMode = prefs.getBoolean(Constants.PREF_DEBUG_MODE, false)
         OverlayConfig.autoLaunchOnBackground = prefs.getBoolean(Constants.PREF_AUTO_LAUNCH_ON_BACKGROUND, false)

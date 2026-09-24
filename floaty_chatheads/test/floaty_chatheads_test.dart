@@ -79,6 +79,24 @@ void main() {
       expect(config.snap?.edge, equals(SnapEdge.left));
     });
 
+    test('showChatHead defaults panelAnchor to below', () async {
+      when(() => platform.showChatHead(any())).thenAnswer((_) async {});
+      await FloatyChatheads.showChatHead();
+      final captured =
+          verify(() => platform.showChatHead(captureAny())).captured;
+      final config = captured.first as ChatHeadConfig;
+      expect(config.panelAnchor, equals(PanelAnchor.below));
+    });
+
+    test('showChatHead passes panelAnchor through', () async {
+      when(() => platform.showChatHead(any())).thenAnswer((_) async {});
+      await FloatyChatheads.showChatHead(panelAnchor: PanelAnchor.auto);
+      final captured =
+          verify(() => platform.showChatHead(captureAny())).captured;
+      final config = captured.first as ChatHeadConfig;
+      expect(config.panelAnchor, equals(PanelAnchor.auto));
+    });
+
     test('closeChatHead delegates to platform', () async {
       when(() => platform.closeChatHead()).thenAnswer((_) async {});
       await FloatyChatheads.closeChatHead();
