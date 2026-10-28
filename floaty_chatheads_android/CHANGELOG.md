@@ -19,6 +19,13 @@
   touch tracker skips no-op WindowManager updates; debug mode stops its
   frame callback on close.
 - `POST_NOTIFICATIONS` declared and requested on Android 13+.
+- The collapsed bubble stack is drawn in its own small touchable window
+  (`BubbleWindow`) that follows the top bubble, instead of in the
+  full-screen window that Android 12+ caps at 80 percent opacity. The
+  bubble is now fully opaque, and fling velocity is measured in screen
+  coordinates.
+- The bubble window excludes its bounds from system gestures, so dragging
+  an edge-snapped bubble no longer triggers Back.
 - `NotificationConfig.visibility` honored; channel name and running text
   moved to overridable string resources; explicit `specialUse` foreground
   service type on Android 14+.

@@ -662,7 +662,7 @@ All native views ship with built-in TalkBack (Android) and VoiceOver (iOS) suppo
   for expand/collapse and dismiss
 - **Close target**: live-region announcement when visible, descriptive label
 - **Content panel**: receives focus on expand, announces hide on collapse
-- **Motion tracker**: hidden from accessibility tree
+- **Collapsed bubble window**: hidden from accessibility tree (the bubble views carry the labels)
 - **Debug overlay**: excluded from accessibility
 
 No extra Dart code is required; accessibility is handled at the native layer.

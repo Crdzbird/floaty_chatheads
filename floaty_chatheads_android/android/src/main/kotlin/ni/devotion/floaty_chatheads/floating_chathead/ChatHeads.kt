@@ -7,7 +7,6 @@ import android.os.Handler
 import android.os.Looper
 import android.view.*
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import android.view.VelocityTracker
 import com.facebook.rebound.Spring
 import com.facebook.rebound.SimpleSpringListener
@@ -61,36 +60,25 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
     private var moving = false
     var toggled = false
         private set
-    private var motionTrackerUpdated = false
     private var collapsing = false
     private var blockAnim = false
     private var horizontalSpringChain: SpringChain? = null
     private var verticalSpringChain: SpringChain? = null
-    private var isOnRight = false
+    /** True when the collapsed bubble is snapped to the right edge. */
+    internal var isOnRight = false
+        private set
 
     /** Anchor resolved once per expand; never re-evaluated per spring tick,
      *  so an AUTO anchor cannot flip-flop mid-animation. */
     private var effectiveAnchor = PanelAnchor.BELOW
-
-    /** Last position pushed to the touch tracker window; skips no-op IPC. */
-    private var appliedTrackerX = Int.MIN_VALUE
-    private var appliedTrackerY = Int.MIN_VALUE
     private var velocityTracker: VelocityTracker? = null
-    private var motionTracker = LinearLayout(context)
+    private val bubbleWindow = BubbleWindow(this)
     var topChatHead: ChatHead? = null
     var content = FlutterContentPanel(context)
     private var close = Close(this)
     var chatHeads = ArrayList<ChatHead>()
 
     private val positionStore = ChatHeadPositionStore(context)
-
-    private var motionTrackerParams = WindowManager.LayoutParams(
-        CHAT_HEAD_SIZE,
-        CHAT_HEAD_SIZE + 16,
-            WindowManagerHelper.getLayoutFlag(),
-        WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-        PixelFormat.TRANSLUCENT
-    )
 
     private var params = WindowManager.LayoutParams(
         WindowManager.LayoutParams.MATCH_PARENT,
@@ -106,9 +94,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         context.setTheme(com.google.android.material.R.style.Theme_MaterialComponents_Light)
         params.gravity = Gravity.START or Gravity.TOP
         params.dimAmount = 0.7f
-        motionTrackerParams.gravity = Gravity.START or Gravity.TOP
-        motionTracker.importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-        FloatyContentJobService.instance?.windowManager?.addView(motionTracker, motionTrackerParams)
+        FloatyContentJobService.instance?.windowManager?.addView(bubbleWindow, bubbleWindow.params)
         FloatyContentJobService.instance?.windowManager?.addView(this, params)
         this.addView(content)
 
@@ -116,7 +102,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             debugOverlayView = DebugOverlayView(this)
         }
 
-        motionTracker.setOnTouchListener(this)
+        bubbleWindow.setOnTouchListener(this)
         this.setOnTouchListener{ v, event ->
             v.performClick()
             when (event.action) {
@@ -272,11 +258,9 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             EntranceAnimation.NONE -> { /* no-op */ }
         }
 
-        motionTrackerParams.x = chatHead.springX.currentValue.toInt()
-        motionTrackerParams.y = chatHead.springY.currentValue.toInt()
-        motionTrackerParams.flags = motionTrackerParams.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
-
-        FloatyContentJobService.instance?.windowManager?.updateViewLayout(motionTracker, motionTrackerParams)
+        bubbleWindow.params.flags = bubbleWindow.params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+        bubbleWindow.apply()
+        onBubbleChanged()
 
         return chatHead
     }
@@ -294,6 +278,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         }
         content.hideContent()
         setExpandedTouchRouting(expanded = false)
+        redrawBubbles()
 
         announceForAccessibility("Chat collapsed")
         topChatHead?.requestFocus()
@@ -331,15 +316,33 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         destroySpringChains()
         resetSpringChains()
         fixPositions()
+        onBubbleChanged()
     }
 
-    /** Remove the motionTracker and spring chains that live outside this view. */
+    /**
+     * Keeps [bubbleWindow] on the collapsed stack. Called whenever a bubble
+     * moves, scales, fades or redraws.
+     */
+    fun onBubbleChanged() {
+        if (toggled) return
+        val top = topChatHead ?: return
+        bubbleWindow.follow(top, chatHeads.size, isOnRight)
+    }
+
+    /** Moves bubble drawing between [bubbleWindow] and this window after a
+     *  collapse or expand. */
+    private fun redrawBubbles() {
+        chatHeads.forEach { it.invalidate() }
+        bubbleWindow.invalidate()
+    }
+
+    /** Remove the bubble window and spring chains that live outside this view. */
     fun cleanup() {
         debugOverlayView?.stop()
         debugOverlayView = null
         destroySpringChains()
         try {
-            FloatyContentJobService.instance?.windowManager?.removeView(motionTracker)
+            FloatyContentJobService.instance?.windowManager?.removeView(bubbleWindow)
         } catch (_: Exception) {
         }
     }
@@ -381,6 +384,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             it.springX.endValue = expandedRowX(index, it.width)
         }
         setExpandedTouchRouting(expanded = true)
+        redrawBubbles()
         topChatHead!!.isActive = true
         changeContent()
         OverlayConfig.logD("EXPAND: anchor=$effectiveAnchor, rowY=$rowY, scheduling showContent() in ${EXPAND_CONTENT_DELAY_MS}ms")
@@ -424,17 +428,18 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
 
     /**
      * Routes touch input for the expanded/collapsed state: expanded sends
-     * touches to the overlay (dimmed, focusable) and mutes the motion
-     * tracker; collapsed does the reverse.
+     * touches to the overlay (dimmed, focusable) and mutes the bubble
+     * window; collapsed does the reverse.
      */
     private fun setExpandedTouchRouting(expanded: Boolean) {
         val wm = FloatyContentJobService.instance?.windowManager ?: return
-        motionTrackerParams.flags = if (expanded) {
-            motionTrackerParams.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        val bubbleParams = bubbleWindow.params
+        bubbleParams.flags = if (expanded) {
+            bubbleParams.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
         } else {
-            motionTrackerParams.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+            bubbleParams.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
         }
-        wm.updateViewLayout(motionTracker, motionTrackerParams)
+        bubbleWindow.apply()
         params.flags = if (expanded) {
             (params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()) or WindowManager.LayoutParams.FLAG_DIM_BEHIND or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
         } else {
@@ -536,7 +541,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             captured = true
         }
         if (wasMoving) {
-            motionTrackerParams.x = if (isOnRight) metrics.widthPixels - chatHead.width else 0
             lastY = chatHead.springY.currentValue
             if (abs(chatHead.springY.velocity) > EDGE_Y_VELOCITY_CLAMP && (chatHead.springX.currentValue > metrics.widthPixels - chatHead.width + CHAT_HEAD_OUT_OF_SCREEN_X / 2 || chatHead.springX.currentValue < -CHAT_HEAD_OUT_OF_SCREEN_X / 2) && abs(initialVelocityX) > EDGE_Y_VELOCITY_CLAMP) {
                 chatHead.springY.velocity = EDGE_Y_VELOCITY_CLAMP * if (initialVelocityY < 0) -1 else 1
@@ -580,16 +584,16 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                     }
                 }
             }
-
-            val trackerY = top.springY.currentValue.toInt()
-            val trackerMoved = trackerY != appliedTrackerY || motionTrackerParams.x != appliedTrackerX
-            if (abs(totalVelocity) % 10 == 0 && !moving && trackerMoved) {
-                motionTrackerParams.y = trackerY
-                appliedTrackerX = motionTrackerParams.x
-                appliedTrackerY = trackerY
-                FloatyContentJobService.instance?.windowManager?.updateViewLayout(motionTracker, motionTrackerParams)
-            }
         }
+    }
+
+    /** Feeds [event] to the velocity tracker in screen coordinates, since
+     *  [bubbleWindow] moves with the finger. */
+    private fun trackVelocity(event: MotionEvent) {
+        val screenEvent = MotionEvent.obtain(event)
+        screenEvent.setLocation(event.rawX, event.rawY)
+        velocityTracker?.addMovement(screenEvent)
+        screenEvent.recycle()
     }
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
@@ -613,12 +617,11 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                     it.springX.setAtRest()
                     it.springY.setAtRest()
                 }
-                motionTrackerUpdated = false
                 when (velocityTracker) {
                     null -> velocityTracker = VelocityTracker.obtain()
                     else -> velocityTracker?.clear()
                 }
-                velocityTracker?.addMovement(event)
+                trackVelocity(event)
             }
             MotionEvent.ACTION_UP -> {
                 if (moving) wasMoving = true
@@ -706,7 +709,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                     }
                     moving = true
                 }
-                velocityTracker?.addMovement(event)
+                trackVelocity(event)
                 if (moving) {
                     close.springX.endValue = (metrics.widthPixels / 2) + (((event.rawX + topChatHead!!.width / 2) / 7) - metrics.widthPixels / 2 / 7) - close.width.toDouble() / 2
                     close.springY.endValue = (metrics.heightPixels - CLOSE_SIZE) + max(((event.rawY + close.height / 2) / 10) - metrics.heightPixels / 10, -WindowManagerHelper.dpToPx(30f).toFloat()) - WindowManagerHelper.dpToPx(60f).toDouble()

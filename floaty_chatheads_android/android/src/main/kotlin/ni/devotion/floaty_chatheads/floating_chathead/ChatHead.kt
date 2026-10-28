@@ -20,7 +20,7 @@ import kotlin.math.pow
  * Touch handling for the overlay is **split deliberately** between two
  * classes; they are complementary, not duplicates:
  *
- * - [ChatHeads.onTouch] is wired through the `motionTracker` proxy and
+ * - [ChatHeads.onTouch] is wired through the [BubbleWindow] and
  *   handles the **collapsed** state: dragging the single bubble around
  *   the screen, velocity throwing, drag-to-close capture, and
  *   snap-to-edge resolution.
@@ -32,8 +32,22 @@ import kotlin.math.pow
  * The two paths cannot fire simultaneously because the underlying
  * `WindowManager` window flags toggle `FLAG_NOT_TOUCHABLE` on the
  * inactive one when expand/collapse transitions occur.
+ *
+ * While collapsed this view stays laid out for its springs and
+ * accessibility but draws nothing: [BubbleWindow] draws it at full opacity.
  */
 class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBitmap: android.graphics.Bitmap? = null): View(chatHeads.context), View.OnTouchListener, SpringListener {
+    companion object {
+        /** Width of a bubble view in px, including its shadow. */
+        val WIDTH: Int = ChatHeads.CHAT_HEAD_SIZE + 15
+
+        /** Height of a bubble view in px, including its shadow and badge. */
+        val HEIGHT: Int = ChatHeads.CHAT_HEAD_SIZE + 30
+    }
+
+    /** False until construction finishes, so early View callbacks are ignored. */
+    private var ready = false
+
     var isTop: Boolean = false
     var isActive: Boolean = false
 
@@ -99,8 +113,8 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
         params.gravity = Gravity.TOP or Gravity.START
         params.x = 0
         params.y = 0
-        params.width = ChatHeads.CHAT_HEAD_SIZE + 15
-        params.height = ChatHeads.CHAT_HEAD_SIZE + 30
+        params.width = WIDTH
+        params.height = HEIGHT
         springX.addListener(object : SimpleSpringListener() {
             override fun onSpringUpdate(spring: Spring) {
                 x = spring.currentValue.toFloat()
@@ -138,6 +152,41 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
                 )
             }
         })
+        ready = true
+    }
+
+    override fun setTranslationX(translationX: Float) {
+        super.setTranslationX(translationX)
+        notifyChanged()
+    }
+
+    override fun setTranslationY(translationY: Float) {
+        super.setTranslationY(translationY)
+        notifyChanged()
+    }
+
+    override fun setScaleX(scaleX: Float) {
+        super.setScaleX(scaleX)
+        notifyChanged()
+    }
+
+    override fun setScaleY(scaleY: Float) {
+        super.setScaleY(scaleY)
+        notifyChanged()
+    }
+
+    override fun setAlpha(alpha: Float) {
+        super.setAlpha(alpha)
+        notifyChanged()
+    }
+
+    override fun invalidate() {
+        super.invalidate()
+        notifyChanged()
+    }
+
+    private fun notifyChanged() {
+        if (ready) chatHeads.onBubbleChanged()
     }
 
     private fun updateAccessibilityDescription() {
@@ -182,6 +231,11 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
     }
 
     override fun onDraw(canvas: Canvas) {
+        if (chatHeads.toggled) drawBubble(canvas)
+    }
+
+    /** Draws the icon, border and badge with the bubble's top left at the origin. */
+    fun drawBubble(canvas: Canvas) {
         val processed = getProcessedIcon()
         canvas.drawBitmap(processed, 0f, 0f, paint)
 
@@ -202,7 +256,7 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
 
             val badgeRadius = WindowManagerHelper.dpToPx(9f).toFloat()
             val badgeText = if (badgeCount > 99) "99+" else badgeCount.toString()
-            val cx = width - badgeRadius - WindowManagerHelper.dpToPx(4f)
+            val cx = WIDTH - badgeRadius - WindowManagerHelper.dpToPx(4f)
             val cy = badgeRadius + WindowManagerHelper.dpToPx(2f)
             val textWidth = badgeTextPaint.measureText(badgeText)
             val pillHalfWidth = (textWidth / 2 + WindowManagerHelper.dpToPx(4f)).coerceAtLeast(badgeRadius)

@@ -63,6 +63,12 @@
 
 ### Native fixes
 
+- Android 12+: the collapsed bubble now draws at full opacity. Android
+  caps an untouchable overlay window at 80 percent opacity, which let the
+  app or wallpaper show through the bubble. The collapsed bubble stack now
+  lives in its own small touchable window that follows it.
+- Android 10+: dragging a bubble that sits on a screen edge no longer
+  triggers the system Back gesture.
 - Android 13+: `POST_NOTIFICATIONS` is declared and requested, so the
   foreground-service notification actually appears.
 - Android: `NotificationConfig.visibility` is honored; the notification
