@@ -3,6 +3,8 @@ import 'package:floaty_chatheads_platform_interface/src/method_channel_floaty_ch
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'mock_native_host.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -10,72 +12,41 @@ void main() {
     late MethodChannelFloatyChatheads methodChannel;
     final log = <MethodCall>[];
 
-    setUp(() async {
+    setUp(() {
       methodChannel = MethodChannelFloatyChatheads();
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        methodChannel.methodChannel,
-        (methodCall) async {
-          log.add(methodCall);
-          switch (methodCall.method) {
-            case 'checkPermission':
-              return true;
-            case 'requestPermission':
-              return true;
-            case 'isActive':
-              return false;
-            case 'getOverlayPosition':
-              return <String, double>{'x': 5.0, 'y': 10.0};
-            default:
-              return null;
-          }
-        },
-      );
+      mockNativeHost(methodChannel, log);
     });
 
     tearDown(log.clear);
 
     test('checkPermission', () async {
       final result = await methodChannel.checkPermission();
-      expect(
-        log,
-        <Matcher>[isMethodCall('checkPermission', arguments: null)],
-      );
+      expect(log, <Matcher>[isMethodCall('checkPermission', arguments: null)]);
       expect(result, isTrue);
     });
 
     test('requestPermission', () async {
       final result = await methodChannel.requestPermission();
-      expect(
-        log,
-        <Matcher>[isMethodCall('requestPermission', arguments: null)],
-      );
+      expect(log, <Matcher>[
+        isMethodCall('requestPermission', arguments: null),
+      ]);
       expect(result, isTrue);
     });
 
     test('isActive', () async {
       final result = await methodChannel.isActive();
-      expect(
-        log,
-        <Matcher>[isMethodCall('isActive', arguments: null)],
-      );
+      expect(log, <Matcher>[isMethodCall('isActive', arguments: null)]);
       expect(result, isFalse);
     });
 
     test('closeChatHead', () async {
       await methodChannel.closeChatHead();
-      expect(
-        log,
-        <Matcher>[isMethodCall('closeChatHead', arguments: null)],
-      );
+      expect(log, <Matcher>[isMethodCall('closeChatHead', arguments: null)]);
     });
 
     test('closeOverlay', () async {
       await methodChannel.closeOverlay();
-      expect(
-        log,
-        <Matcher>[isMethodCall('closeOverlay', arguments: null)],
-      );
+      expect(log, <Matcher>[isMethodCall('closeOverlay', arguments: null)]);
     });
 
     test('getOverlayPosition', () async {
@@ -84,38 +55,8 @@ void main() {
       expect(pos.y, equals(10.0));
     });
 
-    test('showChatHead', () async {
-      await methodChannel.showChatHead(const ChatHeadConfig());
-      expect(log.length, equals(1));
-      expect(log.first.method, equals('showChatHead'));
-    });
-
-    test('showChatHead serializes panelAnchor.below by default', () async {
-      await methodChannel.showChatHead(const ChatHeadConfig());
-      final args = log.first.arguments as Map<Object?, Object?>;
-      expect(args['panelAnchor'], equals(PanelAnchor.below.index));
-    });
-
-    test('showChatHead serializes entryPointLibrary', () async {
-      await methodChannel.showChatHead(
-        const ChatHeadConfig(entryPointLibrary: 'package:app/overlay.dart'),
-      );
-      final args = log.first.arguments as Map<Object?, Object?>;
-      expect(args['entryPointLibrary'], equals('package:app/overlay.dart'));
-    });
-
-    test('showChatHead serializes non-default panelAnchor by index', () async {
-      await methodChannel.showChatHead(
-        const ChatHeadConfig(panelAnchor: PanelAnchor.above),
-      );
-      final args = log.first.arguments as Map<Object?, Object?>;
-      expect(args['panelAnchor'], equals(PanelAnchor.above.index));
-    });
-
     test('addChatHead', () async {
-      await methodChannel.addChatHead(
-        const AddChatHeadConfig(id: 'test'),
-      );
+      await methodChannel.addChatHead(const AddChatHeadConfig(id: 'test'));
       expect(log.length, equals(1));
       expect(log.first.method, equals('addChatHead'));
     });

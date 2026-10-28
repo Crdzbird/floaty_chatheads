@@ -39,23 +39,31 @@ import 'package:flutter/foundation.dart' show immutable;
 /// Use [ChatHeadAssets.defaults] for the conventional asset names.
 /// {@endtemplate}
 @immutable
-class ChatHeadAssets {
+final class ChatHeadAssets {
   /// {@macro chat_head_assets}
-  const ChatHeadAssets({
-    required this.icon,
-    required this.closeIcon,
-    required this.closeBackground,
-  });
+  const factory ChatHeadAssets({
+    required IconSource icon,
+    required IconSource closeIcon,
+    required IconSource closeBackground,
+  }) = ChatHeadAssets._;
 
   /// Convention-based defaults that match the example project layout:
   ///
   /// - `assets/chatheadIcon.png`
   /// - `assets/close.png`
   /// - `assets/closeBg.png`
-  const ChatHeadAssets.defaults()
-      : icon = const IconSource.asset('assets/chatheadIcon.png'),
-        closeIcon = const IconSource.asset('assets/close.png'),
-        closeBackground = const IconSource.asset('assets/closeBg.png');
+  const factory ChatHeadAssets.defaults() = ChatHeadAssets._defaults;
+
+  const ChatHeadAssets._({
+    required this.icon,
+    required this.closeIcon,
+    required this.closeBackground,
+  });
+
+  const ChatHeadAssets._defaults()
+    : icon = const IconSource.asset('assets/chatheadIcon.png'),
+      closeIcon = const IconSource.asset('assets/close.png'),
+      closeBackground = const IconSource.asset('assets/closeBg.png');
 
   /// Icon source for the chathead bubble.
   final IconSource icon;

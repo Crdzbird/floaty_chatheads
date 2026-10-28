@@ -3,7 +3,7 @@
 /// {@endtemplate}
 enum OverlayFlag {
   /// {@template overlay_flag.default_flag}
-  /// Default behavior -- the overlay is interactive and visible.
+  /// Default behavior. The overlay is interactive and visible.
   /// {@endtemplate}
   defaultFlag,
 

@@ -18,7 +18,7 @@ enum SnapEdge {
   right,
 
   /// {@template snap_edge.none}
-  /// No snapping -- the bubble stays where the user releases it.
+  /// No snapping. The bubble stays where the user releases it.
   /// {@endtemplate}
   none,
 }

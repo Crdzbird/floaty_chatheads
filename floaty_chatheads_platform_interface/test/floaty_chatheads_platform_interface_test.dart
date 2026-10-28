@@ -1,41 +1,8 @@
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class FloatyChatheadsMock extends FloatyChatheadsPlatform {
-  @override
-  Future<bool> checkPermission() async => true;
-
-  @override
-  Future<bool> requestPermission() async => true;
-
-  @override
-  Future<void> showChatHead(ChatHeadConfig config) async {}
-
-  @override
-  Future<void> closeChatHead() async {}
-
-  @override
-  Future<bool> isActive() async => false;
-
-  @override
-  Future<void> addChatHead(AddChatHeadConfig config) async {}
-
-  @override
-  Future<void> removeChatHead(String id) async {}
-
-  @override
-  Future<void> resizeContent(int width, int height) async {}
-
-  @override
-  Future<void> updateFlag(OverlayFlag flag) async {}
-
-  @override
-  Future<void> closeOverlay() async {}
-
-  @override
-  Future<OverlayPosition> getOverlayPosition() async =>
-      const OverlayPosition(x: 10, y: 20);
-}
+import 'helpers/default_platform.dart';
+import 'helpers/floaty_chatheads_mock.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -67,7 +34,7 @@ void main() {
     });
 
     test('default implementation throws UnimplementedError', () {
-      final defaultPlatform = _DefaultPlatform();
+      final defaultPlatform = DefaultPlatform();
       expect(defaultPlatform.checkPermission, throwsUnimplementedError);
       expect(defaultPlatform.requestPermission, throwsUnimplementedError);
       expect(
@@ -77,9 +44,7 @@ void main() {
       expect(defaultPlatform.closeChatHead, throwsUnimplementedError);
       expect(defaultPlatform.isActive, throwsUnimplementedError);
       expect(
-        () => defaultPlatform.addChatHead(
-          const AddChatHeadConfig(id: 'test'),
-        ),
+        () => defaultPlatform.addChatHead(const AddChatHeadConfig(id: 'test')),
         throwsUnimplementedError,
       );
       expect(
@@ -99,5 +64,3 @@ void main() {
     });
   });
 }
-
-class _DefaultPlatform extends FloatyChatheadsPlatform {}

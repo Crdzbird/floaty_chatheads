@@ -13,9 +13,9 @@ final class OverlayReadiness {
 
   static const BasicMessageChannel<Object?> _channel =
       BasicMessageChannel<Object?>(
-    FloatyChannels.messenger,
-    JSONMessageCodec(),
-  );
+        FloatyChannels.messenger,
+        JSONMessageCodec(),
+      );
 
   static const Map<String, Object?> _ping = <String, Object?>{
     FloatyChannels.envelope: FloatyChannels.ping,

@@ -4,9 +4,12 @@ import 'package:flutter/foundation.dart' show immutable;
 /// The on-screen position of the overlay window.
 /// {@endtemplate}
 @immutable
-class OverlayPosition {
+final class OverlayPosition {
   /// {@macro overlay_position}
-  const OverlayPosition({required this.x, required this.y});
+  const factory OverlayPosition({required double x, required double y}) =
+      OverlayPosition._;
+
+  const OverlayPosition._({required this.x, required this.y});
 
   /// {@template overlay_position.x}
   /// Horizontal position in device-independent pixels.

@@ -42,8 +42,11 @@ void main() {
         closeOverlay: () async => closed = true,
       ),
       throwsA(
-        isA<FloatyOverlayNotReadyException>()
-            .having((e) => e.entryPoint, 'entryPoint', 'missing'),
+        isA<FloatyOverlayNotReadyException>().having(
+          (e) => e.entryPoint,
+          'entryPoint',
+          'missing',
+        ),
       ),
     );
     expect(closed, isTrue);

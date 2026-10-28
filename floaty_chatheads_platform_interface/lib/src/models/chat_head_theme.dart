@@ -7,9 +7,19 @@ import 'package:flutter/foundation.dart' show immutable, mapEquals;
 /// Pass `null` to keep the platform default.
 /// {@endtemplate}
 @immutable
-class ChatHeadTheme {
+final class ChatHeadTheme {
   /// {@macro chat_head_theme}
-  const ChatHeadTheme({
+  const factory ChatHeadTheme({
+    int? badgeColor,
+    int? badgeTextColor,
+    int? bubbleBorderColor,
+    double? bubbleBorderWidth,
+    int? bubbleShadowColor,
+    int? closeTintColor,
+    Map<String, int>? overlayPalette,
+  }) = ChatHeadTheme._;
+
+  const ChatHeadTheme._({
     this.badgeColor,
     this.badgeTextColor,
     this.bubbleBorderColor,
@@ -75,16 +85,16 @@ class ChatHeadTheme {
 
   @override
   int get hashCode => Object.hash(
-        badgeColor,
-        badgeTextColor,
-        bubbleBorderColor,
-        bubbleBorderWidth,
-        bubbleShadowColor,
-        closeTintColor,
-        overlayPalette == null
-            ? null
-            : Object.hashAllUnordered(
-                overlayPalette!.entries.map((e) => Object.hash(e.key, e.value)),
-              ),
-      );
+    badgeColor,
+    badgeTextColor,
+    bubbleBorderColor,
+    bubbleBorderWidth,
+    bubbleShadowColor,
+    closeTintColor,
+    overlayPalette == null
+        ? null
+        : Object.hashAllUnordered(
+            overlayPalette!.entries.map((e) => Object.hash(e.key, e.value)),
+          ),
+  );
 }

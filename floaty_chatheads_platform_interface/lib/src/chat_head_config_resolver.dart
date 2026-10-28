@@ -24,9 +24,9 @@ abstract final class ChatHeadConfigResolver {
   /// [ChatHeadConfig.sizePreset]. Falls back to the raw
   /// `contentWidth`/`contentHeight` when no preset is provided.
   static ({int? width, int? height}) contentSize(ChatHeadConfig config) => (
-        width: config.sizePreset?.width ?? config.contentWidth,
-        height: config.sizePreset?.height ?? config.contentHeight,
-      );
+    width: config.sizePreset?.width ?? config.contentWidth,
+    height: config.sizePreset?.height ?? config.contentHeight,
+  );
 
   /// Effective snap edge, defaulting to [SnapEdge.both].
   static SnapEdge snapEdge(SnapConfig? snap) => snap?.edge ?? SnapEdge.both;
@@ -41,8 +41,6 @@ abstract final class ChatHeadConfigResolver {
 
   /// Effective notification visibility, defaulting to
   /// [NotificationVisibility.visibilityPublic].
-  static NotificationVisibility notificationVisibility(
-    NotificationConfig? n,
-  ) =>
+  static NotificationVisibility notificationVisibility(NotificationConfig? n) =>
       n?.visibility ?? NotificationVisibility.visibilityPublic;
 }

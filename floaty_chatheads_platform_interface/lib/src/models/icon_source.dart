@@ -2,6 +2,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show immutable, listEquals;
 
+part 'asset_icon_source.dart';
+part 'bytes_icon_source.dart';
+part 'network_icon_source.dart';
+
 /// {@template icon_source}
 /// Describes where to load an icon image from.
 ///
@@ -44,62 +48,5 @@ sealed class IconSource {
   ///
   /// Useful when the image is already decoded in Dart (e.g. generated
   /// programmatically or fetched via an HTTP client on the Dart side).
-  factory IconSource.bytes(Uint8List data) = BytesIconSource;
-}
-
-/// {@template asset_icon_source}
-/// An [IconSource] that loads from a Flutter asset path.
-/// {@endtemplate}
-final class AssetIconSource extends IconSource {
-  /// {@macro asset_icon_source}
-  const AssetIconSource(this.path) : super._();
-
-  /// Flutter asset path (e.g. `'assets/chatheadIcon.png'`).
-  final String path;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) || other is AssetIconSource && other.path == path;
-
-  @override
-  int get hashCode => path.hashCode;
-}
-
-/// {@template network_icon_source}
-/// An [IconSource] that loads from a network URL.
-/// {@endtemplate}
-final class NetworkIconSource extends IconSource {
-  /// {@macro network_icon_source}
-  const NetworkIconSource(this.url) : super._();
-
-  /// Fully-qualified URL of the image to download.
-  final String url;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) || other is NetworkIconSource && other.url == url;
-
-  @override
-  int get hashCode => url.hashCode;
-}
-
-/// {@template bytes_icon_source}
-/// An [IconSource] that loads from raw image bytes.
-/// {@endtemplate}
-final class BytesIconSource extends IconSource {
-  /// {@macro bytes_icon_source}
-  // Uint8List is not const-constructible.
-  // ignore: prefer_const_constructors_in_immutables
-  BytesIconSource(this.data) : super._();
-
-  /// Raw image bytes (PNG, JPEG, WebP, etc.).
-  final Uint8List data;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is BytesIconSource && listEquals(other.data, data);
-
-  @override
-  int get hashCode => Object.hashAll(data);
+  const factory IconSource.bytes(Uint8List data) = BytesIconSource;
 }

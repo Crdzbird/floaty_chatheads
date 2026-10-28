@@ -3,7 +3,7 @@
 /// {@endtemplate}
 enum EntranceAnimation {
   /// {@template entrance_animation.none}
-  /// No entrance animation -- bubble appears at its initial position.
+  /// No entrance animation. The bubble appears at its initial position.
   /// {@endtemplate}
   none,
 

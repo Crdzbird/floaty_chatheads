@@ -3,9 +3,9 @@
 /// These names form the contract between the Dart side, the Android Kotlin
 /// service (`utils/Constants.kt`), and the iOS Swift plugin
 /// (`FloatyChatheadsPlugin.swift`). Any change here must be mirrored in both
-/// native files or main ↔ overlay communication will silently break.
+/// native files or main app and overlay communication will silently break.
 abstract final class FloatyChannels {
-  /// Shared `BasicMessageChannel` used for main app ↔ overlay messaging.
+  /// Shared `BasicMessageChannel` used for main app and overlay messaging.
   ///
   /// Carries raw user payloads as well as system-routed messages for
   /// state sync, action routing, and proxy invocations.

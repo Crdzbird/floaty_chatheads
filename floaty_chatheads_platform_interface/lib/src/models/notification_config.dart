@@ -14,9 +14,16 @@ import 'package:flutter/foundation.dart' show immutable;
 /// ```
 /// {@endtemplate}
 @immutable
-class NotificationConfig {
+final class NotificationConfig {
   /// {@macro notification_config}
-  const NotificationConfig({
+  const factory NotificationConfig({
+    String? title,
+    String? description,
+    String? iconAsset,
+    NotificationVisibility visibility,
+  }) = NotificationConfig._;
+
+  const NotificationConfig._({
     this.title,
     this.description,
     this.iconAsset,

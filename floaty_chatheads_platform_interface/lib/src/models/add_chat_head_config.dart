@@ -5,9 +5,15 @@ import 'package:flutter/foundation.dart' show immutable;
 /// Configuration for adding a chathead bubble to an existing group.
 /// {@endtemplate}
 @immutable
-class AddChatHeadConfig {
+final class AddChatHeadConfig {
   /// {@macro add_chat_head_config}
-  const AddChatHeadConfig({
+  const factory AddChatHeadConfig({
+    required String id,
+    String? iconAsset,
+    IconSource? iconSource,
+  }) = AddChatHeadConfig._;
+
+  const AddChatHeadConfig._({
     required this.id,
     this.iconAsset,
     this.iconSource,

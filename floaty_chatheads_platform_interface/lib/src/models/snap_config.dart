@@ -13,9 +13,15 @@ import 'package:flutter/foundation.dart' show immutable;
 /// ```
 /// {@endtemplate}
 @immutable
-class SnapConfig {
+final class SnapConfig {
   /// {@macro snap_config}
-  const SnapConfig({
+  const factory SnapConfig({
+    SnapEdge edge,
+    double margin,
+    bool persistPosition,
+  }) = SnapConfig._;
+
+  const SnapConfig._({
     this.edge = SnapEdge.both,
     this.margin = -10,
     this.persistPosition = false,
