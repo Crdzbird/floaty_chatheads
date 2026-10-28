@@ -2,7 +2,7 @@
 
 This package is the Android implementation of
 [floaty_chatheads](https://pub.dev/packages/floaty_chatheads).
-It is not intended for direct use — add `floaty_chatheads` to your
+It is not intended for direct use. Add `floaty_chatheads` to your
 `pubspec.yaml` instead.
 
 ```dart

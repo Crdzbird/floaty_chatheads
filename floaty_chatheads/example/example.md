@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(const MaterialApp(home: BasicExample()));
 
-/// Overlay entry point — must be top-level for AOT discoverability.
+/// Overlay entry point. It must be top-level for AOT discoverability.
 @pragma('vm:entry-point')
 void overlayMain() => FloatyOverlayApp.run(const OverlayContent());
 

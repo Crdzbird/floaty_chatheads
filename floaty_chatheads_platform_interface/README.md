@@ -3,7 +3,7 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
 
-The platform interface for [`floaty_chatheads`][main_link] -- the successor to
+The platform interface for [`floaty_chatheads`][main_link], the successor to
 [`floaty_chathead`](https://pub.dev/packages/floaty_chathead).
 
 This package defines the abstract contract (`FloatyChatheadsPlatform`),

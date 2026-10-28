@@ -5,11 +5,11 @@
 [![coverage: 100%][coverage_badge]][coverage_link]
 [![tests: 267 passed][tests_badge]][tests_link]
 
-**Floating bubble overlays for Flutter -- like Facebook Messenger chatheads, but for any widget.**
+**Floating bubble overlays for Flutter, like Facebook Messenger chatheads, but for any widget.**
 
 Ever used Facebook Messenger on Android and seen that little circular bubble
 floating on top of everything? That is a "chathead." This plugin lets you build
-the same thing in Flutter -- a draggable bubble that floats above your app (or
+the same thing in Flutter: a draggable bubble that floats above your app (or
 even above *other* apps on Android) and expands into any Flutter widget you want:
 a mini player, a chat window, quick-action buttons, a dashboard, or anything
 else you can dream up.
@@ -39,7 +39,7 @@ else you can dream up.
 
 | What you get | Why it matters |
 |---|---|
-| **One API, two platforms** | Write your overlay once -- it works on Android *and* iOS with the same Dart code |
+| **One API, two platforms** | Write your overlay once and it works on Android *and* iOS with the same Dart code |
 | **Any Flutter widget** | The expanded panel is a full Flutter engine, so you can use any widget, package, or animation |
 | **Spring-physics drag** | The bubble snaps to screen edges with smooth, natural-feeling spring animations |
 | **Survives app death (Android)** | Your overlay stays alive even if the user kills the main app |
@@ -54,24 +54,25 @@ else you can dream up.
 
 ```
  Your Main App                              Floating Overlay
- ─────────────                              ────────────────
- ┌──────────────────┐                       ┌──────────┐
- │                  │   showChatHead()       │  Bubble  │ ← draggable, snaps
- │  FloatyChatheads ├──────────────────────► │  (icon)  │   to screen edges
- │                  │                        └────┬─────┘
- │  shareData({})  ◄──── bidirectional ────►      │ tap
- │  onData.listen() │    messaging                ▼
- │                  │                        ┌──────────┐
- └──────────────────┘                       │  Content  │ ← any Flutter widget
-                                            │  Panel    │   you define
-                                            └──────────┘
+ -------------                              ----------------
+ +------------------+                       +------------+
+ |                  |   showChatHead()      |   Bubble   |  draggable, snaps
+ |  FloatyChatheads +---------------------->|   (icon)   |  to screen edges
+ |                  |                       +-----+------+
+ |  shareData({})   |<--- bidirectional --->      |
+ |  onData.listen() |     messaging               | tap
+ |                  |                             v
+ |                  |                       +------------+
+ +------------------+                       |  Content   |  any Flutter widget
+                                            |  Panel     |  you define
+                                            +------------+
 ```
 
 1. **You call `showChatHead()`** from your main app. This launches a floating
    bubble on the screen.
 2. **The bubble is draggable.** Users can drag it around; it snaps to screen
    edges with spring physics.
-3. **Tapping the bubble expands a content panel** -- this is a completely
+3. **Tapping the bubble expands a content panel.** This is a completely
    separate Flutter widget running in its own engine (think of it as a
    mini-app inside the overlay).
 4. **Your main app and the overlay can talk to each other** using
@@ -80,7 +81,7 @@ else you can dream up.
 5. **Dragging the bubble to the close target** (bottom of the screen) dismisses
    the overlay.
 
-> **Key concept -- separate engine:** The overlay runs in its own Flutter
+> **Key concept, separate engine:** The overlay runs in its own Flutter
 > engine, not inside your app's widget tree. This means it has its own
 > `main()` function (called an "entry point") and its own state. The plugin
 > handles all the wiring between the two engines for you.
@@ -102,9 +103,9 @@ flutter pub get
 
 **Requirements:** Flutter `>=3.44.0` / Dart `^3.12.0`, Android 7.0+ (API 24), iOS 15.0+
 
-### 2. Platform setup — nothing to add
+### 2. Platform setup
 
-The plugin's own manifest declares every Android permission and the
+Nothing to add. The plugin's own manifest declares every Android permission and the
 foreground service it needs (`SYSTEM_ALERT_WINDOW`, `FOREGROUND_SERVICE`,
 `FOREGROUND_SERVICE_SPECIAL_USE`, `POST_NOTIFICATIONS`) and ships a default
 bubble icon; iOS needs no permissions or `Info.plist` keys. The only step
@@ -176,7 +177,7 @@ Future<void> launchChatHead() async {
       closeBackground: IconSource.asset('assets/closeBg.png'),
     ),
     notification: const NotificationConfig(title: 'My Chathead'),
-    sizePreset: ContentSizePreset.card,  // 300×400 dp content panel
+    sizePreset: ContentSizePreset.card,  // 300x400 dp content panel
   );
 }
 ```
@@ -187,20 +188,20 @@ floating bubble on the screen.
 ### 6. Send data between app and overlay
 
 ```dart
-// In your main app -- send data to the overlay:
+// In your main app, send data to the overlay:
 FloatyChatheads.shareData({'message': 'Hello overlay!'});
 
-// In your main app -- listen for data from the overlay:
+// In your main app, listen for data from the overlay:
 FloatyChatheads.onData.listen((data) {
   print('Overlay said: $data');
 });
 ```
 
 ```dart
-// In the overlay widget -- send data to the main app:
+// In the overlay widget, send data to the main app:
 FloatyOverlay.shareData({'action': 'button_pressed'});
 
-// In the overlay widget -- listen for data from the main app:
+// In the overlay widget, listen for data from the main app:
 FloatyOverlay.onData.listen((data) {
   print('Main app said: $data');
 });
@@ -219,7 +220,7 @@ when you need it. Here is a roadmap:
 | **Intermediate** | `FloatyOverlayApp.run()`, `FloatyScope`, `FloatyController` | Less boilerplate, lifecycle management |
 | **Advanced** | `FloatyStateChannel`, `FloatyActionRouter`, `FloatyProxyHost/Client`, `FloatyHostKit` | Complex state sync, RPC, offline queueing |
 
-All levels use the same underlying plugin -- the helpers just reduce boilerplate.
+All levels use the same underlying plugin; the helpers just reduce boilerplate.
 
 ---
 
@@ -258,7 +259,7 @@ implementations differ due to OS-level constraints:
 | Category | What it does |
 |---|---|
 | **Chathead Bubbles** | Draggable bubble with spring-based edge snapping, entrance animations (pop, slide, fade), and multi-bubble support (Messenger-style row) |
-| **Content Panel** | Any Flutter widget rendered in a separate engine -- like a mini-app inside the overlay |
+| **Content Panel** | Any Flutter widget rendered in a separate engine, like a mini-app inside the overlay |
 | **Bidirectional Messaging** | `shareData` / `onData` streams for real-time two-way communication |
 | **Badge Counter** | Numeric badge on the bubble, updatable from either side |
 | **Theming** | Badge colors, bubble border, shadow, close-target tint, and a full color palette forwarded to the overlay |
@@ -270,7 +271,7 @@ implementations differ due to OS-level constraints:
 | **Permission Gate** | `FloatyPermissionGate` widget that shows a fallback until overlay permission is granted |
 | **Programmatic Control** | `expandChatHead()`, `collapseChatHead()`, `addChatHead()`, `removeChatHead()`, `resizeContent()` |
 | **Foreground Service** | Overlay persists across app switches (Android) |
-| **Overlay Survival** | Overlay survives app death -- service-owned engine, connection detection, action queueing, proxy RPC, and automatic reconnection (Android) |
+| **Overlay Survival** | Overlay survives app death: service-owned engine, connection detection, action queueing, proxy RPC, and automatic reconnection (Android) |
 | **State Channel** | `FloatyStateChannel<T>` for type-safe bidirectional state sync with JSON serialization |
 | **Action Routing** | `FloatyActionRouter` for typed action dispatch with handler registration and offline queueing |
 | **Proxy Services** | `FloatyProxyHost` + `FloatyProxyClient` for request/response RPC between main app and overlay |
@@ -280,7 +281,7 @@ implementations differ due to OS-level constraints:
 ## Convenience Helpers
 
 The plugin ships helpers at different levels of abstraction. Pick the one that
-fits your use case -- you can always switch later.
+fits your use case. You can always switch later.
 
 | Need | Use | Complexity |
 |---|---|---|
@@ -296,7 +297,7 @@ fits your use case -- you can always switch later.
 | Overlay-to-app request/response RPC | `FloatyProxyHost` / `FloatyProxyClient` | Advanced |
 | All-in-one communication bundle | `FloatyHostKit` / `FloatyOverlayKit` | Advanced |
 
-### `FloatyOverlayApp` -- one-liner overlay bootstrap
+### `FloatyOverlayApp`: one-liner overlay bootstrap
 
 Replaces 5 lines of entry-point boilerplate with one call:
 
@@ -316,7 +317,7 @@ Use `runScoped()` to additionally wrap the child in a `FloatyScope`, so
 void overlayMain() => FloatyOverlayApp.runScoped(const MyOverlayWidget());
 ```
 
-### `Floaty` -- one-call launch with every option
+### `Floaty`: one-call launch with every option
 
 Combines permission check + request + show into a single `Future<bool>`:
 
@@ -332,7 +333,7 @@ final shown = await Floaty.show(
 
 Also provides `Floaty.toggle()` to show/close with one call.
 
-### `FloatyController` -- lifecycle-aware declarative control
+### `FloatyController`: lifecycle-aware declarative control
 
 A `ChangeNotifier`-based controller that manages the chathead lifecycle.
 Automatically handles show/close tied to widget lifecycle:
@@ -379,7 +380,7 @@ await controller.toggle();
 await controller.sendData({'action': 'refresh'});
 ```
 
-### `FloatyScope` -- auto-wired overlay context
+### `FloatyScope`: auto-wired overlay context
 
 An `InheritedWidget` that subscribes to **all** overlay streams and rebuilds
 when any event fires. No manual stream wiring needed:
@@ -398,7 +399,7 @@ Exposes: `lastMessage`, `messages`, `lastTappedId`, `lastClosedId`,
 `lastExpandedId`, `lastCollapsedId`, `lastDragStart`, `lastDragEnd`,
 and `palette`.
 
-### `FloatyDataBuilder<T>` -- main-app reactive builder
+### `FloatyDataBuilder<T>`: main-app reactive builder
 
 Subscribes to `FloatyChatheads.onData` and reduces incoming messages into
 typed state. No manual `StreamSubscription`, `setState`, or `dispose`:
@@ -411,7 +412,7 @@ FloatyDataBuilder<int>(
 )
 ```
 
-### `FloatyOverlayBuilder<T>` -- overlay-side zero-boilerplate builder
+### `FloatyOverlayBuilder<T>`: overlay-side zero-boilerplate builder
 
 Handles `setUp()`, stream subscriptions, `mounted` guards, and `dispose()`
 automatically. Turns overlay widgets into stateless declarations:
@@ -431,7 +432,7 @@ class MyOverlay extends StatelessWidget {
 }
 ```
 
-### `FloatyMessenger<T>` -- type-safe messaging
+### `FloatyMessenger<T>`: type-safe messaging
 
 Eliminates raw `Object?` casting with a serializer/deserializer pair:
 
@@ -451,7 +452,7 @@ final messenger = FloatyMessenger<ChatMessage>.overlay(
 );
 ```
 
-### `FloatyStateChannel<T>` -- type-safe bidirectional state sync
+### `FloatyStateChannel<T>`: type-safe bidirectional state sync
 
 Synchronises a shared state object between the main app and overlay with
 automatic JSON serialization:
@@ -467,14 +468,14 @@ await channel.setState(MyState(counter: 42));
 channel.onStateChanged.listen((state) => print(state.counter));
 ```
 
-### `FloatyActionRouter` -- typed action dispatch with queueing
+### `FloatyActionRouter`: typed action dispatch with queueing
 
 Register named action handlers and dispatch typed `FloatyAction` objects.
 On the overlay side, actions are automatically queued when the main app is
 disconnected and flushed on reconnection:
 
 ```dart
-// Main app side -- register handlers:
+// Main app side, register handlers:
 final router = FloatyActionRouter();
 router.on<IncrementAction>(
   'increment',
@@ -482,23 +483,23 @@ router.on<IncrementAction>(
   handler: (action) => counter += action.amount,
 );
 
-// Overlay side -- dispatch (queues if disconnected):
+// Overlay side, dispatch (queues if disconnected):
 final router = FloatyActionRouter.overlay();
 router.dispatch(IncrementAction(amount: 5));
 ```
 
-### `FloatyProxyHost` / `FloatyProxyClient` -- overlay-to-app RPC
+### `FloatyProxyHost` / `FloatyProxyClient`: overlay-to-app RPC
 
 Expose named services from the main app that the overlay can call:
 
 ```dart
-// Main app side -- register a service:
+// Main app side, register a service:
 final host = FloatyProxyHost();
 host.register('time', (method, params) {
   return {'iso': DateTime.now().toIso8601String()};
 });
 
-// Overlay side -- call the service:
+// Overlay side, call the service:
 final client = FloatyProxyClient();
 final result = await client.call('time', 'now',
   fallback: () => {'iso': 'offline'},
@@ -629,9 +630,9 @@ await FloatyChatheads.showChatHead(
 The inspector renders directly on the Android `WindowManager` layer (does not
 intercept touches) and displays:
 
-- **FPS counter** -- frames per second measured via `Choreographer`
-- **Spring velocity HUD** -- current velocity of the bubble's spring animation
-- **State info** -- toggled, captured, head count
+- **FPS counter**: frames per second measured via `Choreographer`
+- **Spring velocity HUD**: current velocity of the bubble's spring animation
+- **State info**: toggled, captured, head count
 - **Green bounds rectangles** around each chathead bubble
 - **Blue bounds rectangle** around the content panel
 
@@ -643,7 +644,7 @@ final info = await FloatyOverlay.getDebugInfo();
 
 ### Optional native logs
 
-All native logcat output (tagged `FloatyDebug`) is **silent by default** -- your
+All native logcat output (tagged `FloatyDebug`) is **silent by default**, so your
 production builds will not have any log noise from the plugin. When you need to
 debug native behavior, set `debugMode: true` and the plugin will emit detailed
 logs covering engine lifecycle, service creation, content panel dimensions, and
@@ -664,7 +665,7 @@ All native views ship with built-in TalkBack (Android) and VoiceOver (iOS) suppo
 - **Motion tracker**: hidden from accessibility tree
 - **Debug overlay**: excluded from accessibility
 
-No extra Dart code is required -- accessibility is handled at the native layer.
+No extra Dart code is required; accessibility is handled at the native layer.
 For overlay-side semantics, use Flutter's standard `Semantics` widget (works on
 both platforms).
 
@@ -684,7 +685,7 @@ swipes away the main app, the overlay remains visible and functional:
 - `FloatyProxyClient` returns a **fallback value** (or throws
   `FloatyProxyDisconnectedException`) instead of timing out.
 - When the main app restarts, the plugin automatically reconnects to the
-  existing overlay -- queued actions flush, state re-syncs, and proxy calls
+  existing overlay: queued actions flush, state re-syncs, and proxy calls
   resume.
 
 > **iOS:** Overlay survival does not apply on iOS since the overlay uses an
@@ -737,7 +738,7 @@ The example app ships with **12 demo screens** accessible from a gallery page:
 
 | # | Example | What it demonstrates |
 |---|---|---|
-| 1 | Basic | Show / close / send data -- the simplest starting point |
+| 1 | Basic | Show / close / send data, the simplest starting point |
 | 2 | Messenger Chat | Two-way messaging between app and overlay |
 | 3 | Mini Player | Media controls with play/pause state sync |
 | 4 | Quick Actions | Click-through FAB overlay for quick shortcuts |
@@ -757,7 +758,7 @@ cd floaty_chatheads/example
 flutter run
 ```
 
-> **Tip for beginners:** Start with **Example 1 (Basic)** -- it is the simplest
+> **Tip for beginners:** Start with **Example 1 (Basic)**. It is the simplest
 > way to see how `showChatHead()` and `shareData()` work together.
 
 ---
@@ -861,9 +862,9 @@ for a complete, minimal integration using all the helpers (~120 lines total).
 | `isActive()` | Whether the overlay is currently visible | Yes | Yes |
 | `addChatHead({id, iconAsset})` | Adds another bubble to the group | Yes | Yes |
 | `removeChatHead(id)` | Removes a bubble by ID | Yes | Yes |
-| `updateBadge(count)` | Sets the badge number (0 hides it) | Yes | -- |
-| `expandChatHead()` | Programmatically expands the content panel | Yes | -- |
-| `collapseChatHead()` | Programmatically collapses the content panel | Yes | -- |
+| `updateBadge(count)` | Sets the badge number (0 hides it) | Yes | No |
+| `expandChatHead()` | Programmatically expands the content panel | Yes | No |
+| `collapseChatHead()` | Programmatically collapses the content panel | Yes | No |
 | `shareData(data)` | Sends data to the overlay | Yes | Yes |
 | `onData` | Stream of messages from the overlay | Yes | Yes |
 | `dispose()` | Tears down the message channel | Yes | Yes |
@@ -876,14 +877,14 @@ for a complete, minimal integration using all the helpers (~120 lines total).
 | `onData` | Stream of messages from the main app | Yes | Yes |
 | `onTapped` / `onClosed` / `onExpanded` / `onCollapsed` | Lifecycle event streams | Yes | Yes |
 | `onDragStart` / `onDragEnd` | Drag event streams with position info | Yes | Yes |
-| `onPaletteChanged` | Stream of palette updates from the host | Yes | -- |
-| `palette` | Current `OverlayColorPalette` (nullable) | Yes | -- |
+| `onPaletteChanged` | Stream of palette updates from the host | Yes | No |
+| `palette` | Current `OverlayColorPalette` (nullable) | Yes | No |
 | `resizeContent(w, h)` | Resizes the content panel from inside the overlay | Yes | Yes |
 | `updateFlag(flag)` | Changes the window flag (e.g. click-through) | Yes | Yes |
-| `updateBadge(count)` | Updates the badge from the overlay side | Yes | -- |
+| `updateBadge(count)` | Updates the badge from the overlay side | Yes | No |
 | `closeOverlay()` | Closes the overlay from inside | Yes | Yes |
 | `getOverlayPosition()` | Returns the current overlay position | Yes | Yes |
-| `getDebugInfo()` | Returns debug telemetry (debug mode only) | Yes | -- |
+| `getDebugInfo()` | Returns debug telemetry (debug mode only) | Yes | No |
 | `shareData(data)` | Sends data to the main app | Yes | Yes |
 | `dispose()` | Tears down handlers | Yes | Yes |
 
@@ -892,7 +893,7 @@ for a complete, minimal integration using all the helpers (~120 lines total).
 ## Packages
 
 This plugin follows the [federated plugin][federated_link] architecture.
-You only need to depend on the main package (`floaty_chatheads`) -- Flutter
+You only need to depend on the main package (`floaty_chatheads`); Flutter
 automatically pulls in the right platform package for each target:
 
 | Package | Description |
@@ -948,7 +949,7 @@ relay for data messages between the main app and overlay.
 
 This package (`floaty_chatheads`) is the successor to the original
 [`floaty_chathead`](https://pub.dev/packages/floaty_chathead) plugin.
-It is a **complete rewrite** -- not a drop-in upgrade.
+It is a **complete rewrite**, not a drop-in upgrade.
 
 ### What changed
 
@@ -980,14 +981,14 @@ It is a **complete rewrite** -- not a drop-in upgrade.
 
 ## Acknowledgements
 
-- **[flutter_overlay_window](https://pub.dev/packages/flutter_overlay_window)** by Saad Farhan
-  -- This project draws significant inspiration from `flutter_overlay_window` for the
+- **[flutter_overlay_window](https://pub.dev/packages/flutter_overlay_window)** by Saad Farhan.
+  This project draws significant inspiration from `flutter_overlay_window` for the
   approach to hosting Flutter widgets inside system overlay windows.
 
-- **[Facebook Rebound](https://github.com/facebookarchive/rebound)** -- Spring physics
+- **[Facebook Rebound](https://github.com/facebookarchive/rebound)**: spring physics
   library used for chathead snapping and drag animations on Android.
 
-- **[Very Good CLI](https://github.com/VeryGoodOpenSource/very_good_cli)** -- Project
+- **[Very Good CLI](https://github.com/VeryGoodOpenSource/very_good_cli)**: project
   scaffolding and federated plugin structure generated with Very Good CLI.
 
 ---

@@ -1,7 +1,7 @@
 # Floaty Chatheads Platform Interface Example
 
 This package defines the abstract contract for `floaty_chatheads`.
-It is not intended for direct use — add
+It is not intended for direct use. Add
 [floaty_chatheads](https://pub.dev/packages/floaty_chatheads) to your
 `pubspec.yaml` instead.
 

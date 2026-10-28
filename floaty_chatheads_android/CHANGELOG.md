@@ -57,22 +57,22 @@
   restarts.
 
 - **fix**: calling `FloatyOverlay.getOverlayPosition()` from the overlay
-  isolate crashed with a decode error — the overlay isolate's Pigeon codec
+  isolate crashed with a decode error because the overlay isolate's Pigeon codec
   assigns different type tags than the platform contract serving the same
   channels. Shared overlay channels now use only standard-codec payloads
   (`getOverlayPosition` returns a map, `updateFlag` takes the enum index).
 
 - **fix**: the expanded panel was hard-coded to x=0 (assumed a
-  full-width panel) — card-sized panels on wide/tablet screens rendered at
+  full-width panel), so card-sized panels on wide/tablet screens rendered at
   the left edge while the bubble sat on the right. The panel now follows
   the active bubble's edge and is clamped on-screen; the scale-animation
   pivot tracks the bubble.
 
 ### Chores
 
-- `compileSdk` 35 → 36; standalone build AGP 8.12 → 9.2. The
+- `compileSdk` 35 to 36; standalone build AGP 8.12 to 9.2. The
   dual-compat conditional KGP pattern is retained: it keeps Flutter
-  3.27–3.43 consumers building today and activates Built-in Kotlin
+  3.27 to 3.43 consumers building today and activates Built-in Kotlin
   automatically once Flutter's tooling stops applying KGP to plugins.
 - Pigeon regenerated with 26.3.x.
 - Internal cleanup: expand logic deduplicated (was copied in three
@@ -84,12 +84,12 @@
 > **Released as part of the floaty_chatheads 2.0 line.** See the main
 > package CHANGELOG for the full migration guide.
 
-### ⚙ Toolchain (BREAKING)
+### Toolchain (BREAKING)
 
 - Android `minSdk` raised to **24** (was 23).
 - `compileSdk` bumped to 35 (Android 15).
 - Plugin Java/Kotlin JVM target raised to 11 (was 1.8).
-- Dart SDK floor `^3.0.0`, Flutter floor `>=3.10.0` — the bare
+- Dart SDK floor `^3.0.0`, Flutter floor `>=3.10.0`, the bare
   minimum the Dart code requires (`final class`, `sealed class`,
   records, pattern matching). The Kotlin Gradle setup stays on the
   legacy `apply plugin: 'kotlin-android'` + `kotlinOptions { ... }`
@@ -97,7 +97,7 @@
 - Pigeon constraint normalized to `^26.3.3`.
 - Depends on `floaty_chatheads_platform_interface: ^2.0.0`.
 
-### ℹ Built-in Kotlin migration deferred
+### Built-in Kotlin migration deferred
 
 `android/build.gradle` keeps the legacy pattern:
 
@@ -116,24 +116,24 @@ android {
 ```
 
 Switching to Flutter's Built-in Kotlin pattern (top-level
-`kotlin { compilerOptions { … } }` and conditional KGP application)
+`kotlin { compilerOptions { ... } }` and conditional KGP application)
 would require Kotlin Gradle Plugin 2.0+, which Flutter only ships
 starting at 3.27. Adopting it would lock out every consumer on
-Flutter 3.10–3.26 just to silence one warning.
+Flutter 3.10 to 3.26 just to silence one warning.
 
 On Flutter 3.44+ you will see:
 
 > WARNING: Your app uses the following plugins that apply Kotlin
-> Gradle Plugin (KGP): floaty_chatheads_android, …
+> Gradle Plugin (KGP): floaty_chatheads_android, ...
 
 That's intentional. When Flutter promotes the warning to a hard
 error, this plugin will migrate to Built-in Kotlin in a major
-release; until then, compatibility with the 3.10–3.43 install base
+release; until then, compatibility with the 3.10 to 3.43 install base
 is the priority. See
 <https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors>
 for the migration path.
 
-### ♻ Internals
+### Internals
 
 - `showChatHead` now delegates default-value resolution to
   `ChatHeadConfigResolver` in `floaty_chatheads_platform_interface`,
@@ -142,7 +142,7 @@ for the migration path.
 
 ## 1.1.0
 
-### ✨ Enhancements
+### Enhancements
 
 - **Widget-based chathead icons.** The chathead bubble icon can now be
   any Flutter widget (rendered to an image via the Dart offscreen
@@ -157,13 +157,13 @@ for the migration path.
 - Added `closeIconIsWidget` / `closeBackgroundIsWidget` flags to
   `OverlayConfig` for size-aware scaling in `Close.kt`.
 
-### 📦 Dependencies
+### Dependencies
 
 - Bumped `floaty_chatheads_platform_interface` to `^1.0.5`.
 
 ## 1.0.7
 
-### ✨ Enhancements
+### Enhancements
 
 - **Added `autoLaunchOnBackground` support.** The plugin registers
   `Application.ActivityLifecycleCallbacks` to detect when all
@@ -177,20 +177,20 @@ for the migration path.
 - Both new flags are persisted to SharedPreferences for recovery
   after a `START_STICKY` restart.
 
-### ⚡ Performance
+### Performance
 
 - **Migrated from `ExecutorService` to Kotlin Coroutines.**
   All icon I/O (asset, network, byte-array decoding) now runs on
   `Dispatchers.IO` via structured `async`/`await`, replacing the
   previous `ExecutorService` + `Callable` approach. The main thread
-  is never blocked — each icon load has an individual
+  is never blocked: each icon load has an individual
   `withTimeoutOrNull` guard.
 - **Added `CoroutineScope` lifecycle management.** A `SupervisorJob`-backed
   scope (`pluginScope`) is created in `onAttachedToEngine` and cancelled
   in `onDetachedFromEngine`, ensuring all in-flight coroutines are
   cleaned up when the plugin is detached.
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Fixed chathead freeze caused by async race condition.**
   `showChatHead` and `addChatHead` are now `@async` Pigeon methods.
@@ -198,13 +198,13 @@ for the migration path.
   created, preventing the half-initialized state that caused the
   overlay to appear frozen.
 
-### 📦 Dependencies
+### Dependencies
 
 - Added `kotlinx-coroutines-android:1.7.3`.
 
 ## 1.0.6
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Fixed `CompletableFuture` crash on Android 6.0 (API 23).**
   `CompletableFuture.supplyAsync` requires API 24+, but the module's
@@ -216,13 +216,13 @@ for the migration path.
 
 ## 1.0.5
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Fixed chathead close crash when GPS streaming is active.** Removing
   the `FlutterView` from its parent during the drag-to-close gesture
   while the overlay engine was still processing GPS data caused a 300ms
   window of orphaned rendering. The redundant `content.removeAllViews()`
-  call was removed — `closeWindow(true)` already handles cleanup via
+  call was removed, since `closeWindow(true)` already handles cleanup via
   `detachEngine()`.
 - **Fixed foreground service not stopping after chathead close.** The
   `destroyEngine()` call threw an exception (self-destructing engine
@@ -234,13 +234,13 @@ for the migration path.
   `FloatyContentJobService.instance!!` force-unwrap with safe call `?.`
   to handle cases where the service is already destroyed.
 
-### ✨ Enhancements
+### Enhancements
 
 - **Deferred connection signal on app restart.** `onAttachedToEngine`
   no longer sends `connected:true` to the overlay immediately when an
   existing service is detected. Instead it sets up the message relay
   via `onMainAppRelay()` and defers the connection signal until
-  `isChatHeadActive()` is called from the Dart side — acting as an
+  `isChatHeadActive()` is called from the Dart side, which acts as an
   implicit "ready" signal that guarantees channel handlers are
   registered before the overlay flushes its action queue.
 - **Native close notification to main app.** When the chathead is
@@ -262,11 +262,11 @@ for the migration path.
 
 ## 1.0.4
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
-- **Fixed overlay ↔ main app communication completely broken.** When
+- **Fixed overlay and main app communication completely broken.** When
   `FlutterEngineGroup.createAndRunEngine()` creates the overlay engine,
-  it auto-registers all plugins — including `FloatyChatheadsPlugin`.
+  it auto-registers all plugins, including `FloatyChatheadsPlugin`.
   This second `onAttachedToEngine` call overwrote the companion-object
   `activeInstance` and `mainMessenger` with the overlay engine's
   instances, causing all messages from the overlay to loop back to the
@@ -276,22 +276,22 @@ for the migration path.
   `onDetachedFromEngine` to prevent the overlay engine from tearing
   down the main engine's state.
 
-### 📦 Metadata
+### Metadata
 
-- Shortened pubspec description to meet pub.dev 60–180 character guideline.
+- Shortened pubspec description to meet pub.dev 60 to 180 character guideline.
 - Added `example/example.md` for the pub.dev example tab.
 
 ## 1.0.3
 
-### ✨ Enhancements
+### Enhancements
 
 - **Upgraded Pigeon to 26.2.3.** Regenerated all Dart and Kotlin Pigeon
-  bindings. No API surface changes — the upgrade picks up codec and
+  bindings. No API surface changes; the upgrade picks up codec and
   code-generation improvements from the latest Pigeon release.
 
 ## 1.0.2
 
-### ✨ Enhancements
+### Enhancements
 
 - **Debug logs are now optional and silent by default.** All native
   `Log.d/w/e` output is gated behind `Managment.debugMode`. Developers
@@ -300,7 +300,7 @@ for the migration path.
   (`Managment.logD`, `logW`, `logE`) replace every raw `Log.*` call
   across `FloatyContentJobService`, `FlutterContentPanel`, and `ChatHeads`.
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Fixed content panel rendering fullscreen on subsequent launches.**
   The root cause was a two-stage data loss: when the service had not
@@ -324,10 +324,10 @@ for the migration path.
 
 ## 1.0.0
 
-### 🎉 Initial Release
+### Initial Release
 
 - Android implementation of `floaty_chatheads` using `SYSTEM_ALERT_WINDOW`.
-- Pigeon-generated type-safe Dart ↔ Kotlin communication.
+- Pigeon-generated type-safe communication between Dart and Kotlin.
 - Facebook Rebound spring physics for bubble drag and snap animations.
 - Foreground service with configurable notification.
 - Separate `FlutterEngine` for overlay content panels.

@@ -3,14 +3,14 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
 
-The iOS implementation of [`floaty_chatheads`][main_link] -- the successor to
+The iOS implementation of [`floaty_chatheads`][main_link], the successor to
 [`floaty_chathead`](https://pub.dev/packages/floaty_chathead).
 
 ## Features
 
 - `UIWindow`-based PiP overlay at `windowLevel = .alert + 1`
 - No special permissions required
-- Pigeon-generated type-safe Dart ↔ Swift communication
+- Pigeon-generated type-safe communication between Dart and Swift
 - `UIPanGestureRecognizer` for bubble drag with bounds clamping
 - Separate `FlutterEngine` + `FlutterViewController` for overlay content
 - Bidirectional messaging between main app and overlay isolate

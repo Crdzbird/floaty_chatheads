@@ -45,7 +45,7 @@
   the expanded panel keeps the new position on collapse.
 
 - **fix**: calling `FloatyOverlay.getOverlayPosition()` from the overlay
-  isolate crashed with a decode error — the overlay isolate's Pigeon codec
+  isolate crashed with a decode error because the overlay isolate's Pigeon codec
   assigns different type tags than the platform contract serving the same
   channels. Shared overlay channels now use only standard-codec payloads
   (`getOverlayPosition` returns a map, `updateFlag` takes the enum index).
@@ -56,7 +56,7 @@
   metadata placeholders replaced.
 - Added `PrivacyInfo.xcprivacy` (UserDefaults declared-reason API) to the
   SwiftPM target and CocoaPods resource bundle.
-- Renamed `FloatyCheaheadsPlugin.swift` → `FloatyChatheadsPlugin.swift`.
+- Renamed `FloatyCheaheadsPlugin.swift` to `FloatyChatheadsPlugin.swift`.
 - Pigeon regenerated with 26.3.x; animation and position-reporting
   helpers deduplicated.
 
@@ -65,17 +65,17 @@
 > **Released as part of the floaty_chatheads 2.0 line.** See the main
 > package CHANGELOG for the full migration guide.
 
-### ⚙ Toolchain (BREAKING)
+### Toolchain (BREAKING)
 
 - iOS deployment target raised to **14.0** (was 13.0) in both
   `Package.swift` and the CocoaPods podspec.
-- Dart SDK floor `^3.0.0`, Flutter floor `>=3.10.0` — matches the
-  rest of the federated set; picked as the bare minimum the Dart
+- Dart SDK floor `^3.0.0`, Flutter floor `>=3.10.0`. This matches the
+  rest of the federated set and was picked as the bare minimum the Dart
   code requires.
 - Pigeon constraint normalized to `^26.3.3`.
 - Depends on `floaty_chatheads_platform_interface: ^2.0.0`.
 
-### 📝 Documented platform behavior
+### Documented platform behavior
 
 - Added class-level and method-level documentation to
   `FloatyChatheadsIOS` explaining which `ChatHeadConfig` fields are
@@ -85,7 +85,7 @@
   a Flutter view, so app authors render their own icons inside the
   overlay entry point.
 
-### ♻ Internals
+### Internals
 
 - `showChatHead` now delegates default-value resolution to
   `ChatHeadConfigResolver` in `floaty_chatheads_platform_interface`,
@@ -93,20 +93,20 @@
 
 ## 1.1.6
 
-### ✨ Enhancements
+### Enhancements
 
 - **Added `updateChatHeadIcon` bridge method.** No-op on iOS (the
   chathead is already a `FlutterViewController`) but provides API
   symmetry with the Android implementation so Dart-side code does not
   need platform checks.
 
-### 📦 Dependencies
+### Dependencies
 
 - Bumped `floaty_chatheads_platform_interface` to `^1.0.5`.
 
 ## 1.1.5
 
-### ⚡ Performance
+### Performance
 
 - **Migrated to Swift Concurrency (`@MainActor`).**
   Replaced `@unchecked Sendable` conformance and manual
@@ -116,7 +116,7 @@
 - Marked `register(with:)` as `nonisolated` with
   `MainActor.assumeIsolated` for Flutter registrar compatibility.
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Fixed chathead freeze during drag.** The `@MainActor` annotation
   caused `UIPanGestureRecognizer` callbacks to route through the
@@ -130,7 +130,7 @@
 
 ## 1.1.4
 
-### ✨ Enhancements
+### Enhancements
 
 - **Native close notification to main app.** When the overlay is
   destroyed (drag-to-close or programmatic close), the iOS layer now
@@ -139,22 +139,22 @@
 
 ## 1.1.3
 
-### 📦 Metadata
+### Metadata
 
-- Shortened pubspec description to meet pub.dev 60–180 character guideline.
+- Shortened pubspec description to meet pub.dev 60 to 180 character guideline.
 - Added `example/example.md` for the pub.dev example tab.
 
 ## 1.1.2
 
-### ✨ Enhancements
+### Enhancements
 
 - **Upgraded Pigeon to 26.2.3.** Regenerated all Dart and Swift Pigeon
-  bindings. No API surface changes — the upgrade picks up codec and
+  bindings. No API surface changes; the upgrade picks up codec and
   code-generation improvements from the latest Pigeon release.
 
 ## 1.1.1
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - Fixed content panel size leaking between chathead sessions. The
   `contentSize` is now reset to defaults (300x400) before applying the
@@ -162,7 +162,7 @@
 
 ## 1.1.0
 
-### 🚀 iOS Feature Parity
+### iOS Feature Parity
 
 - **Entrance animations**: `none`, `pop`, `slideFromEdge`, `fade` with spring physics.
 - **Snap-to-edge**: `both`, `left`, `right`, `none` with configurable margin.
@@ -184,11 +184,11 @@
 
 ## 1.0.0
 
-### 🎉 Initial Release
+### Initial Release
 
 - iOS implementation of `floaty_chatheads` using `UIWindow` PiP overlay.
-- Window level set to `.alert + 1` — no special permissions required.
-- Pigeon-generated type-safe Dart ↔ Swift communication.
+- Window level set to `.alert + 1`; no special permissions required.
+- Pigeon-generated type-safe communication between Dart and Swift.
 - `UIPanGestureRecognizer` for bubble drag.
 - Supports iOS 13+ with Swift 6.1.
 - Permission stubs (always returns `true`).

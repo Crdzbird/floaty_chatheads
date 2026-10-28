@@ -39,47 +39,47 @@
 > **Released as part of the floaty_chatheads 2.0 line.** See the main
 > package CHANGELOG for the full migration guide.
 
-### ✨ New shared helpers
+### New shared helpers
 
-- **`FloatyChannels`** — single source of truth for the canonical
+- **`FloatyChannels`**: single source of truth for the canonical
   messenger channel name (`ni.devotion.floaty_head/messenger`). The
   Dart side, the Android Kotlin service, and the iOS Swift plugin all
   reference this constant.
-- **`ChatHeadConfigResolver`** — extracts default-value resolution
+- **`ChatHeadConfigResolver`**: extracts default-value resolution
   (size-preset application, snap-config fallbacks, notification
   visibility default) from the Android and iOS Dart shims. Both
   platform packages now call the resolver, eliminating ~30 lines of
   duplicated null-coalescing logic.
 
-### 📝 Documented platform differences
+### Documented platform differences
 
 - `ChatHeadAssets` documents that asset overrides are honored on
   Android only; the iOS chathead is a Flutter view, so app authors
   render icons inside the overlay entry point.
 
-### ⚙ Toolchain (BREAKING)
+### Toolchain (BREAKING)
 
-- Dart SDK floor `^3.0.0`, Flutter floor `>=3.10.0` — matches the
-  rest of the federated set; picked as the bare minimum the Dart
+- Dart SDK floor `^3.0.0`, Flutter floor `>=3.10.0`. This matches the
+  rest of the federated set and was picked as the bare minimum the Dart
   code requires.
 
 ## 1.0.5
 
-### ✨ Enhancements
+### Enhancements
 
 - **Added `updateChatHeadIcon()` to the platform interface.** New abstract
   method that pushes raw RGBA pixel data to the native layer, enabling
   real-time animated chathead icons driven from Dart.
 - Added matching implementation in `MethodChannelFloatyChatheads`.
 
-### 📦 Dependencies
+### Dependencies
 
-- Removed `package:meta` dependency -- replaced with
+- Removed `package:meta` dependency and replaced it with
   `package:flutter/foundation.dart` imports across all model files.
 
 ## 1.0.4
 
-### ✨ Enhancements
+### Enhancements
 
 - **Added `autoLaunchOnBackground` to `ChatHeadConfig`.** When `true`,
   the chathead is automatically shown when the app goes to the
@@ -90,7 +90,7 @@
 
 ## 1.0.3
 
-### ✨ Enhancements
+### Enhancements
 
 - **Added `NotificationConfig.description` field.** When set, the
   foreground-service notification uses a custom title and body instead
@@ -98,7 +98,7 @@
 
 ## 1.0.2
 
-### 📦 Metadata
+### Metadata
 
 - Added `example/example.md` for the pub.dev example tab.
 
@@ -109,14 +109,14 @@
 
 ## 1.0.0
 
-### 🎉 Initial Release
+### Initial Release
 
 - `FloatyChatheadsPlatform` abstract interface with 13 platform methods.
-- `ChatHeadConfig` — full configuration model with theming, size presets,
+- `ChatHeadConfig`: full configuration model with theming, size presets,
   snap behavior, entrance animations, and debug mode.
-- `ChatHeadTheme` — badge colors, bubble border, shadow, close tint,
+- `ChatHeadTheme`: badge colors, bubble border, shadow, close tint,
   and overlay palette.
-- `ContentSizePreset` — `compact`, `card`, `halfScreen`, `fullScreen`.
+- `ContentSizePreset`: `compact`, `card`, `halfScreen`, `fullScreen`.
 - `AddChatHeadConfig`, `OverlayPosition`, `OverlayFlag`, `SnapEdge`,
   `EntranceAnimation`, `NotificationVisibility` models.
 - `MethodChannelFloatyChatheads` fallback implementation.

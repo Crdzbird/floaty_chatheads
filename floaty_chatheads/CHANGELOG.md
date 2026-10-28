@@ -90,8 +90,9 @@
 ### Migration from 2.x
 
 1. Bump your app to Flutter 3.44+ and iOS 15.
-2. `FloatyLauncher.show(...)` -> `Floaty.show(...)` (rename `sizePreset:`
-   to `size:`). `FloatyLauncher.toggle` -> `Floaty.toggle`.
+2. `FloatyLauncher.show(...)` becomes `Floaty.show(...)` (rename
+   `sizePreset:` to `size:`). `FloatyLauncher.toggle` becomes
+   `Floaty.toggle`.
 3. If your overlay entry point is not in `main.dart`, pass
    `entryPointLibrary: 'package:<your_app>/<file>.dart'`.
 4. Remove any `<uses-permission>` lines you added for this plugin: the
@@ -121,7 +122,7 @@
   `FloatyController` accept the new `panelAnchor` parameter.
 
 - **fix**: calling `FloatyOverlay.getOverlayPosition()` from the overlay
-  isolate crashed with a decode error — the overlay isolate's Pigeon codec
+  isolate crashed with a decode error because the overlay isolate's Pigeon codec
   assigns different type tags than the platform contract serving the same
   channels. Shared overlay channels now use only standard-codec payloads
   (`getOverlayPosition` returns a map, `updateFlag` takes the enum index).
@@ -129,7 +130,7 @@
 ### Chores
 
 - Example app migrated to AGP 9.2 / Gradle 9.4.1. The
-  `android.builtInKotlin` / `android.newDsl` opt-outs remain — Flutter
+  `android.builtInKotlin` / `android.newDsl` opt-outs remain, since Flutter
   3.44's Gradle tooling still applies KGP to plugin projects and does
   not support AGP 9's new DSL yet.
 - Pigeon regenerated with 26.3.x.
@@ -140,29 +141,29 @@
 > the public surface, and adds compile-time type safety to action and
 > stream routing. See the migration notes at the end of this entry.
 
-### ✨ New: minimal happy-path API
+### New: minimal happy-path API
 
 Two new additions bring the simplest setup down to a top-level
 entry point and one method call:
 
-- **`Floaty`** — a static facade that wraps the most common
-  workflow (check permission → request if needed → show with sensible
-  defaults). One-liners for `show`, `close`, `toggle`, `isActive`,
+- **`Floaty`**: a static facade that wraps the most common
+  workflow (check permission, then request if needed, then show with
+  sensible defaults). One-liners for `show`, `close`, `toggle`, `isActive`,
   `send`, `onData`. Drops down to [FloatyLauncher] / [FloatyChatheads]
   for power users.
-- **`FloatySimplePanel`** — a pre-built styled Material card for
+- **`FloatySimplePanel`**: a pre-built styled Material card for
   overlay content, with optional title and a built-in close button
   wired to [FloatyOverlay.closeOverlay]. Eliminates the
   Card/Material/Padding boilerplate for the common case.
 
 See the README "Hello World" section for the full 30-second setup.
 
-### ⚙ Toolchain & platform floors (BREAKING)
+### Toolchain & platform floors (BREAKING)
 
-- Dart SDK floor raised to `^3.0.0` (was `^3.4.0`) — the minimum
+- Dart SDK floor raised to `^3.0.0` (was `^3.4.0`). This is the minimum
   that supports `final class`, `sealed class`, records, and the
   pattern matching used by the typed `ActionKey` / `StreamKey` API.
-- Flutter floor raised to `>=3.10.0` (was `>=3.22.0`) — pairs with
+- Flutter floor raised to `>=3.10.0` (was `>=3.22.0`) to pair with
   Dart 3.0.
 
 Picked as the **bare minimum that the library code actually
@@ -182,7 +183,7 @@ Trade-offs deliberately taken to keep the floor low:
   On Flutter 3.44+ this triggers the
   "Future versions of Flutter will fail to build if your app uses
   plugins that apply KGP" warning. Migrating to Built-in Kotlin
-  would lock out the Flutter 3.10–3.43 install base, so the warning
+  would lock out the Flutter 3.10 to 3.43 install base, so the warning
   is accepted for now.
 - Android `minSdk` raised to **24** (was 23). Android 7.0 (Nougat) is now the
   oldest supported OS. `compileSdk` bumped to 35 (Android 15). Plugin
@@ -191,7 +192,7 @@ Trade-offs deliberately taken to keep the floor low:
   `Package.swift` and the CocoaPods podspec.
 - CI matrix bumped to Flutter `3.44.0` across all four workflows.
 
-### 🔐 Typed action and stream keys (BREAKING)
+### Typed action and stream keys (BREAKING)
 
 - New `ActionKey<A extends FloatyAction>` colocates the action `type`
   string with its `fromJson`, removing the chance of mismatched pairs.
@@ -228,7 +229,7 @@ Trade-offs deliberately taken to keep the floor low:
   +final gps = FloatyProxyStream(gpsKey);
   ```
 
-### 📦 Slimmer public surface (BREAKING)
+### Slimmer public surface (BREAKING)
 
 - The main barrel (`package:floaty_chatheads/floaty_chatheads.dart`)
   no longer exports the low-level primitives `FloatyActionRouter`,
@@ -242,7 +243,7 @@ Trade-offs deliberately taken to keep the floor low:
   alongside the existing main-barrel import in files that instantiate
   the primitives directly.
 
-### 🧹 De-duplication & documentation (Phase B)
+### De-duplication & documentation (Phase B)
 
 - `FloatyChannels` constant in `floaty_chatheads_platform_interface`
   is now the single source of truth for the messenger channel name
@@ -259,12 +260,12 @@ Trade-offs deliberately taken to keep the floor low:
 
 ## 1.5.0
 
-### ✨ Widget-Based Icons
+### Widget-Based Icons
 
 - **Any Flutter widget as the chathead icon.** Pass `iconWidget` to
   `showChatHead()` and the widget is rendered to a PNG image via an
   offscreen pipeline (separate `RenderView` / `PipelineOwner` /
-  `BuildOwner` -- does not block the main widget tree).
+  `BuildOwner`, so it does not block the main widget tree).
 
   ```dart
   await FloatyChatheads.showChatHead(
@@ -273,7 +274,7 @@ Trade-offs deliberately taken to keep the floor low:
   );
   ```
 
-- **Animated widget icons.** Pass `iconBuilder` (receives a 0.0 -- 1.0
+- **Animated widget icons.** Pass `iconBuilder` (receives a 0.0 to 1.0
   animation value) and set `animateIcon: true`. Frames are rendered at
   configurable FPS and pushed to the native layer as raw RGBA bytes.
   Control playback with `startIconAnimation()` / `stopIconAnimation()`.
@@ -306,7 +307,7 @@ Trade-offs deliberately taken to keep the floor low:
   `updateChatHeadIcon()`, `isIconAnimating`, `startIconAnimation()`,
   `stopIconAnimation()`.
 
-### ⚡ Performance
+### Performance
 
 - **Android: Eliminated bitmap allocations in `onDraw()` (ChatHead).**
   The circular-crop + shadow pipeline ran on every frame (~240
@@ -325,7 +326,7 @@ Trade-offs deliberately taken to keep the floor low:
   classes, `FloatyOverlayScope`, and `FakeOverlayDataSource` now run
   concurrently.
 
-### 🛡️ Robustness
+### Robustness
 
 - **Dart: Added `mounted` guards to all stream listeners in
   `FloatyScope`.** Prevents `setState`-after-dispose crashes if a
@@ -341,7 +342,7 @@ Trade-offs deliberately taken to keep the floor low:
   `null` even with a non-null default on some OEM ROMs; three
   restore calls now use `?: "DEFAULT"` fallbacks.
 
-### 🧹 Code Quality
+### Code Quality
 
 - **Dart: Replaced `unawaited()` antipattern with proper
   `async`/`await`.** All non-widget dispose methods
@@ -356,14 +357,14 @@ Trade-offs deliberately taken to keep the floor low:
 - **iOS: Extracted channel name constant and changed `bubbleSize` to
   `let`.**
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Fixed icon animation not stopping on native close.** When the
   chathead was dismissed via the drag-to-close gesture, the animation
   timer continued running. The `onClosed` handler now calls
   `stopIconAnimation()` automatically.
 
-### 📦 Dependencies
+### Dependencies
 
 - Bumped `floaty_chatheads_platform_interface` to `^1.0.5`.
 - Bumped `floaty_chatheads_android` to `^1.1.0`.
@@ -371,14 +372,14 @@ Trade-offs deliberately taken to keep the floor low:
 
 ## 1.4.0+1
 
-### 📦 Metadata
+### Metadata
 
 - Upgraded package version for meta to 1.18.
 - Upgraded package version for pigeon to 26.3.3
 
 ## 1.4.0
 
-### ✨ Enhancements
+### Enhancements
 
 - **Added `autoLaunchOnBackground` parameter.** When `true`, the
   chathead is automatically shown when the app moves to the background
@@ -390,10 +391,10 @@ Trade-offs deliberately taken to keep the floor low:
   overlay survives app death and is recreated by the system. When
   `false` (the default), the service uses `START_NOT_STICKY` and
   stops itself when the main app disconnects. (Android only.)
-- **New example**: Auto-Launch & Persist — demonstrates both parameters
+- **New example**: Auto-Launch & Persist, which demonstrates both parameters
   with toggle switches and step-by-step instructions.
 
-### ⚡ Performance
+### Performance
 
 - **Android: Migrated native plugin to Kotlin Coroutines.** Icon loading
   and all async operations now use structured concurrency with
@@ -401,7 +402,7 @@ Trade-offs deliberately taken to keep the floor low:
 - **iOS: Migrated native plugin to Swift Concurrency (`@MainActor`).**
   Compile-time main-actor isolation replaces runtime GCD dispatch.
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Fixed chathead freeze on both platforms.**
   - Android: `showChatHead` and `addChatHead` are now async Pigeon
@@ -412,7 +413,7 @@ Trade-offs deliberately taken to keep the floor low:
     actor executor instead of firing synchronously. Now uses
     `nonisolated` + `MainActor.assumeIsolated` for zero-overhead drag.
 
-### 📦 Dependencies
+### Dependencies
 
 - Bumped `floaty_chatheads_platform_interface` to `^1.0.4`.
 - Bumped `floaty_chatheads_android` to `^1.0.7`.
@@ -420,37 +421,37 @@ Trade-offs deliberately taken to keep the floor low:
 
 ## 1.3.2
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **`FloatyProxyStream` now throws `StateError` on duplicate names.**
   Creating a second stream with the same `name` without disposing the
   first previously caused silent overwrites and broken dispose
   semantics. A clear error message now guides the developer.
 
-### 🧪 Tests
+### Tests
 
 - Added duplicate-name guard tests for `FloatyProxyStream`.
 - Added 3 message-buffering tests for `FloatyChannel` (replay on
   handler registration, max-pending overflow, no buffering for
-  previously-removed handlers) — `floaty_channel.dart` is now at
+  previously-removed handlers). `floaty_channel.dart` is now at
   100% line coverage.
 
 ## 1.3.1
 
-### ✨ Enhancements
+### Enhancements
 
 - **Added `FloatyProxyStream<T>`.** A typed, reactive, unidirectional
   stream that pushes values from the main app to the overlay. The
-  overlay subscribes once and receives automatic updates — useful for
+  overlay subscribes once and receives automatic updates, which is useful for
   GPS coordinates, sensor data, or any high-frequency state.
 
-### 🧪 Tests
+### Tests
 
 - Added 9 tests for `FloatyProxyStream`.
 
 ## 1.3.0
 
-### ✨ Enhancements
+### Enhancements
 
 - **Added `FloatyChatheads.onClosed` stream.** A broadcast stream that
   emits the chathead ID when the overlay is closed by the native
@@ -472,7 +473,7 @@ Trade-offs deliberately taken to keep the floor low:
   actions, optimistic local updates, proxy fallback, and full
   queue-flush reliability after app death.
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Fixed queued actions lost on reconnection.** When the main app
   restarted, the overlay flushed its action queue before the Dart side
@@ -497,9 +498,9 @@ Trade-offs deliberately taken to keep the floor low:
 
 ## 1.2.3
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
-- **Fixed overlay → main app communication broken on Android.** The
+- **Fixed overlay to main app communication broken on Android.** The
   overlay `FlutterEngine` auto-registers all plugins, which overwrote
   the shared `activeInstance` in `FloatyChatheadsPlugin` with the
   overlay's instance. Messages sent from the overlay via `shareData()`
@@ -509,25 +510,25 @@ Trade-offs deliberately taken to keep the floor low:
   (basic chathead, messenger, mini player, etc.). Bumped
   `floaty_chatheads_android` to `^1.0.4`.
 
-### 📦 Metadata
+### Metadata
 
 - Added `example/example.md` for the pub.dev example tab.
 
 ## 1.2.2
 
-### ✨ Enhancements
+### Enhancements
 
 - **Upgraded Pigeon to 26.2.3.** Regenerated overlay Pigeon bindings
   across all platform packages. No API surface changes.
 - **Updated Android demo GIF** in the media folder.
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Fixed survival overlay counter adding +1 on every reconnection.**
   The overlay's manual re-dispatch logic fired even though the
   framework's automatic queue flush already delivered the queued
   actions, causing every increment to be applied twice. Removed the
-  redundant re-dispatch — the queue flush is reliable on its own.
+  redundant re-dispatch; the queue flush is reliable on its own.
 - **Fixed counter race condition on app restart.** Queued actions
   arriving via auto-flush before `SharedPreferences` restore could
   increment from zero instead of the persisted value. Increment
@@ -535,14 +536,14 @@ Trade-offs deliberately taken to keep the floor low:
 
 ## 1.2.1
 
-### ✨ Enhancements
+### Enhancements
 
 - **Debug logs are now optional and silent by default (Android).** All
   native logcat output from the plugin is gated behind `debugMode`. Set
   `debugMode: true` in `showChatHead()` to enable verbose logging during
   development; production builds produce zero log noise.
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Fixed content panel rendering fullscreen on subsequent launches
   (Android).** When the foreground service had not started yet,
@@ -560,65 +561,65 @@ Trade-offs deliberately taken to keep the floor low:
   overlay window with fresh dimensions instead of relying on
   `onStartCommand()`, which could skip recreation when a stale window
   from a `START_STICKY` restart was still present.
-- Fixed iOS content size not resetting between sessions — dimensions
+- Fixed iOS content size not resetting between sessions. Dimensions
   now default to 300x400 before applying the new config.
 
 ## 1.2.0
 
-### 🧩 Higher-Level Convenience Widgets
+### Higher-Level Convenience Widgets
 
-- Added `FloatyDataBuilder<T>` — a reactive builder for the **main app side**
+- Added `FloatyDataBuilder<T>`, a reactive builder for the **main app side**
   that subscribes to `FloatyChatheads.onData`, reduces incoming messages into
-  typed state via a `(T current, Object? raw) → T` reducer, and rebuilds
+  typed state via a `T Function(T current, Object? raw)` reducer, and rebuilds
   automatically. Eliminates manual `StreamSubscription`, `setState`, and
   `dispose` boilerplate.
 
-- Added `FloatyOverlayBuilder<T>` — a zero-boilerplate builder for the
+- Added `FloatyOverlayBuilder<T>`, a zero-boilerplate builder for the
   **overlay side** that handles `FloatyOverlay.setUp()`, stream subscriptions,
   `mounted` guards, and `FloatyOverlay.dispose()` automatically. Supports
   `onData` reducer, optional `onTapped` reducer, and `onInit` callback.
   Turns overlay widgets into `StatelessWidget` declarations.
 
-- Added `FloatyOverlayApp.runScoped()` — a variant of `run()` that wraps the
+- Added `FloatyOverlayApp.runScoped()`, a variant of `run()` that wraps the
   child in `FloatyScope`, so `FloatyScope.of(context)` works everywhere
   inside the overlay without manual wiring.
 
-- Added `builder` parameter to `FloatyControllerWidget` — accepts a
+- Added `builder` parameter to `FloatyControllerWidget`. It accepts a
   `Widget Function(BuildContext, FloatyController)` callback with reactive
   re-rendering via `ListenableBuilder`. The `child` parameter is now optional
   when `builder` is provided.
 
-### 📦 Grouped Configuration Objects
+### Grouped Configuration Objects
 
-- Added `ChatHeadAssets` — groups chathead icon, close icon, and close
+- Added `ChatHeadAssets`, which groups chathead icon, close icon, and close
   background into a single object. Old flat parameters are deprecated.
-- Added `NotificationConfig` — groups notification title, icon, and
+- Added `NotificationConfig`, which groups notification title, icon, and
   visibility into a single object. Old flat parameters are deprecated.
-- Added `SnapConfig` — groups snap edge, margin, and position persistence
+- Added `SnapConfig`, which groups snap edge, margin, and position persistence
   into a single object. Old flat parameters are deprecated.
-- Added `IconSource` — polymorphic icon source with `IconSource.asset()`,
+- Added `IconSource`, a polymorphic icon source with `IconSource.asset()`,
   `IconSource.network()`, and `IconSource.bytes()` constructors for
   flexible icon loading from assets, URLs, or raw byte data.
 
-### ✨ Simplified Examples
+### Simplified Examples
 
 - Simplified all **14 overlay entry points** from verbose 6-line blocks to
-  single-line `FloatyOverlayApp.run()` calls (84 → 14 lines total).
-- Rewrote `NotificationCounterOverlay` using `FloatyOverlayBuilder<int>` —
-  now a `StatelessWidget` with zero lifecycle code.
-- Rewrote `QuickActionOverlay` using `FloatyOverlayBuilder<bool>` —
-  now a `StatelessWidget` with tap-to-toggle expand/collapse.
-- Rewrote `QuickActionExample` using `FloatyDataBuilder<List<LogEntry>>` —
+  single-line `FloatyOverlayApp.run()` calls (from 84 to 14 lines total).
+- Rewrote `NotificationCounterOverlay` using `FloatyOverlayBuilder<int>`;
+  it is now a `StatelessWidget` with zero lifecycle code.
+- Rewrote `QuickActionOverlay` using `FloatyOverlayBuilder<bool>`;
+  it is now a `StatelessWidget` with tap-to-toggle expand/collapse.
+- Rewrote `QuickActionExample` using `FloatyDataBuilder<List<LogEntry>>`:
   incoming actions accumulate into a log via reducer, no manual subscription.
 
-### 🧪 Tests
+### Tests
 
 - Added 10 new tests for `FloatyDataBuilder` (5) and `FloatyOverlayBuilder`
   (5).
 
 ## 1.1.0
 
-### 🚀 iOS Feature Parity
+### iOS Feature Parity
 
 - iOS now supports entrance animations, snap-to-edge, position persistence,
   badge counter, theming, expand/collapse, drag events, and VoiceOver
@@ -626,27 +627,27 @@ Trade-offs deliberately taken to keep the floor low:
 - Removed "Android only" notes from platform interface docs.
 - Bumped `floaty_chatheads_ios` dependency to `^1.1.0`.
 
-### 🔗 Shared State Channel
+### Shared State Channel
 
-- Added `FloatyStateChannel<T>` — a generic, type-safe channel for
+- Added `FloatyStateChannel<T>`, a generic, type-safe channel for
   synchronizing arbitrary state between the main app and the overlay.
 - Supports partial updates via `update()` and full replacements via `set()`.
 - Provides a reactive `stream` of state changes and synchronous `state`
   access.
 - Works with any serializable Dart model, not limited to a specific domain.
 
-### 🛰️ Bidirectional Action Routing
+### Bidirectional Action Routing
 
-- Added `FloatyActionRouter` — a typed, extensible action bus for
+- Added `FloatyActionRouter`, a typed, extensible action bus for
   dispatching structured commands between app and overlay.
 - Register strongly-typed handlers with `on<A>()` and send actions with
   `send()`.
 - Actions implement `FloatyAction` with `type` and `toJson()` for
   automatic serialization over the platform channel.
 
-### 🪞 Overlay Proxy
+### Overlay Proxy
 
-- Added `FloatyProxy` — lets the overlay call app-side services (e.g.
+- Added `FloatyProxy`, which lets the overlay call app-side services (e.g.
   APIs, databases, repositories) without direct dependencies.
 - `FloatyProxyHost` registers named service handlers in the main app.
 - `FloatyProxyClient` invokes them from the overlay and receives
@@ -654,12 +655,12 @@ Trade-offs deliberately taken to keep the floor low:
 - Enables clean separation of concerns between the overlay UI and
   app-side business logic.
 
-### 🛡️ Overlay Survival After App Death (Android)
+### Overlay Survival After App Death (Android)
 
 - The Android `FloatyContentJobService` now owns the Flutter engine
   lifecycle. The overlay survives when the main app is killed and
   automatically restores from persisted config on service restart.
-- Added `FloatyConnectionState` — overlay-side utility that tracks
+- Added `FloatyConnectionState`, an overlay-side utility that tracks
   whether the main app is connected, with a reactive stream and
   synchronous getter.
 - `FloatyActionRouter` now queues dispatched actions while the main
@@ -681,16 +682,16 @@ Trade-offs deliberately taken to keep the floor low:
 
 ## 1.0.0
 
-### 🎉 Initial Release — Complete Rewrite
+### Initial Release: Complete Rewrite
 
 A ground-up rewrite of the floating chathead plugin, inspired by
 [flutter_overlay_window](https://pub.dev/packages/flutter_overlay_window).
 
 #### Platform Support
 
-- **Android** — `SYSTEM_ALERT_WINDOW` overlay with foreground service,
+- **Android**: `SYSTEM_ALERT_WINDOW` overlay with foreground service,
   Facebook Rebound spring physics, and full `FlutterEngine` content panels.
-- **iOS** — `UIWindow`-based PiP overlay at `.alert + 1` window level.
+- **iOS**: `UIWindow`-based PiP overlay at `.alert + 1` window level.
   No special permissions required. Supports iOS 13+.
 
 #### Core Features
@@ -702,7 +703,7 @@ A ground-up rewrite of the floating chathead plugin, inspired by
 - Drag-and-drop with spring-animated snap-to-edge.
 - Close target with magnetic snap and animated reveal.
 - Badge counter on chathead bubbles.
-- Multi-bubble support — add / remove individual chatheads by ID.
+- Multi-bubble support: add / remove individual chatheads by ID.
 
 #### Theming API
 
@@ -740,21 +741,22 @@ A ground-up rewrite of the floating chathead plugin, inspired by
 
 - `SnapEdge` enum: `left`, `right`, `nearest`, `none`.
 - Configurable snap margin in dp.
-- `persistPosition` — remembers last bubble position across sessions.
+- `persistPosition`: remembers last bubble position across sessions.
 - `EntranceAnimation` enum: `none`, `slideInFromLeft`, `slideInFromRight`,
   `fadeIn`.
 
 #### Developer Experience
 
-- Federated plugin architecture (main → platform_interface → android / ios).
-- Pigeon-generated type-safe Dart ↔ Kotlin / Swift communication.
+- Federated plugin architecture (main package on top of platform_interface, with android / ios
+  implementations).
+- Pigeon-generated type-safe communication between Dart and Kotlin / Swift.
 - VGV-style `{@template}` / `{@macro}` documentation across all packages.
 - `FloatyPermissionGate` widget for declarative permission handling.
 - 12 runnable example screens in the gallery app.
 
 #### Architecture
 
-- `floaty_chatheads` — app-facing API
-- `floaty_chatheads_platform_interface` — abstract contract + models
-- `floaty_chatheads_android` — Kotlin + Pigeon implementation
-- `floaty_chatheads_ios` — Swift + Pigeon implementation
+- `floaty_chatheads`: app-facing API
+- `floaty_chatheads_platform_interface`: abstract contract + models
+- `floaty_chatheads_android`: Kotlin + Pigeon implementation
+- `floaty_chatheads_ios`: Swift + Pigeon implementation

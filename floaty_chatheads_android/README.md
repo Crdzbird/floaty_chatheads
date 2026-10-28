@@ -3,14 +3,14 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
 
-The Android implementation of [`floaty_chatheads`][main_link] -- the successor to
+The Android implementation of [`floaty_chatheads`][main_link], the successor to
 [`floaty_chathead`](https://pub.dev/packages/floaty_chathead).
 
 ## Features
 
 - `SYSTEM_ALERT_WINDOW` overlay with foreground service
 - Facebook Rebound spring physics for drag and snap animations
-- Pigeon-generated type-safe Dart ↔ Kotlin communication
+- Pigeon-generated type-safe communication between Dart and Kotlin
 - Theming: badge colors, bubble border, shadow, close tint, overlay palette
 - Size presets: `compact`, `card`, `halfScreen`, `fullScreen`
 - Debug inspector: FPS counter, spring HUD, bounds rectangles, Pigeon log
