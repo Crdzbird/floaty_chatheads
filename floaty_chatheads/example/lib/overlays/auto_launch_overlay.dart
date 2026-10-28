@@ -1,13 +1,17 @@
+import 'dart:async';
+
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
 
 /// Overlay content for the auto-launch example.
 ///
-/// Displays a simple status card showing that the chathead was auto-launched
-/// because the user left the app. Includes a close button and the current
-/// connection state.
-class AutoLaunchOverlay extends StatelessWidget {
-  const AutoLaunchOverlay({super.key});
+/// Shows a status card saying the chathead was auto-launched because the
+/// user left the app, with a close button.
+final class AutoLaunchOverlay extends StatelessWidget {
+  /// Creates the auto-launch overlay.
+  const factory AutoLaunchOverlay({Key? key}) = AutoLaunchOverlay._;
+
+  const AutoLaunchOverlay._({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,12 +42,12 @@ class AutoLaunchOverlay extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
-                  onTap: FloatyOverlay.closeOverlay,
+                  onTap: () => unawaited(FloatyOverlay.closeOverlay()),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,

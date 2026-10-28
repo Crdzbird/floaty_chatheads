@@ -4,52 +4,48 @@ import 'dart:math';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'location/is_gps_available.dart';
+
 /// Provides a unified [positionStream] that emits [LatLng] positions from
-/// either real GPS or a circular simulation around [_center].
-class LocationService {
-  LocationService({bool useSimulation = false})
+/// either real GPS or a circular simulation around a fixed center.
+final class LocationService {
+  /// Creates a service that starts in simulation mode when [useSimulation]
+  /// is true (default false).
+  factory LocationService({bool useSimulation}) = LocationService._;
+
+  LocationService._({bool useSimulation = false})
       : _useSimulation = useSimulation;
 
-  // ---------------------------------------------------------------------------
-  // Configuration
-  // ---------------------------------------------------------------------------
-
   static const _center = LatLng(12.1364, -86.2514);
-  static const _radius = 0.005; // ~500 m
-  static const _stepsPerRevolution = 60; // full circle in 60 s
-
-  // ---------------------------------------------------------------------------
-  // State
-  // ---------------------------------------------------------------------------
+  static const _radius = 0.005;
+  static const _stepsPerRevolution = 60;
 
   bool _useSimulation;
+
+  /// Whether positions currently come from the simulation.
   bool get useSimulation => _useSimulation;
 
   final _controller = StreamController<LatLng>.broadcast();
 
-  /// Unified output stream — subscribe once, regardless of source.
+  /// Unified output stream; subscribe once, regardless of source.
   Stream<LatLng> get positionStream => _controller.stream;
 
   StreamSubscription<Position>? _gpsSub;
   Timer? _simTimer;
   double _simAngle = 0;
 
-  // ---------------------------------------------------------------------------
-  // Public API
-  // ---------------------------------------------------------------------------
-
   /// Start emitting positions from the currently selected source.
   Future<void> startTracking() async {
     if (_useSimulation) {
       _startSimulation();
-    } else {
-      await _startGps();
+      return;
     }
+    await _startGps();
   }
 
   /// Stop emitting positions without disposing the service.
   void stopTracking() {
-    _gpsSub?.cancel();
+    unawaited(_gpsSub?.cancel());
     _gpsSub = null;
     _simTimer?.cancel();
     _simTimer = null;
@@ -66,35 +62,14 @@ class LocationService {
   /// Release all resources.
   void dispose() {
     stopTracking();
-    _controller.close();
+    unawaited(_controller.close());
   }
 
-  // ---------------------------------------------------------------------------
-  // GPS
-  // ---------------------------------------------------------------------------
-
   Future<void> _startGps() async {
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Fall back to simulation when location services are off.
-      _useSimulation = true;
-      _startSimulation();
+    if (!await isGpsAvailable()) {
+      _fallBackToSimulation();
       return;
     }
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      // Fall back to simulation when user denies permission.
-      _useSimulation = true;
-      _startSimulation();
-      return;
-    }
-
     _gpsSub = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
@@ -102,17 +77,14 @@ class LocationService {
       ),
     ).listen(
       (pos) => _controller.add(LatLng(pos.latitude, pos.longitude)),
-      onError: (_) {
-        // On GPS error, switch to simulation.
-        _useSimulation = true;
-        _startSimulation();
-      },
+      onError: (Object _) => _fallBackToSimulation(),
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Simulation
-  // ---------------------------------------------------------------------------
+  void _fallBackToSimulation() {
+    _useSimulation = true;
+    _startSimulation();
+  }
 
   void _startSimulation() {
     _simTimer?.cancel();

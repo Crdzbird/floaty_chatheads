@@ -1,10 +1,17 @@
+import 'dart:async';
+
 import 'package:floaty_chatheads/floaty_chatheads.dart';
 import 'package:flutter/material.dart';
 
-/// Simple overlay for the widget icon example — shows a card
-/// confirming the chathead is alive.
-class WidgetIconOverlay extends StatelessWidget {
-  const WidgetIconOverlay({super.key});
+import 'widget_icon/widget_icon_close_pill.dart';
+
+/// Simple overlay for the widget icon example: shows a card confirming
+/// the chathead is alive.
+final class WidgetIconOverlay extends StatelessWidget {
+  /// Creates the widget icon overlay.
+  const factory WidgetIconOverlay({Key? key}) = WidgetIconOverlay._;
+
+  const WidgetIconOverlay._({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,30 +41,12 @@ class WidgetIconOverlay extends StatelessWidget {
                   'No image assets used!',
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
                 const SizedBox(height: 10),
-                GestureDetector(
-                  onTap: FloatyOverlay.closeOverlay,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Close',
-                      style: TextStyle(
-                        color: Colors.indigo,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
+                WidgetIconClosePill(
+                  onTap: () => unawaited(FloatyOverlay.closeOverlay()),
                 ),
               ],
             ),
