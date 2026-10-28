@@ -29,14 +29,14 @@ final class WidgetIconStaticSection extends StatelessWidget {
   final VoidCallback onCustomClose;
 
   static Widget _gradientDot(List<Color> colors, IconData icon) => Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(colors: colors),
-        ),
-        child: Icon(icon, color: Colors.white, size: 20),
-      );
+    width: 40,
+    height: 40,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: LinearGradient(colors: colors),
+    ),
+    child: Icon(icon, color: Colors.white, size: 20),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -60,20 +60,20 @@ final class WidgetIconStaticSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         WidgetIconTile(
-          icon: _gradientDot(
-            const [Colors.purple, Colors.deepOrange],
-            Icons.phone,
-          ),
+          icon: _gradientDot(const [
+            Colors.purple,
+            Colors.deepOrange,
+          ], Icons.phone),
           title: 'Gradient + Icon',
           subtitle: 'Container with gradient and Material Icon',
           onTap: onGradient,
         ),
         const SizedBox(height: 8),
         WidgetIconTile(
-          icon: _gradientDot(
-            [Colors.red.shade700, Colors.orange],
-            Icons.delete_outline,
-          ),
+          icon: _gradientDot([
+            Colors.red.shade700,
+            Colors.orange,
+          ], Icons.delete_outline),
           title: 'Custom Close Target',
           subtitle: 'Widget-based close icon with gradient background',
           onTap: onCustomClose,

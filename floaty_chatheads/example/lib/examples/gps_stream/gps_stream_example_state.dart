@@ -75,10 +75,7 @@ final class _GpsStreamExampleState extends State<GpsStreamExample>
             updateCount: _updateCount,
           ),
           const Divider(height: 1),
-          GpsLogHeader(
-            count: _log.length,
-            onClear: () => setState(_log.clear),
-          ),
+          GpsLogHeader(count: _log.length, onClear: () => setState(_log.clear)),
           Expanded(child: GpsLogList(entries: _log)),
         ],
       ),

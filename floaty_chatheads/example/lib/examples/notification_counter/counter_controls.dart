@@ -36,10 +36,7 @@ final class CounterControls extends StatelessWidget {
           child: const Icon(Icons.remove),
         ),
         const SizedBox(width: 16),
-        FilledButton.tonal(
-          onPressed: onReset,
-          child: const Text('Reset'),
-        ),
+        FilledButton.tonal(onPressed: onReset, child: const Text('Reset')),
         const SizedBox(width: 16),
         FilledButton.tonal(
           onPressed: onIncrement,

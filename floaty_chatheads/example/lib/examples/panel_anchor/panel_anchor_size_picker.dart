@@ -33,10 +33,7 @@ final class PanelAnchorSizePicker extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
-          'Panel Size',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        const Text('Panel Size', style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
         SegmentedButton<PanelAnchorSize>(
           segments: [

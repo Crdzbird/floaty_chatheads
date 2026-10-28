@@ -34,8 +34,9 @@ final class MiniPlayerOverlayControls extends StatelessWidget {
         ),
         const SizedBox(width: 14),
         MiniPlayerControlButton(
-          icon:
-              isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+          icon: isPlaying
+              ? Icons.pause_circle_filled
+              : Icons.play_circle_filled,
           size: 32,
           onTap: () => onAction('toggle'),
         ),

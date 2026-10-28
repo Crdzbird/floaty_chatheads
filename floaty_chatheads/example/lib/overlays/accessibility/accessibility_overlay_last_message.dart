@@ -8,10 +8,7 @@ final class AccessibilityOverlayLastMessage extends StatelessWidget {
     Key? key,
   }) = AccessibilityOverlayLastMessage._;
 
-  const AccessibilityOverlayLastMessage._({
-    required this.message,
-    super.key,
-  });
+  const AccessibilityOverlayLastMessage._({required this.message, super.key});
 
   /// The last message received from the main app.
   final String message;

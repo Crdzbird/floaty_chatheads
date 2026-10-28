@@ -30,10 +30,7 @@ final class TodoSurvivalLogList extends StatelessWidget {
       itemBuilder: (_, i) => Card(
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Text(
-            log[i],
-            style: const TextStyle(fontSize: 12),
-          ),
+          child: Text(log[i], style: const TextStyle(fontSize: 12)),
         ),
       ),
     );

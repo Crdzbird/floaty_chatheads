@@ -21,9 +21,7 @@ final class DashboardInfoBanner extends StatelessWidget {
         children: [
           Icon(Icons.info_outline, size: 16, color: Colors.blue.shade400),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(text, style: const TextStyle(fontSize: 12)),
-          ),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 12))),
         ],
       ),
     );

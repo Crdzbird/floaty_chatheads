@@ -13,8 +13,7 @@ final class LocationService {
   /// is true (default false).
   factory LocationService({bool useSimulation}) = LocationService._;
 
-  LocationService._({bool useSimulation = false})
-      : _useSimulation = useSimulation;
+  LocationService._({this._useSimulation = false});
 
   static const _center = LatLng(12.1364, -86.2514);
   static const _radius = 0.005;
@@ -70,15 +69,16 @@ final class LocationService {
       _fallBackToSimulation();
       return;
     }
-    _gpsSub = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 5,
-      ),
-    ).listen(
-      (pos) => _controller.add(LatLng(pos.latitude, pos.longitude)),
-      onError: (Object _) => _fallBackToSimulation(),
-    );
+    _gpsSub =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 5,
+          ),
+        ).listen(
+          (pos) => _controller.add(LatLng(pos.latitude, pos.longitude)),
+          onError: (Object _) => _fallBackToSimulation(),
+        );
   }
 
   void _fallBackToSimulation() {

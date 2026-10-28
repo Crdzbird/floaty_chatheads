@@ -48,10 +48,12 @@ final class _AutoLaunchExampleState extends State<AutoLaunchExample> {
             AutoLaunchSwitches(
               autoLaunch: _autoLaunch,
               persist: _persist,
-              onAutoLaunchChanged:
-                  _enabled ? null : (v) => setState(() => _autoLaunch = v),
-              onPersistChanged:
-                  _enabled ? null : (v) => setState(() => _persist = v),
+              onAutoLaunchChanged: _enabled
+                  ? null
+                  : (v) => setState(() => _autoLaunch = v),
+              onPersistChanged: _enabled
+                  ? null
+                  : (v) => setState(() => _persist = v),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(

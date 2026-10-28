@@ -18,9 +18,7 @@ final class SurvivalCounterButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
           SurvivalActionButton(

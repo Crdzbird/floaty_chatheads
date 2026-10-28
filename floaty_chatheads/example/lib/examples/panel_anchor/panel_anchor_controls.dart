@@ -6,10 +6,8 @@ import 'package:flutter/material.dart';
 /// Show button plus expand, collapse and close buttons of the playground.
 final class PanelAnchorControls extends StatelessWidget {
   /// Creates the controls; [onShow] launches the chathead.
-  const factory PanelAnchorControls({
-    required VoidCallback onShow,
-    Key? key,
-  }) = PanelAnchorControls._;
+  const factory PanelAnchorControls({required VoidCallback onShow, Key? key}) =
+      PanelAnchorControls._;
 
   const PanelAnchorControls._({required this.onShow, super.key});
 

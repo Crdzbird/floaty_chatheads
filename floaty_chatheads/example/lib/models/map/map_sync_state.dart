@@ -17,11 +17,11 @@ final class MapSyncState {
 
   /// Decodes a map state from its JSON payload.
   factory MapSyncState.fromJson(Map<String, dynamic> json) => MapSyncState(
-        centerLat: json['centerLat'] as double?,
-        centerLng: json['centerLng'] as double?,
-        zoom: (json['zoom'] as num?)?.toDouble() ?? 13.0,
-        tracking: json['tracking'] as bool? ?? false,
-      );
+    centerLat: json['centerLat'] as double?,
+    centerLng: json['centerLng'] as double?,
+    zoom: (json['zoom'] as num?)?.toDouble() ?? 13.0,
+    tracking: json['tracking'] as bool? ?? false,
+  );
 
   /// Latitude of the map center, if known.
   final double? centerLat;
@@ -37,9 +37,9 @@ final class MapSyncState {
 
   /// Encodes this state as JSON.
   Map<String, dynamic> toJson() => {
-        'centerLat': centerLat,
-        'centerLng': centerLng,
-        'zoom': zoom,
-        'tracking': tracking,
-      };
+    'centerLat': centerLat,
+    'centerLng': centerLng,
+    'zoom': zoom,
+    'tracking': tracking,
+  };
 }

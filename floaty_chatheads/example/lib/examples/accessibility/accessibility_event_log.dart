@@ -28,7 +28,9 @@ final class AccessibilityEventLog extends StatelessWidget {
             'Events from the overlay will appear here.',
             style: TextStyle(color: Colors.grey, fontSize: 12),
           ),
-        ...events.take(15).map(
+        ...events
+            .take(15)
+            .map(
               (e) => Card(
                 child: Padding(
                   padding: const EdgeInsets.all(10),

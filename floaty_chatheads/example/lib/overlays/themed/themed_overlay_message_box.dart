@@ -34,10 +34,7 @@ final class ThemedOverlayMessageBox extends StatelessWidget {
       ),
       child: Text(
         message,
-        style: TextStyle(
-          color: palette.onSurfaceOrDefault,
-          fontSize: 10,
-        ),
+        style: TextStyle(color: palette.onSurfaceOrDefault, fontSize: 10),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),

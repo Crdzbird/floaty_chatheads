@@ -24,10 +24,7 @@ final class TodoSurvivalLogHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
           Text(
@@ -36,10 +33,7 @@ final class TodoSurvivalLogHeader extends StatelessWidget {
           ),
           const Spacer(),
           if (count > 0)
-            TextButton(
-              onPressed: onClear,
-              child: const Text('Clear'),
-            ),
+            TextButton(onPressed: onClear, child: const Text('Clear')),
         ],
       ),
     );

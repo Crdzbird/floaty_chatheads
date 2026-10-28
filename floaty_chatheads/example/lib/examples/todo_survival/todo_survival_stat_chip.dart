@@ -46,10 +46,7 @@ final class TodoSurvivalStatChip extends StatelessWidget {
                 color: color,
               ),
             ),
-            Text(
-              label,
-              style: TextStyle(fontSize: 10, color: color),
-            ),
+            Text(label, style: TextStyle(fontSize: 10, color: color)),
           ],
         ),
       ),

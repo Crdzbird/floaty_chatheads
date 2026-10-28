@@ -24,18 +24,13 @@ final class CheckPlatformName extends Action {
   }) = CheckPlatformName._;
 
   const CheckPlatformName._({
-    bool Function() isAndroid = _platformIsAndroid,
-    bool Function() isIOS = _platformIsIOS,
-    bool Function() isLinux = _platformIsLinux,
-    bool Function() isMacOS = _platformIsMacOS,
-    bool Function() isWindows = _platformIsWindows,
-    bool isWeb = kIsWeb,
-  })  : _isAndroid = isAndroid,
-        _isIOS = isIOS,
-        _isLinux = isLinux,
-        _isMacOS = isMacOS,
-        _isWindows = isWindows,
-        _isWeb = isWeb;
+    this._isAndroid = _platformIsAndroid,
+    this._isIOS = _platformIsIOS,
+    this._isLinux = _platformIsLinux,
+    this._isMacOS = _platformIsMacOS,
+    this._isWindows = _platformIsWindows,
+    this._isWeb = kIsWeb,
+  });
 
   final bool _isWeb;
 
@@ -60,7 +55,7 @@ final class CheckPlatformName extends Action {
   }
 
   @override
-  Future<bool> execute(Tester tester) async {
+  Future<bool> execute(Tester tester) {
     return ExpectVisible(
       text: 'Platform Name: $_expectedPlatformName',
     ).execute(tester);

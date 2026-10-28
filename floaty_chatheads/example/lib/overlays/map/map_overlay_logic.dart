@@ -16,7 +16,8 @@ mixin _MapOverlayLogic on State<MapOverlay> {
     final target = LatLng(action.lat, action.lng);
     setState(() {
       _pinLocation = target;
-      _status = 'Pin ${action.lat.toStringAsFixed(4)}, '
+      _status =
+          'Pin ${action.lat.toStringAsFixed(4)}, '
           '${action.lng.toStringAsFixed(4)}';
     });
     _mapController.move(target, _mapController.camera.zoom);
@@ -42,7 +43,8 @@ mixin _MapOverlayLogic on State<MapOverlay> {
   void _onMapTap(TapPosition tapPosition, LatLng point) {
     setState(() {
       _pinLocation = point;
-      _status = 'Pin ${point.latitude.toStringAsFixed(4)}, '
+      _status =
+          'Pin ${point.latitude.toStringAsFixed(4)}, '
           '${point.longitude.toStringAsFixed(4)}';
     });
     unawaited(
@@ -52,10 +54,7 @@ mixin _MapOverlayLogic on State<MapOverlay> {
 
   Future<void> _requestLocation() async {
     try {
-      final result = await _proxyClient.call(
-        'location',
-        'getCurrentPosition',
-      );
+      final result = await _proxyClient.call('location', 'getCurrentPosition');
       if (result is! Map || !mounted) return;
       final lat = result['lat'] as double?;
       final lng = result['lng'] as double?;
@@ -63,7 +62,8 @@ mixin _MapOverlayLogic on State<MapOverlay> {
       final target = LatLng(lat, lng);
       setState(() {
         _liveLocation = target;
-        _status = 'GPS ${lat.toStringAsFixed(4)}, '
+        _status =
+            'GPS ${lat.toStringAsFixed(4)}, '
             '${lng.toStringAsFixed(4)}';
       });
       _mapController.move(target, _mapController.camera.zoom);

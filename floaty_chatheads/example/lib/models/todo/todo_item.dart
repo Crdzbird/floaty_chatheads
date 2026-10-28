@@ -11,10 +11,10 @@ final class TodoItem {
 
   /// Decodes a task from JSON; a missing `done` means open.
   factory TodoItem.fromJson(Map<String, dynamic> json) => TodoItem(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        done: json['done'] as bool? ?? false,
-      );
+    id: json['id'] as String,
+    title: json['title'] as String,
+    done: json['done'] as bool? ?? false,
+  );
 
   /// Unique id of the task.
   final String id;

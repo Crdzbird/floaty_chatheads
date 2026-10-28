@@ -13,10 +13,10 @@ final class AccelData {
 
   /// Decodes a reading sent over the proxy stream.
   factory AccelData.fromJson(Map<String, dynamic> json) => AccelData(
-        x: (json['x'] as num).toDouble(),
-        y: (json['y'] as num).toDouble(),
-        z: (json['z'] as num).toDouble(),
-      );
+    x: (json['x'] as num).toDouble(),
+    y: (json['y'] as num).toDouble(),
+    z: (json['z'] as num).toDouble(),
+  );
 
   /// Key of the `accel` proxy stream shared by the app and the overlay.
   static final streamKey = StreamKey<AccelData>(

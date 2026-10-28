@@ -45,8 +45,8 @@ final class SensorLightCard extends StatelessWidget {
                           lux < 100
                               ? Colors.grey.shade600
                               : lux < 400
-                                  ? Colors.amber
-                                  : Colors.orange,
+                              ? Colors.amber
+                              : Colors.orange,
                         ),
                       ),
                     ),

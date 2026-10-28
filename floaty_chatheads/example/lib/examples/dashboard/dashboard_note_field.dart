@@ -33,9 +33,7 @@ final class DashboardNoteField extends StatelessWidget {
       maxLines: maxLines,
       decoration: InputDecoration(
         hintText: hint,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,

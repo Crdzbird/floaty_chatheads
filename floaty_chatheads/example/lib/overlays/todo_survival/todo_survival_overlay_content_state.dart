@@ -1,7 +1,8 @@
 part of 'todo_survival_overlay_content.dart';
 
 final class _TodoSurvivalOverlayContentState
-    extends State<TodoSurvivalOverlayContent> with _TodoSurvivalOverlayTasks {
+    extends State<TodoSurvivalOverlayContent>
+    with _TodoSurvivalOverlayTasks {
   String _statsResult = '';
 
   Future<void> _getStats() async {
@@ -13,7 +14,8 @@ final class _TodoSurvivalOverlayContentState
       );
       if (result is Map && mounted) {
         setState(() {
-          _statsResult = '${result['total']} total, ${result['done']} done, '
+          _statsResult =
+              '${result['total']} total, ${result['done']} done, '
               '${result['pending']} pending';
         });
       }

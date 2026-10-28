@@ -7,10 +7,8 @@ import 'package:flutter/material.dart';
 /// the overlay.
 final class TodoSurvivalOverlayBanner extends StatelessWidget {
   /// Creates the banner for the given [connected] state.
-  const factory TodoSurvivalOverlayBanner({
-    required bool connected,
-    Key? key,
-  }) = TodoSurvivalOverlayBanner._;
+  const factory TodoSurvivalOverlayBanner({required bool connected, Key? key}) =
+      TodoSurvivalOverlayBanner._;
 
   const TodoSurvivalOverlayBanner._({required this.connected, super.key});
 
@@ -60,11 +58,7 @@ final class TodoSurvivalOverlayBanner extends StatelessWidget {
           if (connected)
             GestureDetector(
               onTap: () => unawaited(FloatyOverlay.closeOverlay()),
-              child: const Icon(
-                Icons.close,
-                color: Colors.white70,
-                size: 13,
-              ),
+              child: const Icon(Icons.close, color: Colors.white70, size: 13),
             ),
         ],
       ),

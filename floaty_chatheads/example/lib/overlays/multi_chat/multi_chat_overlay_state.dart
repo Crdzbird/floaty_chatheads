@@ -27,9 +27,7 @@ final class _MultiChatOverlayState extends State<MultiChatOverlay> {
     _tapSub = FloatyOverlay.onTapped.listen((id) {
       if (!mounted) return;
       setState(() => _activeId = id);
-      unawaited(
-        FloatyOverlay.shareData({'event': 'switched', 'activeId': id}),
-      );
+      unawaited(FloatyOverlay.shareData({'event': 'switched', 'activeId': id}));
     });
     _dataSub = FloatyOverlay.onData.listen((_) {});
   }

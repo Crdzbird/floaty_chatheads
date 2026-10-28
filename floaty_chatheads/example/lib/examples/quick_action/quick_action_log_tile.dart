@@ -15,7 +15,8 @@ final class QuickActionLogTile extends StatelessWidget {
   /// The logged action.
   final QuickActionLogEntry entry;
 
-  String _formatTime(DateTime t) => '${t.hour.toString().padLeft(2, '0')}:'
+  String _formatTime(DateTime t) =>
+      '${t.hour.toString().padLeft(2, '0')}:'
       '${t.minute.toString().padLeft(2, '0')}:'
       '${t.second.toString().padLeft(2, '0')}';
 

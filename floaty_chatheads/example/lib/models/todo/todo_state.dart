@@ -27,7 +27,7 @@ final class TodoState {
 
   /// Encodes the state as JSON.
   Map<String, dynamic> toJson() => {
-        'items': items.map((e) => e.toJson()).toList(),
-        'label': label,
-      };
+    'items': items.map((e) => e.toJson()).toList(),
+    'label': label,
+  };
 }

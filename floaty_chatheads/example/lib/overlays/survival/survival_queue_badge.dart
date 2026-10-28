@@ -14,28 +14,17 @@ final class SurvivalQueueBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 12,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 4,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.red.shade50,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Colors.red.shade200,
-        ),
+        border: Border.all(color: Colors.red.shade200),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.queue,
-            size: 12,
-            color: Colors.red.shade400,
-          ),
+          Icon(Icons.queue, size: 12, color: Colors.red.shade400),
           const SizedBox(width: 4),
           Text(
             '$count queued',

@@ -27,7 +27,8 @@ mixin _MapExampleSetup on State<MapExample> {
     final target = LatLng(action.lat, action.lng);
     _mapController.move(target, _mapController.camera.zoom);
     setState(() {
-      _status = 'Navigated to ${action.lat.toStringAsFixed(4)}, '
+      _status =
+          'Navigated to ${action.lat.toStringAsFixed(4)}, '
           '${action.lng.toStringAsFixed(4)}';
     });
   }
@@ -37,7 +38,8 @@ mixin _MapExampleSetup on State<MapExample> {
     final target = LatLng(action.lat, action.lng);
     setState(() {
       _pinnedLocation = target;
-      _status = 'Pinned from overlay '
+      _status =
+          'Pinned from overlay '
           '${action.lat.toStringAsFixed(4)}, '
           '${action.lng.toStringAsFixed(4)}';
     });

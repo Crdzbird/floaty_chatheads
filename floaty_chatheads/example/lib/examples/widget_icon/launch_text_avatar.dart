@@ -15,18 +15,12 @@ Future<bool> launchWidgetIconTextAvatar() async {
       backgroundColor: Colors.indigo,
       child: Text(
         'JD',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
     ),
     closeIconWidget: const Icon(Icons.close, color: Colors.white, size: 28),
     closeBackgroundWidget: const DecoratedBox(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.red,
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.red),
       child: SizedBox.expand(),
     ),
     contentWidth: 200,

@@ -25,17 +25,12 @@ final class SurvivalLogList extends StatelessWidget {
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: entries.length,
       itemBuilder: (_, i) => Card(
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Text(
-            entries[i],
-            style: const TextStyle(fontSize: 12),
-          ),
+          child: Text(entries[i], style: const TextStyle(fontSize: 12)),
         ),
       ),
     );

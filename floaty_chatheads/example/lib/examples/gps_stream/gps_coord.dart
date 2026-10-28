@@ -19,11 +19,11 @@ final class GpsCoord {
 
   /// Decodes a coordinate sent over the proxy stream.
   factory GpsCoord.fromJson(Map<String, dynamic> json) => GpsCoord(
-        lat: (json['lat'] as num).toDouble(),
-        lng: (json['lng'] as num).toDouble(),
-        heading: (json['heading'] as num).toDouble(),
-        speed: (json['speed'] as num).toDouble(),
-      );
+    lat: (json['lat'] as num).toDouble(),
+    lng: (json['lng'] as num).toDouble(),
+    heading: (json['heading'] as num).toDouble(),
+    speed: (json['speed'] as num).toDouble(),
+  );
 
   /// Key of the `gps` proxy stream shared by the app and the overlay.
   static final streamKey = StreamKey<GpsCoord>(
@@ -46,9 +46,9 @@ final class GpsCoord {
 
   /// Encodes the coordinate for the proxy stream.
   Map<String, dynamic> toJson() => {
-        'lat': lat,
-        'lng': lng,
-        'heading': heading,
-        'speed': speed,
-      };
+    'lat': lat,
+    'lng': lng,
+    'heading': heading,
+    'speed': speed,
+  };
 }

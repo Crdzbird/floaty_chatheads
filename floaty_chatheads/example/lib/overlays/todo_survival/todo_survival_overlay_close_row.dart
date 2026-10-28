@@ -21,10 +21,7 @@ final class TodoSurvivalOverlayCloseRow extends StatelessWidget {
           GestureDetector(
             onTap: () => unawaited(FloatyOverlay.closeOverlay()),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 5,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(16),

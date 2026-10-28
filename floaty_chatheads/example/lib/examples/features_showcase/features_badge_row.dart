@@ -42,10 +42,7 @@ final class FeaturesBadgeRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        OutlinedButton(
-          onPressed: onClear,
-          child: const Text('Clear'),
-        ),
+        OutlinedButton(onPressed: onClear, child: const Text('Clear')),
       ],
     );
   }

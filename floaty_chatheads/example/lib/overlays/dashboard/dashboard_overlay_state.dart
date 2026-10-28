@@ -28,7 +28,8 @@ final class _DashboardOverlayState extends State<DashboardOverlay> {
     _noteCount++;
     final note = DashboardNote(
       title: 'Note #$_noteCount',
-      body: 'Created from overlay at '
+      body:
+          'Created from overlay at '
           '${TimeOfDay.now().format(context)}.',
       color: Colors.primaries[_noteCount % Colors.primaries.length],
     );

@@ -40,10 +40,10 @@ final class _MiniPlayerExampleState extends State<MiniPlayerExample> {
   }
 
   Future<void> _pushState() => FloatyChatheads.shareData({
-        'title': _currentTrack['title'],
-        'artist': _currentTrack['artist'],
-        'isPlaying': _isPlaying,
-      });
+    'title': _currentTrack['title'],
+    'artist': _currentTrack['artist'],
+    'isPlaying': _isPlaying,
+  });
 
   @override
   Widget build(BuildContext context) {

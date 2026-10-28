@@ -39,10 +39,9 @@ final class MiniPlayerNowPlaying extends StatelessWidget {
         Text(title, style: Theme.of(context).textTheme.headlineSmall),
         Text(
           artist,
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: Colors.grey),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
       ],
     );

@@ -29,10 +29,7 @@ final class ThemedOverlaySendButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 6,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: palette.primaryOrDefault,
           borderRadius: BorderRadius.circular(16),

@@ -61,8 +61,6 @@ mixin _SurvivalWiring on _SurvivalStore {
       _chatheadActive = true;
       _addLog('[reconnected] counter = $_counter');
     });
-    await _kit.setState(
-      SurvivalState(counter: _counter, label: 'Reconnected'),
-    );
+    await _kit.setState(SurvivalState(counter: _counter, label: 'Reconnected'));
   }
 }

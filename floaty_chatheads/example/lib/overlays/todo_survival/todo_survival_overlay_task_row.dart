@@ -57,11 +57,7 @@ final class TodoSurvivalOverlayTaskRow extends StatelessWidget {
           ),
           GestureDetector(
             onTap: onRemove,
-            child: Icon(
-              Icons.close,
-              size: 14,
-              color: Colors.red.shade300,
-            ),
+            child: Icon(Icons.close, size: 14, color: Colors.red.shade300),
           ),
         ],
       ),

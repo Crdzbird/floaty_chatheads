@@ -20,12 +20,7 @@ mixin _TodoSurvivalCommands
     );
     setState(() => _chatheadActive = true);
 
-    await _kit.setState(
-      TodoState(
-        items: _items,
-        label: 'Connected',
-      ),
-    );
+    await _kit.setState(TodoState(items: _items, label: 'Connected'));
   }
 
   void _close() {

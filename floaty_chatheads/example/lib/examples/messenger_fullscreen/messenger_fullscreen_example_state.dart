@@ -33,7 +33,8 @@ final class _MessengerFullscreenExampleState
         children: [
           if (!_chatheadActive)
             const DashboardInfoBanner(
-              text: 'Tap the chat bubble to launch a Messenger-style '
+              text:
+                  'Tap the chat bubble to launch a Messenger-style '
                   'fullscreen chathead overlay.',
             ),
           if (_chatheadActive)
@@ -51,7 +52,8 @@ final class _MessengerFullscreenExampleState
             child: DashboardLogList(
               entries: _log,
               fontSize: 13,
-              emptyText: 'Messages from the overlay will appear here.\n'
+              emptyText:
+                  'Messages from the overlay will appear here.\n'
                   'Use quick replies in the overlay or\n'
                   'send messages from here.',
             ),

@@ -12,8 +12,7 @@ import 'quickstart/quickstart_overlay.dart';
 
 /// Overlay entry point; runs in a separate Flutter engine.
 @pragma('vm:entry-point')
-void overlayMain() => FloatyOverlayApp.run(
-      const FloatyScope(child: QuickstartOverlay()),
-    );
+void overlayMain() =>
+    FloatyOverlayApp.run(const FloatyScope(child: QuickstartOverlay()));
 
 void main() => runApp(const QuickstartApp());

@@ -10,9 +10,9 @@ final class LightData {
 
   /// Decodes a reading sent over the proxy stream.
   factory LightData.fromJson(Map<String, dynamic> json) => LightData(
-        lux: (json['lux'] as num).toDouble(),
-        label: json['label'] as String,
-      );
+    lux: (json['lux'] as num).toDouble(),
+    label: json['label'] as String,
+  );
 
   /// Key of the `light` proxy stream shared by the app and the overlay.
   static final streamKey = StreamKey<LightData>(

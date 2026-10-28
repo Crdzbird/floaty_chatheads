@@ -28,8 +28,8 @@ final class SensorLightMeter extends StatelessWidget {
                 data.lux < 100
                     ? Colors.grey.shade600
                     : data.lux < 400
-                        ? Colors.amber
-                        : Colors.orange,
+                    ? Colors.amber
+                    : Colors.orange,
               ),
             ),
           ),

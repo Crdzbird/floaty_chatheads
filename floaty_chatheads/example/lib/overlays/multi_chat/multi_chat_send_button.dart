@@ -3,10 +3,8 @@ import 'package:flutter/material.dart';
 /// Pill shaped "Send to Main" button of the multi-chat overlay.
 final class MultiChatSendButton extends StatelessWidget {
   /// Creates the button; [onTap] sends the message.
-  const factory MultiChatSendButton({
-    required VoidCallback onTap,
-    Key? key,
-  }) = MultiChatSendButton._;
+  const factory MultiChatSendButton({required VoidCallback onTap, Key? key}) =
+      MultiChatSendButton._;
 
   const MultiChatSendButton._({required this.onTap, super.key});
 

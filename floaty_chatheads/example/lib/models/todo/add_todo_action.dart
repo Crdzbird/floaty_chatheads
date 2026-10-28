@@ -9,14 +9,14 @@ final class AddTodoAction extends FloatyAction {
   const AddTodoAction._({required this.id, required this.title});
 
   /// Decodes the action from its JSON payload.
-  factory AddTodoAction.fromJson(Map<String, dynamic> json) => AddTodoAction(
-        id: json['id'] as String,
-        title: json['title'] as String,
-      );
+  factory AddTodoAction.fromJson(Map<String, dynamic> json) =>
+      AddTodoAction(id: json['id'] as String, title: json['title'] as String);
 
   /// Routing key for this action.
-  static const key =
-      ActionKey<AddTodoAction>('add_todo', AddTodoAction.fromJson);
+  static const key = ActionKey<AddTodoAction>(
+    'add_todo',
+    AddTodoAction.fromJson,
+  );
 
   /// Id of the new task.
   final String id;

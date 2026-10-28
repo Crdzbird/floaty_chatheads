@@ -18,10 +18,7 @@ final class SurvivalInstructions extends StatelessWidget {
         children: [
           Text(
             'How to test:',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
           SizedBox(height: 4),
           Text(

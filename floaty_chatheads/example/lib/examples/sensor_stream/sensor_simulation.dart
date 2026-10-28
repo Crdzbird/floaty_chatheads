@@ -46,8 +46,8 @@ mixin _SensorSimulation on State<SensorStreamExample> {
           label: _lux < 100
               ? 'Dark'
               : _lux < 400
-                  ? 'Indoor'
-                  : 'Bright',
+              ? 'Indoor'
+              : 'Bright',
         ),
       ),
     );

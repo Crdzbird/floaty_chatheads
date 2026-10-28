@@ -16,10 +16,7 @@ final class _AccessibilityOverlayState extends State<AccessibilityOverlay> {
 
   Future<void> _tap() async {
     setState(() => _tapCount++);
-    await FloatyOverlay.shareData({
-      'action': 'tap',
-      'count': _tapCount,
-    });
+    await FloatyOverlay.shareData({'action': 'tap', 'count': _tapCount});
   }
 
   @override

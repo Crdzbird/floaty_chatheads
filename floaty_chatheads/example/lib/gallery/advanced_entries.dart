@@ -76,7 +76,8 @@ const advancedEntries = <GalleryEntry>[
   ),
   GalleryEntry(
     title: 'Panel Anchor Playground',
-    description: 'NEW in 2.1.0: open the panel below, above, or auto-flip, '
+    description:
+        'NEW in 2.1.0: open the panel below, above, or auto-flip, '
         'with live position reporting and anchored resize.',
     icon: Icons.swap_vert,
     color: Colors.pink,

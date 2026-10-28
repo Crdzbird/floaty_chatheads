@@ -23,9 +23,8 @@ final class QuickstartOverlay extends StatelessWidget {
             Text('Last message: ${scope.lastMessage ?? "none"}'),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => unawaited(
-                FloatyOverlay.shareData('Hello from overlay!'),
-              ),
+              onPressed: () =>
+                  unawaited(FloatyOverlay.shareData('Hello from overlay!')),
               child: const Text('Send to app'),
             ),
             const SizedBox(height: 8),

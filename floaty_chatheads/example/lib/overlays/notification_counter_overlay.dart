@@ -22,9 +22,8 @@ final class NotificationCounterOverlay extends StatelessWidget {
       initialState: 0,
       onData: (count, data) =>
           data is Map && data['count'] is int ? data['count'] as int : count,
-      onInit: () => unawaited(
-        FloatyOverlay.shareData({'action': 'requestState'}),
-      ),
+      onInit: () =>
+          unawaited(FloatyOverlay.shareData({'action': 'requestState'})),
       builder: (context, count) => CounterBadge(count: count),
     );
   }

@@ -37,10 +37,7 @@ final class TodoSurvivalOverlayTaskList extends StatelessWidget {
         child: Text(
           'No tasks yet.\nTap + to add one!',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey,
-          ),
+          style: TextStyle(fontSize: 11, color: Colors.grey),
         ),
       );
     }

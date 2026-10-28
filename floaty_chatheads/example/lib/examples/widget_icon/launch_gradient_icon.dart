@@ -24,11 +24,7 @@ Future<bool> launchWidgetIconGradient() async {
         child: Icon(Icons.phone, color: Colors.white, size: 36),
       ),
     ),
-    closeIconWidget: const Icon(
-      Icons.cancel,
-      color: Colors.white,
-      size: 32,
-    ),
+    closeIconWidget: const Icon(Icons.cancel, color: Colors.white, size: 32),
     closeBackgroundWidget: Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,

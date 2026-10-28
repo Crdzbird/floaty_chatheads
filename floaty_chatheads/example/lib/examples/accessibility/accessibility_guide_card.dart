@@ -18,10 +18,7 @@ final class AccessibilityGuideCard extends StatelessWidget {
           children: [
             Text(
               'TalkBack Testing Guide',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             SizedBox(height: 8),
             Text(

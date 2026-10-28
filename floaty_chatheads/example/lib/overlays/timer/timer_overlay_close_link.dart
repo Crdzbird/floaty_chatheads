@@ -16,10 +16,7 @@ final class TimerOverlayCloseLink extends StatelessWidget {
       onTap: () => unawaited(FloatyOverlay.closeOverlay()),
       child: Text(
         'Close',
-        style: TextStyle(
-          color: Colors.grey.shade500,
-          fontSize: 10,
-        ),
+        style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
       ),
     );
   }

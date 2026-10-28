@@ -17,9 +17,7 @@ mixin _SurvivalControls on _SurvivalStore {
       entranceAnimation: EntranceAnimation.pop,
     );
     setState(() => _chatheadActive = true);
-    await _kit.setState(
-      SurvivalState(counter: _counter, label: 'Connected'),
-    );
+    await _kit.setState(SurvivalState(counter: _counter, label: 'Connected'));
   }
 
   void _close() {
@@ -37,9 +35,7 @@ mixin _SurvivalControls on _SurvivalStore {
     setState(() => _addLog('[main +1] counter = $_counter'));
     unawaited(_persistCounter());
     unawaited(
-      _kit.setState(
-        SurvivalState(counter: _counter, label: 'Main increment'),
-      ),
+      _kit.setState(SurvivalState(counter: _counter, label: 'Main increment')),
     );
   }
 

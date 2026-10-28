@@ -33,9 +33,7 @@ final class MapExampleStatusBar extends StatelessWidget {
         children: [
           Icon(Icons.info_outline, size: 16, color: Colors.green.shade400),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(status, style: const TextStyle(fontSize: 12)),
-          ),
+          Expanded(child: Text(status, style: const TextStyle(fontSize: 12))),
           if (simulated) const MapExampleSimBadge(),
         ],
       ),

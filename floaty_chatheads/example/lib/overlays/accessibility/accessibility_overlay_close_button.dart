@@ -28,10 +28,7 @@ final class AccessibilityOverlayCloseButton extends StatelessWidget {
           child: Text(
             'Close',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.grey.shade700,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
           ),
         ),
       ),

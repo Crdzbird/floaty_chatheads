@@ -9,11 +9,7 @@ final class GpsLogHeader extends StatelessWidget {
     Key? key,
   }) = GpsLogHeader._;
 
-  const GpsLogHeader._({
-    required this.count,
-    required this.onClear,
-    super.key,
-  });
+  const GpsLogHeader._({required this.count, required this.onClear, super.key});
 
   /// Number of log entries.
   final int count;

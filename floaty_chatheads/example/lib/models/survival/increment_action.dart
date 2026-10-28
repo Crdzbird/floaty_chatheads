@@ -12,8 +12,10 @@ final class IncrementAction extends FloatyAction {
       IncrementAction(amount: json['amount'] as int);
 
   /// Routing key for this action type.
-  static const key =
-      ActionKey<IncrementAction>('increment', IncrementAction.fromJson);
+  static const key = ActionKey<IncrementAction>(
+    'increment',
+    IncrementAction.fromJson,
+  );
 
   /// How much to add to the counter.
   final int amount;

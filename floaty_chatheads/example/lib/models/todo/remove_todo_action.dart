@@ -12,8 +12,10 @@ final class RemoveTodoAction extends FloatyAction {
       RemoveTodoAction(id: json['id'] as String);
 
   /// Routing key for this action.
-  static const key =
-      ActionKey<RemoveTodoAction>('remove_todo', RemoveTodoAction.fromJson);
+  static const key = ActionKey<RemoveTodoAction>(
+    'remove_todo',
+    RemoveTodoAction.fromJson,
+  );
 
   /// Id of the task to remove.
   final String id;

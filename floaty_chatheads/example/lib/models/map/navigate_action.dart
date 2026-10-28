@@ -9,14 +9,14 @@ final class NavigateAction extends FloatyAction {
   const NavigateAction._({required this.lat, required this.lng});
 
   /// Decodes a navigate action from its JSON payload.
-  factory NavigateAction.fromJson(Map<String, dynamic> json) => NavigateAction(
-        lat: json['lat'] as double,
-        lng: json['lng'] as double,
-      );
+  factory NavigateAction.fromJson(Map<String, dynamic> json) =>
+      NavigateAction(lat: json['lat'] as double, lng: json['lng'] as double);
 
   /// Routing key for navigate actions.
-  static const key =
-      ActionKey<NavigateAction>('navigate', NavigateAction.fromJson);
+  static const key = ActionKey<NavigateAction>(
+    'navigate',
+    NavigateAction.fromJson,
+  );
 
   /// Target latitude.
   final double lat;

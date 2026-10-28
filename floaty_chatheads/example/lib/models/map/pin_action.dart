@@ -9,10 +9,8 @@ final class PinAction extends FloatyAction {
   const PinAction._({required this.lat, required this.lng});
 
   /// Decodes a pin action from its JSON payload.
-  factory PinAction.fromJson(Map<String, dynamic> json) => PinAction(
-        lat: json['lat'] as double,
-        lng: json['lng'] as double,
-      );
+  factory PinAction.fromJson(Map<String, dynamic> json) =>
+      PinAction(lat: json['lat'] as double, lng: json['lng'] as double);
 
   /// Routing key for pin actions.
   static const key = ActionKey<PinAction>('pin', PinAction.fromJson);

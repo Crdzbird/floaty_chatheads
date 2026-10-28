@@ -16,13 +16,11 @@ final class GalleryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Floaty Chathead Examples'),
-      ),
+      appBar: AppBar(title: const Text('Floaty Chathead Examples')),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: _entries.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (_, index) => GalleryTile(entry: _entries[index]),
       ),
     );

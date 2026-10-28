@@ -15,11 +15,7 @@ final class MessengerHintBanner extends StatelessWidget {
       color: Colors.indigo.shade50,
       child: Row(
         children: [
-          Icon(
-            Icons.info_outline,
-            size: 16,
-            color: Colors.indigo.shade400,
-          ),
+          Icon(Icons.info_outline, size: 16, color: Colors.indigo.shade400),
           const SizedBox(width: 8),
           const Expanded(
             child: Text(

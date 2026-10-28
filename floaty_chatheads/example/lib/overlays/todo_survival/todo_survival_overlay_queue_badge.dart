@@ -8,10 +8,7 @@ final class TodoSurvivalOverlayQueueBadge extends StatelessWidget {
     Key? key,
   }) = TodoSurvivalOverlayQueueBadge._;
 
-  const TodoSurvivalOverlayQueueBadge._({
-    required this.queueCount,
-    super.key,
-  });
+  const TodoSurvivalOverlayQueueBadge._({required this.queueCount, super.key});
 
   /// Number of queued actions.
   final int queueCount;
@@ -20,10 +17,7 @@ final class TodoSurvivalOverlayQueueBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.red.shade50,
         borderRadius: BorderRadius.circular(8),
@@ -32,11 +26,7 @@ final class TodoSurvivalOverlayQueueBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.queue,
-            size: 12,
-            color: Colors.red.shade400,
-          ),
+          Icon(Icons.queue, size: 12, color: Colors.red.shade400),
           const SizedBox(width: 4),
           Text(
             '$queueCount queued',

@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 /// accessibility overlay content.
 final class AccessibilityOverlayFrame extends StatelessWidget {
   /// Creates the frame around [child].
-  const factory AccessibilityOverlayFrame({
-    required Widget child,
-    Key? key,
-  }) = AccessibilityOverlayFrame._;
+  const factory AccessibilityOverlayFrame({required Widget child, Key? key}) =
+      AccessibilityOverlayFrame._;
 
   const AccessibilityOverlayFrame._({required this.child, super.key});
 
@@ -30,10 +28,7 @@ final class AccessibilityOverlayFrame extends StatelessWidget {
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: child,
-        ),
+        child: Padding(padding: const EdgeInsets.all(16), child: child),
       ),
     );
   }

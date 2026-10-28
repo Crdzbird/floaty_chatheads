@@ -40,7 +40,7 @@ mixin _TimerOverlayLogic on State<TimerOverlay> {
   }
 
   Future<void> _pushState() => FloatyOverlay.shareData({
-        'elapsed': _stopwatch.elapsedMilliseconds,
-        'isRunning': _stopwatch.isRunning,
-      });
+    'elapsed': _stopwatch.elapsedMilliseconds,
+    'isRunning': _stopwatch.isRunning,
+  });
 }

@@ -16,10 +16,7 @@ final class AutoLaunchInstructions extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'How to test',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('How to test', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             const Text(
               '1. Toggle the switches above and tap Enable.\n'

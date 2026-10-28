@@ -12,8 +12,10 @@ final class ToggleTodoAction extends FloatyAction {
       ToggleTodoAction(id: json['id'] as String);
 
   /// Routing key for this action.
-  static const key =
-      ActionKey<ToggleTodoAction>('toggle_todo', ToggleTodoAction.fromJson);
+  static const key = ActionKey<ToggleTodoAction>(
+    'toggle_todo',
+    ToggleTodoAction.fromJson,
+  );
 
   /// Id of the task to toggle.
   final String id;

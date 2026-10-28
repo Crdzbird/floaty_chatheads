@@ -36,9 +36,7 @@ mixin _TodoSurvivalKit on State<TodoSurvivalExample>, _TodoSurvivalStore {
   }
 
   void _syncToOverlay(String label) {
-    unawaited(
-      _kit.setState(TodoState(items: _items, label: label)),
-    );
+    unawaited(_kit.setState(TodoState(items: _items, label: label)));
   }
 
   Future<void> _restoreAndReconnect() async {
@@ -63,11 +61,6 @@ mixin _TodoSurvivalKit on State<TodoSurvivalExample>, _TodoSurvivalStore {
       _chatheadActive = true;
       _addLog('[reconnected] ${_items.length} tasks restored');
     });
-    await _kit.setState(
-      TodoState(
-        items: _items,
-        label: 'Reconnected',
-      ),
-    );
+    await _kit.setState(TodoState(items: _items, label: 'Reconnected'));
   }
 }

@@ -51,7 +51,8 @@ mixin _MapExampleActions on State<MapExample>, _MapExampleSetup {
   void _onMapTap(TapPosition tapPosition, LatLng point) {
     setState(() {
       _pinnedLocation = point;
-      _status = 'Pinned at ${point.latitude.toStringAsFixed(4)}, '
+      _status =
+          'Pinned at ${point.latitude.toStringAsFixed(4)}, '
           '${point.longitude.toStringAsFixed(4)}';
     });
     unawaited(

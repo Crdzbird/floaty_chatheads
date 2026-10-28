@@ -29,9 +29,7 @@ final class SurvivalCounterDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 12,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         children: [
           Text(
@@ -42,13 +40,7 @@ final class SurvivalCounterDisplay extends StatelessWidget {
               color: connected ? Colors.deepOrange : Colors.grey,
             ),
           ),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-            ),
-          ),
+          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
         ],
       ),
     );

@@ -32,7 +32,8 @@ final class _DashboardExampleState extends State<DashboardExample>
         children: [
           if (!_chatheadActive)
             const DashboardInfoBanner(
-              text: 'Tap the dashboard icon in the app bar to launch '
+              text:
+                  'Tap the dashboard icon in the app bar to launch '
                   'a near-fullscreen scrollable overlay.',
             ),
           if (_chatheadActive)
@@ -51,7 +52,8 @@ final class _DashboardExampleState extends State<DashboardExample>
             child: DashboardLogList(
               entries: _log,
               fontSize: 12,
-              emptyText: 'Events from the overlay will appear here.\n'
+              emptyText:
+                  'Events from the overlay will appear here.\n'
                   'Add or remove notes in the overlay to see events.',
             ),
           ),

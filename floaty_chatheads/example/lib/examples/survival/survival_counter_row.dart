@@ -17,17 +17,11 @@ final class SurvivalCounterRow extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          Icon(
-            Icons.tag,
-            color: Colors.deepOrange.shade300,
-          ),
+          Icon(Icons.tag, color: Colors.deepOrange.shade300),
           const SizedBox(width: 8),
           Text(
             'Counter: $counter',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         ],
       ),

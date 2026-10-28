@@ -26,7 +26,7 @@ final class PulsingLocationRing extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: animation,
-      builder: (_, __) {
+      builder: (_, _) {
         final scale = 1.0 + animation.value * 0.8;
         final opacity = 1.0 - animation.value;
         return Transform.scale(

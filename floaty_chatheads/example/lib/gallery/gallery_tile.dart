@@ -26,9 +26,9 @@ final class GalleryTile extends StatelessWidget {
         subtitle: Text(entry.description),
         trailing: const Icon(Icons.chevron_right),
         onTap: () async {
-          await Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => entry.page),
-          );
+          await Navigator.of(
+            context,
+          ).push(MaterialPageRoute<void>(builder: (_) => entry.page));
         },
       ),
     );

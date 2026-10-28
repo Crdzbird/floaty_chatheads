@@ -7,9 +7,9 @@ final class SurvivalState {
 
   /// Decodes a state from its JSON form.
   factory SurvivalState.fromJson(Map<String, dynamic> json) => SurvivalState(
-        counter: json['counter'] as int? ?? 0,
-        label: json['label'] as String? ?? 'Ready',
-      );
+    counter: json['counter'] as int? ?? 0,
+    label: json['label'] as String? ?? 'Ready',
+  );
 
   /// The shared counter value.
   final int counter;
@@ -18,8 +18,5 @@ final class SurvivalState {
   final String label;
 
   /// Encodes this state as JSON.
-  Map<String, dynamic> toJson() => {
-        'counter': counter,
-        'label': label,
-      };
+  Map<String, dynamic> toJson() => {'counter': counter, 'label': label};
 }

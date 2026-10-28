@@ -35,8 +35,9 @@ final class FullscreenMessageBubble extends StatelessWidget {
         right: msg.isMe ? 0 : 48,
       ),
       child: Row(
-        mainAxisAlignment:
-            msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: msg.isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!msg.isMe)
