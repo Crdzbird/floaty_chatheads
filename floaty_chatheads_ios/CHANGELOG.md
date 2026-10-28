@@ -21,6 +21,7 @@
   cannot be started instead of succeeding silently.
 - Deployment target 15.0; `Package.swift` declares the `FlutterFramework`
   dependency. Pigeon 29 with completion-style signatures.
+- `FloatyChatheadsIOS` is now `final`.
 - Minimum Flutter 3.44 / Dart 3.12.
 
 ## 2.1.0

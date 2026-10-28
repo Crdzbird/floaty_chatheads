@@ -79,6 +79,23 @@
   `shared_preferences`, `path_provider` and friends work inside the
   overlay isolate.
 
+### API shape
+
+- Public classes that were never meant to be extended are now `final`:
+  `AnimatedWidgetIcon`, `StreamKey`, `ActionKey`, `ChatHeadDragEvent`,
+  `OverlayColorPalette`, `FloatyScopeData`, `FloatySimplePanel`,
+  `FloatyMiniPlayer`, `FloatyNotificationCard`, `FloatyNotificationAction`,
+  `FakeOverlayDataSource`, and the concrete `FloatyProxyTimeoutException`,
+  `FloatyProxyDisconnectedException` and `FloatyProxyErrorException`.
+  Constructing them is unchanged. `FloatyAction`, `FloatyProxyException`
+  and `FakeFloatyPlatform` stay open for subclassing.
+- `FloatyOverlay` no longer implements the generated
+  `FloatyOverlayFlutterApi`. Code that only calls its static members is
+  unaffected.
+- `FloatyProxyClient.call` now waits for the request to be sent, so a
+  send failure reaches the caller as a failed Future instead of being
+  dropped.
+
 ### Toolchain
 
 - Flutter 3.44+ / Dart 3.12+; Pigeon 29; very_good_analysis 11.
@@ -100,6 +117,8 @@
 5. Overlay entry points must call `FloatyOverlay.setUp()`.
    `FloatyOverlayApp.run` already does. If yours deliberately does not,
    pass `readyTimeout: Duration.zero` to `Floaty.show`.
+6. Classes you extended or implemented that are now `final` (see API
+   shape) must be wrapped or composed instead.
 
 ## 2.1.0
 

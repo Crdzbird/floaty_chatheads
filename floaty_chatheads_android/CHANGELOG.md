@@ -32,6 +32,7 @@
 - Built-in Kotlin: no Kotlin Gradle Plugin is applied; `kotlin {}`
   compiler options, Java 17. AGP 9.4, compileSdk 36, androidx.core 1.18,
   Material 1.14. Pigeon 29 with callback-style native signatures.
+- `FloatyChatheadsAndroid` is now `final`.
 - Minimum Flutter 3.44 / Dart 3.12.
 
 ## 2.1.0

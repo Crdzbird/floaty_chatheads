@@ -13,6 +13,11 @@
 - `FloatyChatheadsPlatform.supportsNativeIcons` lets implementations
   whose bubble is a Flutter view skip native icon frames.
 - `FloatyChannels.envelope`, `ping` and `pong` constants.
+- `ChatHeadConfig`, `AddChatHeadConfig`, `ChatHeadAssets`,
+  `ChatHeadTheme`, `NotificationConfig`, `OverlayPosition`, `SnapConfig`
+  and `MethodChannelFloatyChatheads` are now `final`. Their constructors
+  take the same arguments as before. `FloatyChatheadsPlatform` stays
+  extendable for platform implementations.
 - Minimum Flutter 3.44 / Dart 3.12.
 
 ## 2.1.0
