@@ -10,10 +10,10 @@ Future<Object?> _deliver(Object? data) async {
   Object? reply;
   await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .handlePlatformMessage(
-    FloatyChannels.messenger,
-    _codec.encodeMessage(data),
-    (bytes) => reply = _codec.decodeMessage(bytes),
-  );
+        FloatyChannels.messenger,
+        _codec.encodeMessage(data),
+        (bytes) => reply = _codec.decodeMessage(bytes),
+      );
   await Future<void>.delayed(Duration.zero);
   return reply;
 }
