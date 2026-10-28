@@ -9,9 +9,9 @@
 ///
 /// Exports:
 ///
-/// - `FloatyActionRouter` — typed action dispatch
-/// - `FloatyStateChannel` — bidirectional state sync
-/// - `FloatyProxyHost` / `FloatyProxyClient` — RPC with response
+/// - `FloatyActionRouter`: typed action dispatch
+/// - `FloatyStateChannel`: bidirectional state sync
+/// - `FloatyProxyHost` / `FloatyProxyClient`: RPC with response
 ///
 /// `FloatyProxyStream`, `FloatyMessenger`, `FloatyConnectionState`,
 /// `FloatyAction`, `ActionKey`, and `StreamKey` stay in the main barrel

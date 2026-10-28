@@ -3,51 +3,42 @@ import 'dart:async';
 import 'package:floaty_chatheads/src/floaty_action_router.dart';
 import 'package:floaty_chatheads/src/floaty_kit.dart';
 import 'package:floaty_chatheads/src/floaty_overlay.dart';
+import 'package:floaty_chatheads/src/overlay_scope/floaty_overlay_scope_builder.dart';
 import 'package:flutter/widgets.dart';
 
-/// {@template floaty_overlay_scope}
-/// A reactive scope widget that combines [FloatyOverlayKit] with automatic
-/// stream management, removing **all** boilerplate from overlay widgets.
-///
-/// Instead of manually creating a kit, subscribing to streams, and
-/// disposing everything in three lifecycle methods, wrap your overlay
-/// content in a single [FloatyOverlayScope]:
+part 'overlay_scope/floaty_overlay_scope_inherited.dart';
+part 'overlay_scope/floaty_overlay_scope_state.dart';
+
+/// A reactive scope that owns a [FloatyOverlayKit] and rebuilds [builder]
+/// on every state or connection change:
 ///
 /// ```dart
-/// @pragma('vm:entry-point')
-/// void overlayMain() => FloatyOverlayApp.run(
-///   FloatyOverlayScope<MyState>(
-///     stateToJson: (s) => s.toJson(),
-///     stateFromJson: MyState.fromJson,
-///     initialState: MyState(),
-///     builder: (context, kit, state, connected) {
-///       return Column(children: [
-///         Text(connected ? 'Online' : 'Offline'),
-///         Text('Counter: ${state.counter}'),
-///         ElevatedButton(
-///           onPressed: () => kit.dispatch(IncrementAction(amount: 1)),
-///           child: Text('+1 (queued: ${kit.queueLength})'),
-///         ),
-///       ]);
-///     },
-///   ),
-/// );
+/// FloatyOverlayScope<MyState>(
+///   stateToJson: (s) => s.toJson(),
+///   stateFromJson: MyState.fromJson,
+///   initialState: MyState(),
+///   builder: (context, kit, state, connected) =>
+///       Text(connected ? 'Counter: ${state.counter}' : 'Offline'),
+/// )
 /// ```
 ///
-/// The scope:
-///
-/// - Creates and owns a [FloatyOverlayKit] instance.
-/// - Calls [FloatyOverlay.setUp] automatically.
-/// - Subscribes to [FloatyOverlayKit.onStateChanged] and
-///   [FloatyOverlayKit.onConnectionChanged].
-/// - Rebuilds the [builder] whenever state or connection changes.
-/// - Disposes the kit, subscriptions, and [FloatyOverlay] on unmount.
-///
-/// Access the kit from any descendant via [FloatyOverlayScope.of].
-/// {@endtemplate}
+/// The scope calls [FloatyOverlay.setUp], and on unmount disposes the
+/// kit, its subscriptions and [FloatyOverlay]. Descendants reach the kit
+/// through [FloatyOverlayScope.of].
 final class FloatyOverlayScope<S> extends StatefulWidget {
-  /// {@macro floaty_overlay_scope}
-  const FloatyOverlayScope({
+  /// Creates a scope starting from [initialState].
+  const factory FloatyOverlayScope({
+    required Map<String, dynamic> Function(S state) stateToJson,
+    required S Function(Map<String, dynamic> json) stateFromJson,
+    required S initialState,
+    required FloatyOverlayScopeBuilder<S, bool> builder,
+    int maxQueueSize,
+    QueueOverflowStrategy overflowStrategy,
+    Duration proxyTimeout,
+    Key? key,
+  }) = FloatyOverlayScope<S>._;
+
+  const FloatyOverlayScope._({
     required this.stateToJson,
     required this.stateFromJson,
     required this.initialState,
@@ -76,111 +67,27 @@ final class FloatyOverlayScope<S> extends StatefulWidget {
   /// Timeout for proxy service calls.
   final Duration proxyTimeout;
 
-  /// Builder that receives the kit, current state, and connection status.
-  ///
-  /// Rebuilds automatically whenever the state or connection changes.
-  final Widget Function(
-    BuildContext context,
-    FloatyOverlayKit<S> kit,
-    S state,
-    // ignore: avoid_positional_boolean_parameters, builder callback
-    bool connected,
-  ) builder;
+  /// Builds the overlay from the kit, current state and connection status.
+  final FloatyOverlayScopeBuilder<S, bool> builder;
 
-  /// Returns the [FloatyOverlayKit] from the nearest ancestor
-  /// [FloatyOverlayScope].
-  ///
-  /// Throws if no scope is found in the widget tree.
+  /// Returns the kit of the nearest [FloatyOverlayScope] ancestor; asserts
+  /// that one exists.
   static FloatyOverlayKit<T> of<T>(BuildContext context) {
-    final inherited = context
-        .dependOnInheritedWidgetOfExactType<_FloatyOverlayScopeInherited<T>>();
+    final kit = maybeOf<T>(context);
     assert(
-      inherited != null,
+      kit != null,
       'FloatyOverlayScope.of<$T>() called without a '
       'FloatyOverlayScope<$T> ancestor.',
     );
-    return inherited!.kit;
+    return kit!;
   }
 
-  /// Returns the [FloatyOverlayKit] from the nearest ancestor
-  /// [FloatyOverlayScope], or `null` if none is found.
-  static FloatyOverlayKit<T>? maybeOf<T>(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<_FloatyOverlayScopeInherited<T>>()
-        ?.kit;
-  }
+  /// Returns the kit of the nearest [FloatyOverlayScope] ancestor, or
+  /// `null` if none is found.
+  static FloatyOverlayKit<T>? maybeOf<T>(BuildContext context) => context
+      .dependOnInheritedWidgetOfExactType<_FloatyOverlayScopeInherited<T>>()
+      ?.kit;
 
   @override
   State<FloatyOverlayScope<S>> createState() => _FloatyOverlayScopeState<S>();
-}
-
-class _FloatyOverlayScopeState<S> extends State<FloatyOverlayScope<S>> {
-  late final FloatyOverlayKit<S> _kit;
-  late S _state;
-  late bool _connected;
-
-  StreamSubscription<S>? _stateSub;
-  StreamSubscription<bool>? _connSub;
-
-  @override
-  void initState() {
-    super.initState();
-    FloatyOverlay.setUp();
-
-    _kit = FloatyOverlayKit<S>(
-      stateToJson: widget.stateToJson,
-      stateFromJson: widget.stateFromJson,
-      initialState: widget.initialState,
-      maxQueueSize: widget.maxQueueSize,
-      overflowStrategy: widget.overflowStrategy,
-      proxyTimeout: widget.proxyTimeout,
-    );
-
-    _state = widget.initialState;
-    _connected = _kit.isConnected;
-
-    _stateSub = _kit.onStateChanged.listen((state) {
-      if (mounted) setState(() => _state = state);
-    });
-
-    _connSub = _kit.onConnectionChanged.listen((connected) {
-      if (mounted) setState(() => _connected = connected);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _FloatyOverlayScopeInherited<S>(
-      kit: _kit,
-      child: widget.builder(context, _kit, _state, _connected),
-    );
-  }
-
-  @override
-  void dispose() {
-    unawaited(_tearDown());
-    super.dispose();
-  }
-
-  Future<void> _tearDown() async {
-    await Future.wait([
-      if (_stateSub != null) _stateSub!.cancel(),
-      if (_connSub != null) _connSub!.cancel(),
-      _kit.dispose(),
-    ]);
-    FloatyOverlay.dispose();
-  }
-}
-
-class _FloatyOverlayScopeInherited<S> extends InheritedWidget {
-  const _FloatyOverlayScopeInherited({
-    required this.kit,
-    required super.child,
-  });
-
-  final FloatyOverlayKit<S> kit;
-
-  @override
-  bool updateShouldNotify(_FloatyOverlayScopeInherited<S> oldWidget) =>
-      !identical(kit, oldWidget.kit);
 }

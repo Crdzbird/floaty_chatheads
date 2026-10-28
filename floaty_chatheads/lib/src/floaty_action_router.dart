@@ -1,173 +1,42 @@
 import 'dart:async';
 
+import 'package:floaty_chatheads/src/actions/action_key.dart';
+import 'package:floaty_chatheads/src/actions/floaty_action.dart';
+import 'package:floaty_chatheads/src/actions/floaty_action_handlers.dart';
+import 'package:floaty_chatheads/src/actions/floaty_action_queue.dart';
+import 'package:floaty_chatheads/src/actions/queue_overflow_strategy.dart';
 import 'package:floaty_chatheads/src/floaty_channel.dart';
 import 'package:floaty_chatheads/src/floaty_connection_state.dart';
-import 'package:flutter/foundation.dart' show immutable;
 
-/// {@template floaty_action}
-/// Base class for typed actions dispatched between main app and overlay.
-///
-/// Subclass this to define your own action types:
-///
-/// ```dart
-/// class PinAction extends FloatyAction {
-///   PinAction({required this.lat, required this.lng});
-///   final double lat;
-///   final double lng;
-///
-///   @override
-///   String get type => 'pin';
-///
-///   @override
-///   Map<String, dynamic> toJson() => {'lat': lat, 'lng': lng};
-///
-///   factory PinAction.fromJson(Map<String, dynamic> json) =>
-///       PinAction(lat: json['lat'] as double, lng: json['lng'] as double);
-/// }
-/// ```
-/// {@endtemplate}
-abstract class FloatyAction {
-  /// {@macro floaty_action}
-  const FloatyAction();
+export 'package:floaty_chatheads/src/actions/action_key.dart';
+export 'package:floaty_chatheads/src/actions/floaty_action.dart';
+export 'package:floaty_chatheads/src/actions/queue_overflow_strategy.dart';
 
-  /// Unique type string used for routing (e.g. `'pin'`, `'navigate'`).
-  String get type;
-
-  /// Serializes the action payload to a JSON-compatible map.
-  Map<String, dynamic> toJson();
-}
-
-/// {@template action_key}
-/// Compile-time link between an action [type] string and its payload
-/// class [A].
-///
-/// Defining a key as a `static const` on the action class colocates the
-/// routing string with the type that owns it, so `router.on` calls
-/// can't pair the wrong `fromJson` with the wrong handler:
-///
-/// ```dart
-/// class PinAction extends FloatyAction {
-///   PinAction({required this.lat, required this.lng});
-///   final double lat;
-///   final double lng;
-///
-///   static const key = ActionKey<PinAction>('pin', PinAction.fromJson);
-///
-///   factory PinAction.fromJson(Map<String, dynamic> json) =>
-///       PinAction(lat: json['lat'] as double, lng: json['lng'] as double);
-///
-///   @override
-///   String get type => key.type;
-///
-///   @override
-///   Map<String, dynamic> toJson() => {'lat': lat, 'lng': lng};
-/// }
-///
-/// router.on(PinAction.key, (a) => setPin(a.lat, a.lng));
-/// ```
-/// {@endtemplate}
-@immutable
-class ActionKey<A extends FloatyAction> {
-  /// {@macro action_key}
-  const ActionKey(this.type, this.fromJson);
-
-  /// Unique type string carried in the wire envelope.
-  final String type;
-
-  /// Deserializes the JSON payload back into an [A].
-  final A Function(Map<String, dynamic> json) fromJson;
-}
-
-/// A registered action handler entry.
-///
-/// The [handle] method deserializes and dispatches within the generic
-/// context where [A] is known, avoiding runtime type errors when stored
-/// in a `Map<String, _HandlerEntry<dynamic>>`.
-class _HandlerEntry<A extends FloatyAction> {
-  _HandlerEntry({required this.fromJson, required this.handler});
-
-  final A Function(Map<String, dynamic> json) fromJson;
-  final FutureOr<void> Function(A action) handler;
-
-  /// Deserializes [payload] and calls [handler] in a type-safe context.
-  FutureOr<void> handle(Map<String, dynamic> payload) {
-    final action = fromJson(payload);
-    return handler(action);
-  }
-}
-
-/// Strategy for handling queue overflow when the maximum queue size
-/// is reached while the main app is disconnected.
-enum QueueOverflowStrategy {
-  /// Drop the oldest queued action to make room for the new one.
-  dropOldest,
-
-  /// Drop the newest (incoming) action when the queue is full.
-  dropNewest,
-}
-
-/// {@template floaty_action_router}
-/// A typed action dispatch system that replaces manual string-key
-/// matching.
-///
-/// Define an [ActionKey] as a `static const` on each action class, then
-/// register handlers by passing the key. The type parameter ensures the
-/// handler is invoked with the correct payload type.
-///
-/// **Main app side:**
-///
-/// ```dart
-/// final router = FloatyActionRouter();
-///
-/// router.on(
-///   NavigateAction.key,
-///   (action) => mapController.move(action.target, zoom),
-/// );
-///
-/// // Dispatch an action to the overlay.
-/// router.dispatch(PinAction(lat: 12.0, lng: -86.0));
-/// ```
-///
-/// **Overlay side:**
-///
-/// ```dart
-/// final router = FloatyActionRouter.overlay();
-///
-/// router.on(
-///   PinAction.key,
-///   (action) => setState(() => pin = action),
-/// );
-/// ```
-///
-/// Actions coexist with raw `shareData` messages — they use a reserved
-/// `_floaty_action` prefix and do not interfere with existing data
-/// streams.
-///
-/// **Offline queueing (overlay only):**
-///
-/// When the main app is disconnected, dispatched actions are queued
-/// and automatically flushed upon reconnection. Control queue behavior
-/// with [maxQueueSize] and [overflowStrategy].
-/// {@endtemplate}
+/// Typed action dispatch between the main app and the overlay: register
+/// handlers with [on] and an [ActionKey], send actions with [dispatch].
+/// On the overlay side, actions are queued while the main app is away.
 final class FloatyActionRouter {
-  /// {@template floaty_action_router.main}
-  /// Creates an action router for the **main app** side.
-  /// {@endtemplate}
-  FloatyActionRouter({
+  /// Creates an action router for the main app side.
+  factory FloatyActionRouter({
+    int maxQueueSize,
+    QueueOverflowStrategy overflowStrategy,
+  }) = FloatyActionRouter._main;
+
+  /// Creates an action router for the overlay side, queueing up to
+  /// [maxQueueSize] actions while the main app is disconnected.
+  factory FloatyActionRouter.overlay({
+    int maxQueueSize,
+    QueueOverflowStrategy overflowStrategy,
+  }) = FloatyActionRouter._overlay;
+
+  FloatyActionRouter._main({
     this.maxQueueSize = 100,
     this.overflowStrategy = QueueOverflowStrategy.dropOldest,
   }) : _isOverlay = false {
     _init();
   }
 
-  /// {@template floaty_action_router.overlay}
-  /// Creates an action router for the **overlay** side.
-  ///
-  /// When the main app is disconnected, dispatched actions are queued
-  /// (up to [maxQueueSize]) and flushed when the connection is
-  /// restored.
-  /// {@endtemplate}
-  FloatyActionRouter.overlay({
+  FloatyActionRouter._overlay({
     this.maxQueueSize = 100,
     this.overflowStrategy = QueueOverflowStrategy.dropOldest,
   }) : _isOverlay = true {
@@ -176,116 +45,55 @@ final class FloatyActionRouter {
 
   static const _prefix = '_floaty_action';
 
-  final Map<String, _HandlerEntry<dynamic>> _handlers = {};
-  final bool _isOverlay;
-
   /// Maximum number of actions to queue while disconnected.
   final int maxQueueSize;
 
   /// Strategy for handling queue overflow.
   final QueueOverflowStrategy overflowStrategy;
 
-  final List<FloatyAction> _queue = [];
-  StreamSubscription<bool>? _connectionSub;
+  final bool _isOverlay;
+  final FloatyActionHandlers _handlers = FloatyActionHandlers();
+  late final FloatyActionQueue _queue = FloatyActionQueue(
+    maxSize: maxQueueSize,
+    strategy: overflowStrategy,
+  );
 
   void _init() {
-    FloatyChannel.registerHandler(_prefix, _onMessage);
+    FloatyChannel.registerHandler(_prefix, _handlers.handle);
     FloatyChannel.ensureListening();
-
-    // On the overlay side, listen for reconnection to flush the queue.
-    if (_isOverlay) {
-      _connectionSub = FloatyConnectionState.onConnectionChanged.listen(
-        (connected) async {
-          if (connected) await _flushQueue();
-        },
-      );
-    }
+    if (_isOverlay) _queue.flushOnReconnect(dispatch);
   }
 
-  /// Registers a handler for the action class identified by [key].
-  ///
-  /// The handler runs whenever the other side dispatches an action whose
-  /// `type` matches `key.type`.
+  /// Registers [handler] for actions whose `type` matches `key.type`.
   void on<A extends FloatyAction>(
     ActionKey<A> key,
     FutureOr<void> Function(A action) handler,
-  ) {
-    _handlers[key.type] = _HandlerEntry<A>(
-      fromJson: key.fromJson,
-      handler: handler,
-    );
-  }
+  ) => _handlers.add<A>(key, handler);
 
   /// Removes the handler associated with [key].
-  void off<A extends FloatyAction>(ActionKey<A> key) {
-    _handlers.remove(key.type);
-  }
+  void off<A extends FloatyAction>(ActionKey<A> key) =>
+      _handlers.remove(key.type);
 
-  /// Dispatches an action to the other side (main app or overlay).
-  ///
-  /// On the overlay side, if the main app is disconnected, the action
-  /// is queued and will be sent when the connection is restored.
+  /// Dispatches an action to the other side, queueing it on the overlay
+  /// side while the main app is disconnected.
   Future<void> dispatch(FloatyAction action) {
-    // On the overlay side, queue if disconnected.
     if (_isOverlay && !FloatyConnectionState.isMainAppConnected) {
-      _enqueue(action);
+      _queue.add(action);
       return Future<void>.value();
     }
-
     return FloatyChannel.sendSystem(_prefix, {
       'type': action.type,
       'payload': action.toJson(),
     });
   }
 
-  void _enqueue(FloatyAction action) {
-    if (_queue.length >= maxQueueSize) {
-      switch (overflowStrategy) {
-        case QueueOverflowStrategy.dropOldest:
-          _queue.removeAt(0);
-        case QueueOverflowStrategy.dropNewest:
-          return; // Discard the incoming action.
-      }
-    }
-    _queue.add(action);
-  }
-
-  Future<void> _flushQueue() async {
-    if (_queue.isEmpty) return;
-    final queued = List<FloatyAction>.of(_queue);
-    _queue.clear();
-    for (final action in queued) {
-      await dispatch(action);
-    }
-  }
-
   /// The number of actions currently queued (waiting for reconnection).
   int get queueLength => _queue.length;
-
-  Future<void> _onMessage(Map<String, dynamic> envelope) async {
-    final type = envelope['type'] as String?;
-    if (type == null) return;
-
-    final entry = _handlers[type];
-    if (entry == null) return; // Unknown type — silently ignore.
-
-    final payload = envelope['payload'];
-    if (payload is! Map) return;
-
-    try {
-      await entry.handle(payload.cast<String, dynamic>());
-    } on Object {
-      // Deserialization or handler error — silently ignore to avoid
-      // crashing the message loop.
-    }
-  }
 
   /// Releases resources and unregisters the channel handler.
   Future<void> dispose() async {
     FloatyChannel.unregisterHandler(_prefix);
-    await _connectionSub?.cancel();
-    _connectionSub = null;
+    await _queue.dispose();
     _handlers.clear();
-    _queue.clear();
   }
 }

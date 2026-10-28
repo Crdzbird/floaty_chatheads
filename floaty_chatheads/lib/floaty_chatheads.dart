@@ -1,4 +1,4 @@
-/// Floaty Chatheads — a Flutter federated plugin for floating chathead
+/// Floaty Chatheads, a Flutter federated plugin for floating chathead
 /// bubbles on Android and iOS.
 ///
 /// {@macro floaty_chatheads}
@@ -8,7 +8,7 @@
 /// Most apps need only this barrel. Pick the right entry point for your
 /// situation:
 ///
-/// - **Show a chathead from your app:** [Floaty.show] — one call that
+/// - **Show a chathead from your app:** [Floaty.show], one call that
 ///   handles the overlay permission and exposes every option. Use
 ///   [FloatyChatheads] only to skip permission handling, and
 ///   [FloatyController] for a declarative, `ChangeNotifier`-driven setup.

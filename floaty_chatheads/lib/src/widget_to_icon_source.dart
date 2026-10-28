@@ -1,138 +1,38 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:floaty_chatheads/src/icons/render_widget_to_image.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
-import 'package:flutter/material.dart' show Theme, ThemeData;
-import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+
+export 'package:floaty_chatheads/src/icons/render_widget_to_image.dart';
 
 /// Test-only override for [ui.Image.toByteData].
 ///
-/// The Flutter test harness cannot extract bytes from rasterised images
-/// because the engine's raster thread is not available. Set this in
-/// `setUp` to return synthetic [ByteData] so that all code paths through
-/// [renderWidgetToPngByteData], [renderWidgetToRgbaByteData],
-/// [renderWidgetToBytes], and [widgetToIconSource] can be exercised.
-///
-/// ```dart
-/// setUp(() {
-///   testImageEncoder = (image, format) async =>
-///       ByteData(image.width * image.height * 4);
-/// });
-/// tearDown(() => testImageEncoder = null);
-/// ```
+/// The Flutter test harness cannot extract bytes from rasterised images,
+/// so set this in `setUp` to return synthetic [ByteData] and exercise
+/// every render helper; reset it to `null` in `tearDown`.
 @visibleForTesting
 Future<ByteData> Function(ui.Image image, ui.ImageByteFormat format)?
-    testImageEncoder;
+testImageEncoder;
 
-/// Renders any [Widget] tree into an [IconSource] suitable for chathead icons.
+/// Renders any [Widget] tree into an [IconSource] suitable for chathead
+/// icons, e.g. `await widgetToIconSource(const CircleAvatar(), size: 80)`.
 ///
-/// The widget is laid out in a [size] x [size] logical-pixel box and
-/// rasterised at [pixelRatio] (defaults to 3.0 for crisp icons on
-/// high-DPI displays).
-///
-/// The rendering happens in an **offscreen pipeline** — a dedicated
-/// `RenderView` + `PipelineOwner` + `BuildOwner` that is independent of
-/// the main widget tree, so it does not block the app's frame budget.
-/// The GPU rasterisation (`toImage`) and byte encoding are async and
-/// execute on the engine's raster thread.
-///
-/// Works with any widget: [Text], [Icon], [Container], `CircleAvatar`,
-/// custom paint, etc.
-///
-/// ```dart
-/// final icon = await widgetToIconSource(
-///   const CircleAvatar(child: Text('JD')),
-///   size: 80,
-/// );
-/// ```
+/// The widget is laid out in a [size] x [size] box and rasterised at
+/// [pixelRatio] through the offscreen pipeline of [renderWidgetToImage].
 Future<IconSource> widgetToIconSource(
   Widget widget, {
   double size = 80,
   double pixelRatio = 3.0,
-}) async {
-  final bytes =
-      await renderWidgetToBytes(widget, size: size, pixelRatio: pixelRatio);
-  return IconSource.bytes(bytes);
-}
+}) async => IconSource.bytes(
+  await renderWidgetToBytes(widget, size: size, pixelRatio: pixelRatio),
+);
 
-/// Renders [widget] into a [ui.Image] via the offscreen pipeline.
-Future<ui.Image> renderWidgetToImage(
-  Widget widget, {
-  required double size,
-  double pixelRatio = 3.0,
-}) async {
-  final repaintBoundary = RenderRepaintBoundary();
-
-  final view = WidgetsBinding.instance.platformDispatcher.implicitView;
-  if (view == null) {
-    // coverage:ignore-start
-    throw StateError(
-      'widgetToIconSource requires an implicit FlutterView. '
-      'Ensure WidgetsFlutterBinding is initialised.',
-    );
-    // coverage:ignore-end
-  }
-
-  final renderView = RenderView(
-    view: view,
-    child: RenderPositionedBox(
-      child: RenderConstrainedBox(
-        additionalConstraints: BoxConstraints.tight(Size(size, size)),
-        child: repaintBoundary,
-      ),
-    ),
-  )..configuration = ViewConfiguration(
-      logicalConstraints: BoxConstraints.tight(Size(size, size)),
-      devicePixelRatio: pixelRatio,
-    );
-
-  final pipelineOwner = PipelineOwner()..rootNode = renderView;
-  renderView.prepareInitialFrame();
-
-  final focusManager = FocusManager();
-  final buildOwner = BuildOwner(focusManager: focusManager);
-  final rootElement = RenderObjectToWidgetAdapter<RenderBox>(
-    container: repaintBoundary,
-    child: Theme(
-      data: ThemeData.light(),
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: MediaQuery(
-          data: MediaQueryData.fromView(view),
-          child: widget,
-        ),
-      ),
-    ),
-  ).attachToRenderTree(buildOwner);
-
-  try {
-    buildOwner.buildScope(rootElement);
-    pipelineOwner
-      ..flushLayout()
-      ..flushCompositingBits()
-      ..flushPaint();
-
-    // toImage runs on the raster thread — does not block the UI thread.
-    return await repaintBoundary.toImage(pixelRatio: pixelRatio);
-  } finally {
-    buildOwner.finalizeTree();
-    focusManager.dispose();
-  }
-}
-
-/// Extracts bytes from [image] in the given [format].
-///
-/// Delegates to [testImageEncoder] when set (test environment) or
-/// falls back to the engine's `toByteData` (production).
-Future<ByteData> _encodeImage(
-  ui.Image image,
-  ui.ImageByteFormat format,
-) async {
-  if (testImageEncoder != null) {
-    return await testImageEncoder!(image, format);
-  }
-  return (await image.toByteData(format: format))!; // coverage:ignore-line
+Future<ByteData> _encodeImage(ui.Image image, ui.ImageByteFormat format) async {
+  final encoder = testImageEncoder;
+  if (encoder != null) return await encoder(image, format);
+  return (await image.toByteData(format: format))!;
 }
 
 /// Renders [widget] to PNG-encoded [ByteData] via the offscreen pipeline.
@@ -151,10 +51,8 @@ Future<ByteData> renderWidgetToPngByteData(
   return byteData;
 }
 
-/// Renders [widget] to raw RGBA bytes (no PNG encoding overhead).
-///
-/// Returns a record of `(bytes, pixelWidth, pixelHeight)` ready for
-/// `FloatyChatheadsPlatform.updateChatHeadIcon`.
+/// Renders [widget] to raw RGBA bytes (no PNG encoding overhead), ready
+/// for `FloatyChatheadsPlatform.updateChatHeadIcon`.
 Future<({ByteData bytes, int width, int height})> renderWidgetToRgbaByteData(
   Widget widget, {
   required double size,
@@ -166,13 +64,13 @@ Future<({ByteData bytes, int width, int height})> renderWidgetToRgbaByteData(
     pixelRatio: pixelRatio,
   );
   final byteData = await _encodeImage(image, ui.ImageByteFormat.rawRgba);
-  final w = image.width;
-  final h = image.height;
+  final width = image.width;
+  final height = image.height;
   image.dispose();
-  return (bytes: byteData, width: w, height: h);
+  return (bytes: byteData, width: width, height: height);
 }
 
-/// Convenience: renders to PNG [Uint8List].
+/// Renders [widget] to a PNG [Uint8List].
 Future<Uint8List> renderWidgetToBytes(
   Widget widget, {
   required double size,

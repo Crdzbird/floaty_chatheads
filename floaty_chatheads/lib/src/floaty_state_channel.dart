@@ -2,13 +2,10 @@ import 'dart:async';
 
 import 'package:floaty_chatheads/src/floaty_channel.dart';
 
-/// {@template floaty_state_channel}
 /// A typed, auto-syncing state channel between the main app and overlay.
 ///
-/// Instead of sending raw `Map<String, dynamic>` payloads, define a state
-/// class with `toJson`/`fromJson` and let the channel keep both sides in sync.
-///
-/// **Main app side:**
+/// Define a state class with `toJson`/`fromJson` and let the channel keep
+/// both sides in sync:
 ///
 /// ```dart
 /// final channel = FloatyStateChannel<MyState>(
@@ -16,57 +13,40 @@ import 'package:floaty_chatheads/src/floaty_channel.dart';
 ///   fromJson: MyState.fromJson,
 ///   initialState: MyState(),
 /// );
-///
-/// // Full replace + sync.
 /// await channel.setState(MyState(count: 1));
-///
-/// // Partial update (shallow merge).
 /// await channel.updateState({'count': 2});
-///
-/// // Listen for changes from the overlay.
-/// channel.onStateChanged.listen((state) => print(state));
+/// channel.onStateChanged.listen(print);
 /// ```
 ///
-/// **Overlay side:**
-///
-/// ```dart
-/// final channel = FloatyStateChannel<MyState>.overlay(
-///   toJson: (s) => s.toJson(),
-///   fromJson: MyState.fromJson,
-///   initialState: MyState(),
-/// );
-/// ```
-///
-/// The state is serialized as JSON and transmitted through the shared data
-/// channel. Both sides must use the same state type and serialization.
-///
-/// **Note:** [updateState] performs a **shallow** merge of top-level keys.
-/// Nested objects are replaced, not recursively merged.
-/// {@endtemplate}
+/// Use [FloatyStateChannel.overlay] on the overlay side. Both sides must
+/// use the same state type and serialization. [updateState] performs a
+/// shallow merge of top-level keys; nested objects are replaced.
 final class FloatyStateChannel<S> {
-  /// {@template floaty_state_channel.main}
-  /// Creates a state channel for the **main app** side.
-  /// {@endtemplate}
-  FloatyStateChannel({
-    required this._toJson,
-    required this._fromJson,
+  /// Creates a state channel for the main app side.
+  factory FloatyStateChannel({
+    required Map<String, dynamic> Function(S state) toJson,
+    required S Function(Map<String, dynamic> json) fromJson,
     required S initialState,
-  })  : _state = initialState {
-    _init();
-  }
+  }) = FloatyStateChannel<S>._;
 
-  /// {@template floaty_state_channel.overlay}
-  /// Creates a state channel for the **overlay** side.
+  /// Creates a state channel for the overlay side.
   ///
-  /// Functionally identical to the unnamed constructor — the named
-  /// variant exists for semantic symmetry with
-  /// `FloatyActionRouter.overlay()`.
-  /// {@endtemplate}
+  /// Functionally identical to the unnamed constructor; the named variant
+  /// exists for symmetry with `FloatyActionRouter.overlay()`.
   factory FloatyStateChannel.overlay({
     required Map<String, dynamic> Function(S state) toJson,
     required S Function(Map<String, dynamic> json) fromJson,
     required S initialState,
-  }) = FloatyStateChannel<S>;
+  }) = FloatyStateChannel<S>._;
+
+  FloatyStateChannel._({
+    required this._toJson,
+    required this._fromJson,
+    required S initialState,
+  }) : _state = initialState {
+    FloatyChannel.registerHandler(_prefix, _onMessage);
+    FloatyChannel.ensureListening();
+  }
 
   static const _prefix = '_floaty_state';
 
@@ -75,11 +55,6 @@ final class FloatyStateChannel<S> {
   final StreamController<S> _controller = StreamController<S>.broadcast();
 
   S _state;
-
-  void _init() {
-    FloatyChannel.registerHandler(_prefix, _onMessage);
-    FloatyChannel.ensureListening();
-  }
 
   /// The current state (synchronous read).
   S get state => _state;
@@ -96,32 +71,22 @@ final class FloatyStateChannel<S> {
     });
   }
 
-  /// Performs a shallow merge of [partial] into the current state's JSON
-  /// representation, rebuilds the state, and syncs to the other side.
-  ///
-  /// Only top-level keys are merged; nested objects are replaced entirely.
+  /// Shallow-merges [partial] into the current state's JSON, rebuilds the
+  /// state, and syncs to the other side.
   Future<void> updateState(Map<String, dynamic> partial) {
-    final current = _toJson(_state)..addAll(partial);
-    _state = _fromJson(current);
-    return FloatyChannel.sendSystem(_prefix, {
-      'full': false,
-      'data': partial,
-    });
+    _state = _merged(partial);
+    return FloatyChannel.sendSystem(_prefix, {'full': false, 'data': partial});
   }
+
+  S _merged(Map<String, dynamic> partial) =>
+      _fromJson(_toJson(_state)..addAll(partial));
 
   void _onMessage(Map<String, dynamic> envelope) {
     final isFull = envelope['full'] as bool? ?? true;
     final data = envelope['data'];
     if (data is! Map) return;
     final typed = data.cast<String, dynamic>();
-
-    if (isFull) {
-      _state = _fromJson(typed);
-    } else {
-      // Shallow merge.
-      final current = _toJson(_state)..addAll(typed);
-      _state = _fromJson(current);
-    }
+    _state = isFull ? _fromJson(typed) : _merged(typed);
     _controller.add(_state);
   }
 

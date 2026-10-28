@@ -5,343 +5,61 @@ import 'package:floaty_chatheads/src/floaty_chatheads.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
 import 'package:flutter/widgets.dart';
 
-/// {@template floaty_controller}
-/// A lifecycle-aware controller that manages the chathead declaratively.
-///
-/// Attach it to a widget's lifecycle so the chathead shows when the
-/// widget mounts and closes when it unmounts — no manual imperative
-/// calls needed:
-///
-/// ```dart
-/// class _MyPageState extends State<MyPage> {
-///   late final FloatyController _controller;
-///
-///   @override
-///   void initState() {
-///     super.initState();
-///     _controller = FloatyController(
-///       entryPoint: 'overlayMain',
-///       assets: ChatHeadAssets.defaults(),
-///       sizePreset: ContentSizePreset.card,
-///       autoShow: true,
-///     );
-///   }
-///
-///   @override
-///   void dispose() {
-///     _controller.dispose();
-///     super.dispose();
-///   }
-///
-///   @override
-///   Widget build(BuildContext context) => ...;
-/// }
-/// ```
-///
-/// Or use [FloatyControllerWidget] for a fully declarative approach
-/// without managing the controller yourself.
-/// {@endtemplate}
-final class FloatyController extends ChangeNotifier {
-  /// {@macro floaty_controller}
-  FloatyController({
-    this.entryPoint = 'overlayMain',
-    this.entryPointLibrary,
-    this.contentWidth,
-    this.contentHeight,
-    this.sizePreset,
-    this.theme,
-    this.flag = OverlayFlag.defaultFlag,
-    this.enableDrag = true,
-    this.entranceAnimation = EntranceAnimation.none,
-    this.panelAnchor = PanelAnchor.below,
-    this.autoLaunchOnBackground = false,
-    this.persistOnAppClose = false,
-    this.debugMode = false,
+export 'package:floaty_chatheads/src/controller/floaty_controller_widget.dart';
+
+part 'controller/floaty_controller_behavior.dart';
+part 'controller/floaty_controller_options.dart';
+
+/// A [ChangeNotifier] that shows and closes the chathead for a widget's
+/// lifecycle. Create it in `initState` (with `autoShow: true` to show
+/// right away) and dispose it in `dispose`, or let
+/// `FloatyControllerWidget` manage it.
+final class FloatyController extends _FloatyControllerOptions
+    with _FloatyControllerBehavior {
+  /// Creates a controller; [autoShow] shows the chathead immediately.
+  factory FloatyController({
+    String entryPoint,
+    String? entryPointLibrary,
+    int? contentWidth,
+    int? contentHeight,
+    ContentSizePreset? sizePreset,
+    ChatHeadTheme? theme,
+    OverlayFlag flag,
+    bool enableDrag,
+    EntranceAnimation entranceAnimation,
+    PanelAnchor panelAnchor,
+    bool autoLaunchOnBackground,
+    bool persistOnAppClose,
+    bool debugMode,
+    bool autoShow,
+    void Function(Object? data)? onData,
+    void Function(Object error, StackTrace stack)? onError,
+    ChatHeadAssets? assets,
+    NotificationConfig? notification,
+    SnapConfig? snap,
+  }) = FloatyController._;
+
+  FloatyController._({
+    super.entryPoint,
+    super.entryPointLibrary,
+    super.contentWidth,
+    super.contentHeight,
+    super.sizePreset,
+    super.theme,
+    super.flag,
+    super.enableDrag,
+    super.entranceAnimation,
+    super.panelAnchor,
+    super.autoLaunchOnBackground,
+    super.persistOnAppClose,
+    super.debugMode,
     bool autoShow = false,
-    this.onData,
-    this.onError,
-    this.assets,
-    this.notification,
-    this.snap,
+    super.onData,
+    super.onError,
+    super.assets,
+    super.notification,
+    super.snap,
   }) {
     if (autoShow) unawaited(show());
-  }
-
-  /// {@template floaty_controller.entry_point}
-  /// Dart entry-point function for the overlay isolate.
-  /// {@endtemplate}
-  final String entryPoint;
-
-  /// {@macro chat_head_config.entry_point_library}
-  final String? entryPointLibrary;
-
-  /// {@template floaty_controller.content_width}
-  /// Content panel width in dp/pt.
-  /// {@endtemplate}
-  final int? contentWidth;
-
-  /// {@template floaty_controller.content_height}
-  /// Content panel height in dp/pt.
-  /// {@endtemplate}
-  final int? contentHeight;
-
-  /// {@template floaty_controller.size_preset}
-  /// Named size preset (overrides width/height).
-  /// {@endtemplate}
-  final ContentSizePreset? sizePreset;
-
-  /// {@template floaty_controller.theme}
-  /// Theming configuration (Android).
-  /// {@endtemplate}
-  final ChatHeadTheme? theme;
-
-  /// {@template floaty_controller.flag}
-  /// Window behavior flag.
-  /// {@endtemplate}
-  final OverlayFlag flag;
-
-  /// {@template floaty_controller.enable_drag}
-  /// Whether the bubble is draggable.
-  /// {@endtemplate}
-  final bool enableDrag;
-
-  /// {@template floaty_controller.entrance_animation}
-  /// Entry animation variant (Android).
-  /// {@endtemplate}
-  final EntranceAnimation entranceAnimation;
-
-  /// {@template floaty_controller.panel_anchor}
-  /// Where the expanded content panel opens relative to the bubble.
-  /// {@endtemplate}
-  final PanelAnchor panelAnchor;
-
-  /// {@macro chat_head_config.auto_launch_on_background}
-  final bool autoLaunchOnBackground;
-
-  /// {@macro chat_head_config.persist_on_app_close}
-  final bool persistOnAppClose;
-
-  /// {@template floaty_controller.debug_mode}
-  /// Whether the native debug inspector is enabled (Android).
-  /// {@endtemplate}
-  final bool debugMode;
-
-  /// Grouped asset configuration.
-  final ChatHeadAssets? assets;
-
-  /// Grouped notification configuration.
-  final NotificationConfig? notification;
-
-  /// Grouped snap-behavior configuration.
-  final SnapConfig? snap;
-
-  /// {@template floaty_controller.on_data}
-  /// Callback invoked when data arrives from the overlay.
-  /// {@endtemplate}
-  final void Function(Object? data)? onData;
-
-  /// {@template floaty_controller.on_error}
-  /// Callback invoked when an error occurs during show/close.
-  /// {@endtemplate}
-  final void Function(Object error, StackTrace stack)? onError;
-
-  bool _isActive = false;
-  StreamSubscription<Object?>? _dataSub;
-
-  /// Whether the chathead is currently visible.
-  bool get isActive => _isActive;
-
-  /// Shows the chathead. Handles permission automatically.
-  ///
-  /// Returns `true` if the chathead was shown, `false` if permission
-  /// was denied.
-  Future<bool> show() async {
-    try {
-      final shown = await Floaty.show(
-        entryPoint: entryPoint,
-        entryPointLibrary: entryPointLibrary,
-        contentWidth: contentWidth,
-        contentHeight: contentHeight,
-        size: sizePreset,
-        theme: theme,
-        flag: flag,
-        enableDrag: enableDrag,
-        entranceAnimation: entranceAnimation,
-        panelAnchor: panelAnchor,
-        autoLaunchOnBackground: autoLaunchOnBackground,
-        persistOnAppClose: persistOnAppClose,
-        debugMode: debugMode,
-        assets: assets,
-        notification: notification,
-        snap: snap,
-      );
-      _isActive = shown;
-      if (shown && onData != null) {
-        _dataSub ??= FloatyChatheads.onData.listen(onData);
-      }
-      notifyListeners();
-      return shown;
-    } on Object catch (e, st) {
-      onError?.call(e, st);
-      return false;
-    }
-  }
-
-  /// Closes the chathead.
-  Future<void> close() async {
-    try {
-      await FloatyChatheads.closeChatHead();
-      _isActive = false;
-      notifyListeners();
-    } on Object catch (e, st) {
-      onError?.call(e, st);
-    }
-  }
-
-  /// Toggles the chathead: shows if hidden, closes if visible.
-  Future<bool> toggle() async {
-    if (_isActive) {
-      await close();
-      return false;
-    }
-    return await show();
-  }
-
-  /// Sends data to the overlay isolate.
-  Future<void> sendData(Object? data) => FloatyChatheads.shareData(data);
-
-  @override
-  void dispose() {
-    unawaited(_dataSub?.cancel());
-    _dataSub = null;
-    FloatyChatheads.dispose();
-    super.dispose();
-  }
-}
-
-/// {@template floaty_controller_widget}
-/// A declarative widget that shows the chathead when mounted and
-/// closes it when unmounted.
-///
-/// ```dart
-/// FloatyControllerWidget(
-///   entryPoint: 'overlayMain',
-///   assets: ChatHeadAssets.defaults(),
-///   sizePreset: ContentSizePreset.card,
-///   child: MyPageContent(),
-/// )
-/// ```
-///
-/// Access the underlying [FloatyController] via [FloatyControllerWidget.of].
-/// {@endtemplate}
-final class FloatyControllerWidget extends StatefulWidget {
-  /// {@macro floaty_controller_widget}
-  const FloatyControllerWidget({
-    this.child,
-    this.builder,
-    super.key,
-    this.entryPoint = 'overlayMain',
-    this.sizePreset,
-    this.theme,
-    this.debugMode = false,
-    this.onData,
-    this.assets,
-    this.notification,
-    this.snap,
-  }) : assert(
-          child != null || builder != null,
-          'Either child or builder must be provided.',
-        );
-
-  /// The widget to render while the chathead is active.
-  final Widget? child;
-
-  /// Builder that receives the [FloatyController] directly.
-  ///
-  /// Use this instead of [child] when you need access to the controller
-  /// without calling [FloatyControllerWidget.of]:
-  ///
-  /// ```dart
-  /// FloatyControllerWidget(
-  ///   assets: const ChatHeadAssets.defaults(),
-  ///   sizePreset: ContentSizePreset.card,
-  ///   builder: (context, controller) => ElevatedButton(
-  ///     onPressed: controller.toggle,
-  ///     child: Text(controller.isActive ? 'Close' : 'Show'),
-  ///   ),
-  /// )
-  /// ```
-  final Widget Function(BuildContext context, FloatyController controller)?
-      builder;
-
-  /// Dart entry-point function name for the overlay.
-  final String entryPoint;
-
-  /// Named size preset.
-  final ContentSizePreset? sizePreset;
-
-  /// Theming configuration.
-  final ChatHeadTheme? theme;
-
-  /// Whether to enable the native debug inspector.
-  final bool debugMode;
-
-  /// Callback when data arrives from the overlay.
-  final void Function(Object? data)? onData;
-
-  /// Grouped asset configuration.
-  final ChatHeadAssets? assets;
-
-  /// Grouped notification configuration.
-  final NotificationConfig? notification;
-
-  /// Grouped snap-behavior configuration.
-  final SnapConfig? snap;
-
-  /// Returns the nearest [FloatyController] above [context], or `null`.
-  static FloatyController? of(BuildContext context) {
-    return context
-        .findAncestorStateOfType<_FloatyControllerWidgetState>()
-        ?._controller;
-  }
-
-  @override
-  State<FloatyControllerWidget> createState() => _FloatyControllerWidgetState();
-}
-
-final class _FloatyControllerWidgetState extends State<FloatyControllerWidget> {
-  late FloatyController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = FloatyController(
-      entryPoint: widget.entryPoint,
-      sizePreset: widget.sizePreset,
-      theme: widget.theme,
-      debugMode: widget.debugMode,
-      onData: widget.onData,
-      autoShow: true,
-      assets: widget.assets,
-      notification: widget.notification,
-      snap: widget.snap,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.builder != null) {
-      return ListenableBuilder(
-        listenable: _controller,
-        builder: (context, _) => widget.builder!(context, _controller),
-      );
-    }
-    return widget.child!;
   }
 }

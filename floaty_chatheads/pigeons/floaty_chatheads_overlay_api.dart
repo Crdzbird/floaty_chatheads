@@ -2,12 +2,12 @@ import 'package:pigeon/pigeon.dart';
 
 /// Overlay-side Pigeon schema.
 ///
-/// Only the Dart output is used — the native side is generated in the
+/// Only the Dart output is used; the native side is generated in the
 /// platform-specific packages. The channel names MUST match the platform
 /// packages so the overlay isolate talks to the same native handlers.
 ///
 /// CONTRACT: every method here MUST use only standard-codec types
-/// (int, double, String, Map, List — no custom classes or enums).
+/// (int, double, String, Map, List; no custom classes or enums).
 /// The native handlers are generated from the *platform* packages'
 /// schemas, whose codecs assign different tags to custom types; a custom
 /// type on these shared channels fails to decode across that boundary.

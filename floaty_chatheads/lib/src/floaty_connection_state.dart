@@ -2,32 +2,22 @@ import 'dart:async';
 
 import 'package:floaty_chatheads/src/floaty_channel.dart';
 
-/// {@template floaty_connection_state}
 /// Tracks whether the main app is currently connected to the overlay.
 ///
 /// When the main app is killed or backgrounded, the native service sends
-/// a `_floaty_connection` message with `{"connected": false}`. When the
-/// app restarts and reconnects, it sends `{"connected": true}`.
-///
-/// **Overlay side usage:**
+/// a `_floaty_connection` message with `{"connected": false}`; when it
+/// reconnects, `{"connected": true}`.
 ///
 /// ```dart
 /// FloatyConnectionState.setUp();
-///
-/// // Synchronous check.
 /// if (FloatyConnectionState.isMainAppConnected) { ... }
-///
-/// // Reactive stream.
-/// FloatyConnectionState.onConnectionChanged.listen((connected) {
-///   if (!connected) showDisconnectedBanner();
-/// });
+/// FloatyConnectionState.onConnectionChanged.listen((connected) { ... });
 /// ```
 ///
 /// This is an overlay-only utility. On the main app side, the app is
 /// always "connected" to itself.
-/// {@endtemplate}
 final class FloatyConnectionState {
-  FloatyConnectionState._(); // coverage:ignore-line
+  FloatyConnectionState._();
 
   static const _prefix = '_floaty_connection';
 
@@ -48,7 +38,7 @@ final class FloatyConnectionState {
 
   /// Initializes the connection state listener.
   ///
-  /// Safe to call multiple times — only registers once.
+  /// Safe to call multiple times; only registers once.
   static void setUp() {
     if (_isSetUp) return;
     FloatyChannel.registerHandler(_prefix, _onMessage);
@@ -58,10 +48,9 @@ final class FloatyConnectionState {
 
   static void _onMessage(Map<String, dynamic> data) {
     final connected = data['connected'] as bool? ?? true;
-    if (connected != _connected) {
-      _connected = connected;
-      _controller.add(connected);
-    }
+    if (connected == _connected) return;
+    _connected = connected;
+    _controller.add(connected);
   }
 
   /// Resets the connection state (for testing).

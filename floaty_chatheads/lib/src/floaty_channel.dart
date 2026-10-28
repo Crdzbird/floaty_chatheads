@@ -1,129 +1,71 @@
 import 'dart:async';
 
+import 'package:floaty_chatheads/src/channel/floaty_handler_registry.dart';
+import 'package:floaty_chatheads/src/channel/floaty_raw_buffer.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 
 /// Internal message router for the floaty_chatheads data channel.
 ///
-/// All three high-level features (state channel, action router, proxy) plus
-/// the existing theme interception share a single [BasicMessageChannel].
-/// This router multiplexes incoming messages by examining reserved prefix
-/// keys in the map and forwarding to the appropriate handler.
-///
-/// Messages without a registered prefix key are forwarded to [rawMessages],
-/// which backs the existing `FloatyChatheads.onData` / `FloatyOverlay.onData`
-/// streams.
+/// The state channel, action router, proxy and theme delivery share one
+/// [BasicMessageChannel]. Messages wrapped in the system envelope are
+/// routed by prefix to registered handlers; everything else is forwarded
+/// to [rawMessages].
 ///
 /// System messages that arrive before their handler is registered are
-/// buffered (up to [_maxPendingPerPrefix]) and replayed when the handler
-/// is attached. This prevents message loss during reconnection when the
-/// overlay flushes queued actions before the main app has navigated back
-/// to the page that registers handlers.
+/// buffered and replayed on registration. Raw messages that arrive before
+/// the first listener are buffered the same way.
 ///
-/// This class is **internal** and not exported from the public barrel file.
+/// This class is internal and not exported from the public barrel file.
 final class FloatyChannel {
-  FloatyChannel._(); // coverage:ignore-line
+  FloatyChannel._();
 
-  /// The shared platform channel for main ↔ overlay communication.
   static const BasicMessageChannel<Object?> _messenger =
       BasicMessageChannel<Object?>(
-    FloatyChannels.messenger,
-    JSONMessageCodec(),
-  );
+        FloatyChannels.messenger,
+        JSONMessageCodec(),
+      );
 
-  /// Prefix-keyed handlers. Each handler receives the inner value of the
-  /// matched prefix key as a `Map<String, dynamic>`.
-  static final Map<String, void Function(Map<String, dynamic>)> _handlers = {};
+  static final FloatyHandlerRegistry _registry = FloatyHandlerRegistry();
 
-  /// Buffered system messages awaiting handler registration.
-  static final Map<String, List<Map<String, dynamic>>> _pending = {};
-
-  /// Prefixes that have been registered at least once. Messages are only
-  /// buffered for prefixes that have never had a handler — once a handler
-  /// is registered and later removed, we assume it was intentional and
-  /// stop buffering for that prefix.
-  static final Set<String> _everRegistered = {};
-
-  /// Maximum buffered messages per prefix to avoid unbounded growth.
-  static const _maxPendingPerPrefix = 200;
-
-  /// Stream controller for messages that don't match any registered prefix.
-  static final StreamController<Object?> _rawController =
-      StreamController<Object?>.broadcast(onListen: _flushRaw);
-
-  /// Raw messages that arrived before anyone listened to [rawMessages].
-  /// Covers the gap between `FloatyOverlay.setUp()` and the overlay widget
-  /// subscribing in `initState`.
-  static final List<Object?> _pendingRaw = [];
-
-  /// Whether [rawMessages] has had a listener; afterwards raw messages are
-  /// broadcast as they arrive, like any broadcast stream.
-  static bool _rawEverListened = false;
+  static final FloatyRawBuffer _raw = FloatyRawBuffer();
 
   static bool _isListening = false;
 
-  // ---------------------------------------------------------------------------
-  // Public API (package-internal)
-  // ---------------------------------------------------------------------------
-
-  /// Stream of raw (non-prefixed) messages — replaces the old
-  /// `_dataController` in both `FloatyChatheads` and `FloatyOverlay`.
+  /// Stream of raw messages that carry no system envelope.
   static Stream<Object?> get rawMessages {
     ensureListening();
-    return _rawController.stream;
+    return _raw.stream;
   }
 
-  /// Registers a prefix-based handler.
+  /// Routes system messages carrying [prefix] to [handler].
   ///
-  /// When an incoming message is a [Map] containing [prefix] as a key,
-  /// the value (cast to `Map<String, dynamic>`) is forwarded to [handler]
-  /// instead of the raw stream.
-  ///
-  /// Any system messages that arrived before this handler was registered
-  /// are replayed immediately (in order).
+  /// Messages buffered for [prefix] before this call are replayed in
+  /// order.
   static void registerHandler(
     String prefix,
     void Function(Map<String, dynamic> data) handler,
-  ) {
-    _handlers[prefix] = handler;
-    _everRegistered.add(prefix);
+  ) => _registry.register(prefix, handler);
 
-    // Replay buffered messages that arrived before this handler existed.
-    final buffered = _pending.remove(prefix);
-    if (buffered != null && buffered.isNotEmpty) {
-      buffered.forEach(handler);
-    }
-  }
+  /// Removes the handler registered for [prefix].
+  static void unregisterHandler(String prefix) => _registry.unregister(prefix);
 
-  /// Removes a previously registered handler.
-  static void unregisterHandler(String prefix) {
-    _handlers.remove(prefix);
-  }
-
-  /// Ensures the shared message handler is attached.
-  ///
-  /// Safe to call multiple times — only attaches once.
+  /// Attaches the shared message handler. Safe to call more than once.
   static void ensureListening() {
-    if (!_isListening) {
-      _messenger.setMessageHandler(_onMessage);
-      _isListening = true;
-    }
+    if (_isListening) return;
+    _messenger.setMessageHandler(_onMessage);
+    _isListening = true;
   }
 
   /// Sends raw user data through the shared channel.
   static Future<void> send(Object? data) => _messenger.send(data);
 
-  /// Sends a system-prefixed message (for internal use only).
-  ///
-  /// Wraps [payload] in a dedicated envelope so that user data can never
-  /// collide with system routing keys.
-  static Future<void> sendSystem(
-    String prefix,
-    Map<String, dynamic> payload,
-  ) =>
+  /// Sends [payload] wrapped in the system envelope for [prefix], so user
+  /// data can never collide with system routing keys.
+  static Future<void> sendSystem(String prefix, Map<String, dynamic> payload) =>
       _messenger.send(<String, Object?>{
-        _systemEnvelope: prefix,
+        FloatyChannels.envelope: prefix,
         prefix: payload,
       });
 
@@ -134,76 +76,17 @@ final class FloatyChannel {
   static void reset() {
     _messenger.setMessageHandler(null);
     _isListening = false;
-    _handlers.clear();
-    _pending.clear();
-    _everRegistered.clear();
-    _pendingRaw.clear();
-    _rawEverListened = false;
+    _registry.clear();
+    _raw.reset();
   }
-
-  // ---------------------------------------------------------------------------
-  // Internal
-  // ---------------------------------------------------------------------------
-
-  /// Dedicated envelope key used by [sendSystem] to distinguish system
-  /// messages from arbitrary user data.  User payloads are forwarded to
-  /// [rawMessages]; only messages containing this key are routed to
-  /// prefix handlers.
-  static const String _systemEnvelope = FloatyChannels.envelope;
 
   static Future<Object?> _onMessage(Object? message) async {
-    if (message is Map && message[_systemEnvelope] == FloatyChannels.ping) {
+    if (message is Map &&
+        message[FloatyChannels.envelope] == FloatyChannels.ping) {
       return FloatyChannels.pong;
     }
-    if (message is Map && message.containsKey(_systemEnvelope)) {
-      final prefix = message[_systemEnvelope] as String?;
-      final raw = prefix != null ? message[prefix] : null;
-
-      if (prefix != null && raw is Map) {
-        final data = raw.cast<String, dynamic>();
-        final handler = _handlers[prefix];
-
-        if (handler != null) {
-          handler(data);
-          return message;
-        }
-
-        // No handler. If this prefix has NEVER been registered, buffer
-        // the message so it can be replayed when the handler arrives
-        // (e.g. queue-flush actions arriving before the widget tree
-        // registers its handlers).  If the prefix WAS registered and
-        // then removed, fall through to the raw stream — the caller
-        // intentionally removed the handler.
-        if (!_everRegistered.contains(prefix)) {
-          final queue = _pending.putIfAbsent(prefix, () => []);
-          if (queue.length < _maxPendingPerPrefix) {
-            queue.add(data);
-          }
-          return message;
-        }
-      }
-
-      // Malformed system message (non-map value, null prefix, or
-      // previously-registered prefix with no current handler) — fall
-      // through to the raw stream.
-    }
-
-    _emitRaw(message);
+    if (message is Map && _registry.route(message)) return message;
+    _raw.emit(message);
     return message;
-  }
-
-  static void _emitRaw(Object? message) {
-    if (_rawEverListened || _rawController.hasListener) {
-      _rawController.add(message);
-      return;
-    }
-    if (_pendingRaw.length < _maxPendingPerPrefix) _pendingRaw.add(message);
-  }
-
-  static void _flushRaw() {
-    _rawEverListened = true;
-    final buffered = List<Object?>.of(_pendingRaw);
-    _pendingRaw.clear();
-    buffered.forEach(_rawController.add);
   }
 }

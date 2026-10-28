@@ -3,63 +3,44 @@ import 'dart:async';
 import 'package:floaty_chatheads/src/floaty_chatheads.dart';
 import 'package:floaty_chatheads/src/floaty_overlay.dart';
 
-/// {@template floaty_messenger}
-/// Type-safe messaging wrapper for communication between the main app
-/// and the overlay isolate.
+/// Type-safe messaging between the main app and the overlay isolate.
 ///
 /// Instead of sending raw `Object?` values and casting on the other side,
-/// use [FloatyMessenger] with a serializer/deserializer pair:
-///
-/// **Main app side:**
+/// pair a serializer with a deserializer:
 ///
 /// ```dart
 /// final messenger = FloatyMessenger<ChatMessage>(
 ///   serialize: (msg) => msg.toJson(),
 ///   deserialize: ChatMessage.fromJson,
 /// );
-///
-/// // Send typed data.
-/// messenger.send(ChatMessage(text: 'Hello!'));
-///
-/// // Receive typed data.
-/// messenger.messages.listen((ChatMessage msg) {
-///   print(msg.text);
-/// });
+/// await messenger.send(ChatMessage(text: 'Hello!'));
+/// messenger.messages.listen((msg) => print(msg.text));
 /// ```
 ///
-/// **Overlay side:**
-///
-/// ```dart
-/// final messenger = FloatyMessenger<ChatMessage>.overlay(
-///   serialize: (msg) => msg.toJson(),
-///   deserialize: ChatMessage.fromJson,
-/// );
-/// ```
-///
-/// The `serialize` function converts `T` → JSON-compatible `Object?`
-/// (Map, List, String, num, bool, or null).
-/// The `deserialize` function converts `Object?` → `T`.
-/// {@endtemplate}
+/// Use [FloatyMessenger.overlay] on the overlay side. `serialize` turns a
+/// `T` into a JSON-compatible value; `deserialize` turns it back.
 final class FloatyMessenger<T> {
-  /// {@template floaty_messenger.main}
-  /// Creates a messenger for the **main app** side.
-  ///
-  /// Uses [FloatyChatheads.shareData] and [FloatyChatheads.onData].
-  /// {@endtemplate}
-  FloatyMessenger({
-    required this._serialize,
-    required this._deserialize,
-  })  : _isOverlay = false;
+  /// Creates a messenger for the main app side, backed by
+  /// [FloatyChatheads.shareData] and [FloatyChatheads.onData].
+  factory FloatyMessenger({
+    required Object? Function(T value) serialize,
+    required T Function(Object? raw) deserialize,
+  }) = FloatyMessenger<T>._main;
 
-  /// {@template floaty_messenger.overlay}
-  /// Creates a messenger for the **overlay** side.
-  ///
-  /// Uses [FloatyOverlay.shareData] and [FloatyOverlay.onData].
-  /// {@endtemplate}
-  FloatyMessenger.overlay({
+  /// Creates a messenger for the overlay side, backed by
+  /// [FloatyOverlay.shareData] and [FloatyOverlay.onData].
+  factory FloatyMessenger.overlay({
+    required Object? Function(T value) serialize,
+    required T Function(Object? raw) deserialize,
+  }) = FloatyMessenger<T>._overlay;
+
+  FloatyMessenger._main({required this._serialize, required this._deserialize})
+    : _isOverlay = false;
+
+  FloatyMessenger._overlay({
     required this._serialize,
     required this._deserialize,
-  })  : _isOverlay = true;
+  }) : _isOverlay = true;
 
   final Object? Function(T value) _serialize;
   final T Function(Object? raw) _deserialize;
@@ -69,41 +50,25 @@ final class FloatyMessenger<T> {
   StreamController<T>? _controller;
   Stream<T>? _stream;
 
-  /// {@template floaty_messenger.messages}
   /// A broadcast stream of deserialized messages of type [T].
   ///
-  /// On the main-app side, this wraps [FloatyChatheads.onData].
-  /// On the overlay side, this wraps [FloatyOverlay.onData].
-  ///
-  /// Each incoming `Object?` is passed through the deserializer before
-  /// being emitted. If deserialization throws, the error is forwarded
-  /// to the stream's error handler.
-  /// {@endtemplate}
-  Stream<T> get messages {
-    if (_controller == null) {
-      _controller = StreamController<T>.broadcast();
-      _stream = _controller!.stream;
-      final source = _isOverlay ? FloatyOverlay.onData : FloatyChatheads.onData;
-      _subscription = source.listen(
-        (raw) {
-          try {
-            _controller!.add(_deserialize(raw));
-          } on Object catch (e, st) {
-            _controller!.addError(e, st);
-          }
-        },
-        onError: _controller!.addError,
-      );
-    }
-    return _stream!;
+  /// If deserialization throws, the error is forwarded to the stream.
+  Stream<T> get messages => _stream ??= (_controller = _listen()).stream;
+
+  StreamController<T> _listen() {
+    final controller = StreamController<T>.broadcast();
+    final source = _isOverlay ? FloatyOverlay.onData : FloatyChatheads.onData;
+    _subscription = source.listen((raw) {
+      try {
+        controller.add(_deserialize(raw));
+      } on Object catch (e, st) {
+        controller.addError(e, st);
+      }
+    }, onError: controller.addError);
+    return controller;
   }
 
-  /// {@template floaty_messenger.send}
   /// Serializes [value] and sends it to the other side.
-  ///
-  /// On the main-app side, this calls [FloatyChatheads.shareData].
-  /// On the overlay side, this calls [FloatyOverlay.shareData].
-  /// {@endtemplate}
   Future<void> send(T value) {
     final serialized = _serialize(value);
     return _isOverlay
@@ -111,9 +76,7 @@ final class FloatyMessenger<T> {
         : FloatyChatheads.shareData(serialized);
   }
 
-  /// {@template floaty_messenger.dispose}
   /// Cancels the underlying stream subscription and closes the controller.
-  /// {@endtemplate}
   Future<void> dispose() async {
     await Future.wait([
       if (_subscription != null) _subscription!.cancel(),

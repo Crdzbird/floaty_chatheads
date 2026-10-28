@@ -3,330 +3,97 @@ import 'dart:async';
 import 'package:floaty_chatheads/src/floaty_channel.dart';
 import 'package:floaty_chatheads/src/floaty_connection_state.dart';
 import 'package:floaty_chatheads/src/generated/floaty_chatheads_overlay_api.g.dart';
+import 'package:floaty_chatheads/src/overlay/chat_head_drag_event.dart';
+import 'package:floaty_chatheads/src/overlay/floaty_overlay_events.dart';
+import 'package:floaty_chatheads/src/overlay/floaty_overlay_host.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart'
     show OverlayFlag, OverlayPosition;
 import 'package:flutter/services.dart';
 
-/// {@template floaty_overlay}
-/// Overlay-side API for communicating from inside the overlay back
-/// to the main app.
-///
-/// Use this within the Dart entry point function (e.g. `overlayMain`)
-/// that runs in the overlay isolate.
-///
-/// ```dart
-/// @pragma('vm:entry-point')
-/// void overlayMain() {
-///   WidgetsFlutterBinding.ensureInitialized();
-///   FloatyOverlay.setUp();
-///   runApp(const MyOverlayApp());
-/// }
-/// ```
-/// {@endtemplate}
-final class FloatyOverlay implements FloatyOverlayFlutterApi {
-  FloatyOverlay._(); // coverage:ignore-line
+export 'package:floaty_chatheads/src/overlay/chat_head_drag_event.dart';
 
-  // coverage:ignore-start
-  static final FloatyOverlay _instance = FloatyOverlay._();
-  static final FloatyOverlayHostApi _overlayHostApi = FloatyOverlayHostApi();
-  // coverage:ignore-end
+part 'overlay/floaty_overlay_palette_store.dart';
+part 'overlay/overlay_color_palette.dart';
 
-  static final StreamController<String> _tapController =
-      StreamController<String>.broadcast();
+/// Overlay-side API for talking to the main app. Call [setUp] once in the
+/// overlay entry point, or use `FloatyOverlayApp.run`, which does it.
+final class FloatyOverlay {
+  FloatyOverlay._();
 
-  static final StreamController<String> _closeController =
-      StreamController<String>.broadcast();
-
-  static final StreamController<String> _expandController =
-      StreamController<String>.broadcast();
-
-  static final StreamController<String> _collapseController =
-      StreamController<String>.broadcast();
-
-  static final StreamController<ChatHeadDragEvent> _dragStartController =
-      StreamController<ChatHeadDragEvent>.broadcast();
-
-  static final StreamController<ChatHeadDragEvent> _dragEndController =
-      StreamController<ChatHeadDragEvent>.broadcast();
-
-  static final StreamController<OverlayColorPalette> _paletteController =
-      StreamController<OverlayColorPalette>.broadcast();
-
+  static final FloatyOverlayEvents _events = FloatyOverlayEvents.instance;
+  static final FloatyOverlayHostApi _hostApi = FloatyOverlayHost.api;
   static bool _isSetUp = false;
 
-  /// The current overlay color palette, if one was sent by the main app.
-  static OverlayColorPalette? _palette;
-
-  /// Handler key for the theme palette prefix.
-  static const _themePrefixKey = '_floaty_theme';
-
-  /// {@template floaty_overlay.set_up}
-  /// Call once in your overlay entry point to set up the Flutter API handler.
-  ///
-  /// Registers the Pigeon callback handlers and the message-channel
-  /// listener for data and palette messages.
-  /// {@endtemplate}
+  /// Registers the overlay callbacks. Safe to call more than once.
   static void setUp() {
-    if (!_isSetUp) {
-      FloatyOverlayFlutterApi.setUp(_instance);
-
-      // Register the theme palette handler on the shared channel.
-      FloatyChannel.registerHandler(_themePrefixKey, (data) {
-        final palette = OverlayColorPalette._fromMap(
-          data.map((k, v) => MapEntry(k, v as int)),
-        );
-        _palette = palette;
-        _paletteController.add(palette);
-      });
-
-      // Set up connection state tracking.
-      FloatyConnectionState.setUp();
-
-      // Ensure the shared channel is listening.
-      FloatyChannel.ensureListening();
-
-      _isSetUp = true;
-    }
+    if (_isSetUp) return;
+    FloatyOverlayFlutterApi.setUp(_events);
+    _PaletteStore._attach();
+    FloatyConnectionState.setUp();
+    FloatyChannel.ensureListening();
+    _isSetUp = true;
   }
 
-  /// {@template floaty_overlay.on_data}
   /// Stream of messages sent from the main app.
-  /// {@endtemplate}
   static Stream<Object?> get onData => FloatyChannel.rawMessages;
 
-  /// {@template floaty_overlay.on_tapped}
-  /// Stream that emits the ID of the chathead bubble that was tapped.
-  /// {@endtemplate}
-  static Stream<String> get onTapped => _tapController.stream;
+  /// Emits the ID of the chathead bubble that was tapped.
+  static Stream<String> get onTapped => _events.tapped.stream;
 
-  /// {@template floaty_overlay.on_closed}
-  /// Stream that emits the ID of the chathead that was closed.
-  /// {@endtemplate}
-  static Stream<String> get onClosed => _closeController.stream;
+  /// Emits the ID of the chathead that was closed.
+  static Stream<String> get onClosed => _events.closed.stream;
 
-  /// {@template floaty_overlay.on_expanded}
-  /// Stream that emits the ID when the chathead content panel is expanded.
-  /// {@endtemplate}
-  static Stream<String> get onExpanded => _expandController.stream;
+  /// Emits the ID when the chathead content panel is expanded.
+  static Stream<String> get onExpanded => _events.expanded.stream;
 
-  /// {@template floaty_overlay.on_collapsed}
-  /// Stream that emits the ID when the chathead content panel is collapsed.
-  /// {@endtemplate}
-  static Stream<String> get onCollapsed => _collapseController.stream;
+  /// Emits the ID when the chathead content panel is collapsed.
+  static Stream<String> get onCollapsed => _events.collapsed.stream;
 
-  /// {@template floaty_overlay.on_drag_start}
-  /// Stream that emits a [ChatHeadDragEvent] when the user starts dragging
-  /// a chathead.
-  /// {@endtemplate}
-  static Stream<ChatHeadDragEvent> get onDragStart =>
-      _dragStartController.stream;
+  /// Emits a [ChatHeadDragEvent] when the user starts dragging a chathead.
+  static Stream<ChatHeadDragEvent> get onDragStart => _events.dragStart.stream;
 
-  /// {@template floaty_overlay.on_drag_end}
-  /// Stream that emits a [ChatHeadDragEvent] when the user stops dragging
-  /// a chathead.
-  /// {@endtemplate}
-  static Stream<ChatHeadDragEvent> get onDragEnd => _dragEndController.stream;
+  /// Emits a [ChatHeadDragEvent] when the user stops dragging a chathead.
+  static Stream<ChatHeadDragEvent> get onDragEnd => _events.dragEnd.stream;
 
-  /// {@template floaty_overlay.palette}
-  /// The current overlay color palette set by the main app.
-  ///
-  /// Returns `null` if no palette was configured via `ChatHeadTheme`.
-  /// {@endtemplate}
-  static OverlayColorPalette? get palette => _palette;
+  /// The palette set by the main app, or `null` when `ChatHeadTheme` has
+  /// none.
+  static OverlayColorPalette? get palette => _PaletteStore._current;
 
-  /// {@template floaty_overlay.on_palette_changed}
-  /// Stream that emits whenever the overlay palette changes.
-  /// {@endtemplate}
+  /// Emits whenever the overlay palette changes.
   static Stream<OverlayColorPalette> get onPaletteChanged =>
-      _paletteController.stream;
-
-  // coverage:ignore-start
+      _PaletteStore._controller.stream;
 
   /// {@macro floaty_chatheads_platform.resize_content}
   static Future<void> resizeContent(int width, int height) =>
-      _overlayHostApi.resizeContent(width, height);
+      _hostApi.resizeContent(width, height);
 
   /// {@macro floaty_chatheads_platform.update_flag}
   static Future<void> updateFlag(OverlayFlag flag) =>
-      _overlayHostApi.updateFlag(flag.index);
+      _hostApi.updateFlag(flag.index);
 
   /// {@macro floaty_chatheads_platform.close_overlay}
-  static Future<void> closeOverlay() => _overlayHostApi.closeOverlay();
+  static Future<void> closeOverlay() => _hostApi.closeOverlay();
 
   /// {@macro floaty_chatheads_platform.get_overlay_position}
-  static Future<OverlayPosition> getOverlayPosition() async {
-    final msg = await _overlayHostApi.getOverlayPosition();
-    return OverlayPosition(
-      x: (msg['x']! as num).toDouble(),
-      y: (msg['y']! as num).toDouble(),
-    );
-  }
+  static Future<OverlayPosition> getOverlayPosition() =>
+      FloatyOverlayHost.position();
 
   /// {@macro floaty_chatheads_platform.update_badge}
   static Future<void> updateBadge(int count) =>
-      _overlayHostApi.updateBadgeFromOverlay(count);
+      _hostApi.updateBadgeFromOverlay(count);
 
-  /// {@template floaty_overlay.get_debug_info}
-  /// Retrieves debug information from the native side.
-  ///
-  /// Only populated when `debugMode` is enabled in `ChatHeadConfig`.
-  /// Returns spring state, visibility, toggle state, and Pigeon message log.
-  /// {@endtemplate}
-  static Future<Map<String, Object?>> getDebugInfo() async {
-    final raw = await _overlayHostApi.getDebugInfo();
-    return raw.map((k, v) => MapEntry(k?.toString() ?? '', v));
-  }
+  /// Debug information from the native side (spring state, visibility,
+  /// Pigeon log); only populated when `debugMode` is enabled.
+  static Future<Map<String, Object?>> getDebugInfo() =>
+      FloatyOverlayHost.debugInfo();
 
-  /// {@template floaty_overlay.share_data}
-  /// Sends data from the overlay to the main app.
-  ///
-  /// The data is serialized via [JSONMessageCodec] and forwarded
-  /// through a [BasicMessageChannel].
-  /// {@endtemplate}
+  /// Sends data from the overlay to the main app over a
+  /// [BasicMessageChannel] with [JSONMessageCodec].
   static Future<void> shareData(Object? data) => FloatyChannel.send(data);
 
-  // coverage:ignore-end
-
-  /// {@template floaty_overlay.dispose}
-  /// Detaches the message handler and Pigeon API.
-  ///
-  /// Safe to call multiple times. After calling, [setUp] can be
-  /// called again to re-attach handlers.
-  /// {@endtemplate}
+  /// Detaches the palette handler; [setUp] can attach everything again.
   static void dispose() {
-    FloatyChannel.unregisterHandler(_themePrefixKey);
+    _PaletteStore._detach();
     _isSetUp = false;
   }
-
-  // FloatyOverlayFlutterApi implementation
-  @override
-  Future<void> onChatHeadTapped(String id) async =>
-      _tapController.add(id);
-
-  @override
-  Future<void> onChatHeadClosed(String id) async =>
-      _closeController.add(id);
-
-  @override
-  Future<void> onChatHeadExpanded(String id) async =>
-      _expandController.add(id);
-
-  @override
-  Future<void> onChatHeadCollapsed(String id) async =>
-      _collapseController.add(id);
-
-  @override
-  Future<void> onChatHeadDragStart(String id, double x, double y) async =>
-      _dragStartController.add(ChatHeadDragEvent(id: id, x: x, y: y));
-
-  @override
-  Future<void> onChatHeadDragEnd(String id, double x, double y) async =>
-      _dragEndController.add(ChatHeadDragEvent(id: id, x: x, y: y));
-}
-
-/// {@template chat_head_drag_event}
-/// Event emitted when a chathead drag starts or ends.
-///
-/// Contains the chathead [id] and its position ([x], [y]) in physical pixels.
-/// {@endtemplate}
-class ChatHeadDragEvent {
-  /// {@macro chat_head_drag_event}
-  const ChatHeadDragEvent({
-    required this.id,
-    required this.x,
-    required this.y,
-  });
-
-  /// The ID of the chathead being dragged.
-  final String id;
-
-  /// The X position of the chathead (in physical pixels).
-  final double x;
-
-  /// The Y position of the chathead (in physical pixels).
-  final double y;
-
-  @override
-  String toString() => 'ChatHeadDragEvent(id: $id, x: $x, y: $y)';
-}
-
-/// {@template overlay_color_palette}
-/// Color palette sent from the main app to the overlay isolate.
-///
-/// Use this to style your overlay's Flutter UI to match the main app's theme.
-/// The palette is populated from the `ChatHeadTheme.overlayPalette` map and
-/// delivered automatically when the overlay engine starts.
-///
-/// Access individual colors by name:
-/// ```dart
-/// final primary = FloatyOverlay.palette?.primary;
-/// final custom = FloatyOverlay.palette?['myCustomKey'];
-/// ```
-/// {@endtemplate}
-class OverlayColorPalette {
-  OverlayColorPalette._({required this._colors});
-
-  factory OverlayColorPalette._fromMap(Map<String, int> map) {
-    return OverlayColorPalette._(colors: Map.unmodifiable(map));
-  }
-
-  final Map<String, int> _colors;
-
-  /// {@template overlay_color_palette.primary}
-  /// The primary brand color.
-  /// {@endtemplate}
-  Color? get primary => _colorFor('primary');
-
-  /// {@template overlay_color_palette.secondary}
-  /// The secondary brand color.
-  /// {@endtemplate}
-  Color? get secondary => _colorFor('secondary');
-
-  /// {@template overlay_color_palette.surface}
-  /// The surface color for cards and panels.
-  /// {@endtemplate}
-  Color? get surface => _colorFor('surface');
-
-  /// {@template overlay_color_palette.background}
-  /// The background color.
-  /// {@endtemplate}
-  Color? get background => _colorFor('background');
-
-  /// {@template overlay_color_palette.on_primary}
-  /// Text/icon color on primary.
-  /// {@endtemplate}
-  Color? get onPrimary => _colorFor('onPrimary');
-
-  /// {@template overlay_color_palette.on_secondary}
-  /// Text/icon color on secondary.
-  /// {@endtemplate}
-  Color? get onSecondary => _colorFor('onSecondary');
-
-  /// {@template overlay_color_palette.on_surface}
-  /// Text/icon color on surface.
-  /// {@endtemplate}
-  Color? get onSurface => _colorFor('onSurface');
-
-  /// {@template overlay_color_palette.error}
-  /// The error color.
-  /// {@endtemplate}
-  Color? get error => _colorFor('error');
-
-  /// {@template overlay_color_palette.on_error}
-  /// Text/icon color on error.
-  /// {@endtemplate}
-  Color? get onError => _colorFor('onError');
-
-  /// Retrieves a color by key name.
-  ///
-  /// Returns `null` if the key is not present in the palette.
-  Color? operator [](String key) => _colorFor(key);
-
-  Color? _colorFor(String key) {
-    final value = _colors[key];
-    return value != null ? Color(value) : null;
-  }
-
-  @override
-  String toString() => 'OverlayColorPalette($_colors)';
 }
