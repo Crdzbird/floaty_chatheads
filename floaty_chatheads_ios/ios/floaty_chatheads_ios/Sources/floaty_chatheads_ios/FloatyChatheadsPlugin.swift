@@ -37,6 +37,10 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     private var mainMessenger: FlutterBasicMessageChannel?
     private var overlayMessenger: FlutterBasicMessageChannel?
 
+    /// Entry point the running overlay engine was started with. A re-show
+    /// with the same key reuses the engine instead of cold-starting one.
+    private var overlayEntryKey: String?
+
     // MARK: - Constants
     private static let messengerChannelName = "ni.devotion.floaty_head/messenger"
     private static let positionXKey = "floaty_chatheads_x"
@@ -57,7 +61,11 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
             )
             instance.mainMessenger?.setMessageHandler { [weak instance] message, reply in
                 MainActor.assumeIsolated {
-                    instance?.overlayMessenger?.sendMessage(message, reply: reply)
+                    guard let overlay = instance?.overlayMessenger else {
+                        reply(nil)
+                        return
+                    }
+                    overlay.sendMessage(message, reply: reply)
                 }
             }
         }
@@ -90,6 +98,7 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     func closeChatHead() throws {
         destroyOverlayWindow()
     }
+
 
     func isChatHeadActive() throws -> Bool {
         return isOverlayActive
@@ -201,9 +210,17 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
 
     /// Returns `false` when the overlay engine could not start.
     private func createOverlayWindow(config: ChatHeadConfig) -> Bool {
-        destroyOverlayWindow()
+        let entryKey = "\(config.entryPointLibrary ?? "")#\(config.entryPoint)"
+        tearDownWindow()
+        if overlayEntryKey != entryKey || overlayEngine == nil {
+            destroyEngine()
+            guard let engine = startEngine(config: config) else { return false }
+            overlayEngine = engine
+            overlayEntryKey = entryKey
+        }
+        guard let engine = overlayEngine else { return false }
+        engine.viewController = nil
 
-        // Store config
         currentSnapEdge = config.snapEdge
         currentSnapMargin = config.snapMargin
         currentPersistPosition = config.persistPosition
@@ -211,20 +228,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         currentTheme = config.theme
         currentDebugMode = config.debugMode
         currentPanelAnchor = config.panelAnchor
-
-        let engine = FlutterEngine(name: "floaty_chatheads_overlay")
-        guard engine.run(withEntrypoint: config.entryPoint, libraryURI: config.entryPointLibrary) else {
-            engine.destroyContext()
-            return false
-        }
-        overlayEngine = engine
-
-        // Register the host app's plugins on the overlay engine so the
-        // overlay isolate can use them (shared_preferences, path_provider,
-        // ...). The registrant is generated into the host app, so it is
-        // looked up dynamically. This runs before the plugin's own channel
-        // wiring below so those handlers take precedence.
-        registerAppPlugins(on: engine)
 
         // Reset to defaults before applying config so previous session
         // dimensions don't leak when the new config omits width/height.
@@ -246,7 +249,11 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         )
         overlayMessenger?.setMessageHandler { [weak self] message, reply in
             MainActor.assumeIsolated {
-                self?.mainMessenger?.sendMessage(message, reply: reply)
+                guard let main = self?.mainMessenger else {
+                    reply(nil)
+                    return
+                }
+                main.sendMessage(message, reply: reply)
             }
         }
 
@@ -318,6 +325,19 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         return true
     }
 
+    /// Starts a new overlay engine and registers the host app's plugins on
+    /// it, so the overlay isolate can use them. Returns `nil` when the
+    /// entry point cannot be run.
+    private func startEngine(config: ChatHeadConfig) -> FlutterEngine? {
+        let engine = FlutterEngine(name: "floaty_chatheads_overlay")
+        guard engine.run(withEntrypoint: config.entryPoint, libraryURI: config.entryPointLibrary) else {
+            engine.destroyContext()
+            return nil
+        }
+        registerAppPlugins(on: engine)
+        return engine
+    }
+
     private func registerAppPlugins(on engine: FlutterEngine) {
         let selector = NSSelectorFromString("registerWithRegistry:")
         guard let registrant = NSClassFromString("GeneratedPluginRegistrant") else { return }
@@ -326,28 +346,38 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         _ = registrantClass.perform(selector, with: engine)
     }
 
+    /// Closes the overlay for good: removes the window, shuts the engine
+    /// down, and reports the close to the main app when one was showing.
     private func destroyOverlayWindow() {
+        let wasActive = isOverlayActive
         let closedId = currentChatHeadId
-
-        overlayMessenger?.setMessageHandler(nil)
-        overlayMessenger = nil
-        overlayFlutterApi = nil
-
-        badge.remove()
-
-        overlayWindow?.isHidden = true
-        overlayWindow?.rootViewController = nil
-        overlayWindow = nil
-        overlayEngine?.destroyContext()
-        overlayEngine = nil
-        isOverlayActive = false
-        isExpanded = false
-
-        // Notify the main app that the chathead was closed.
+        tearDownWindow()
+        destroyEngine()
+        guard wasActive else { return }
         mainMessenger?.sendMessage([
             "__floaty__": "_floaty_closed",
             "_floaty_closed": ["id": closedId],
         ])
+    }
+
+    /// Removes the overlay window but keeps the engine running.
+    private func tearDownWindow() {
+        badge.remove()
+        overlayWindow?.isHidden = true
+        overlayWindow?.rootViewController = nil
+        overlayWindow = nil
+        isOverlayActive = false
+        isExpanded = false
+        collapsedOrigin = nil
+    }
+
+    private func destroyEngine() {
+        overlayMessenger?.setMessageHandler(nil)
+        overlayMessenger = nil
+        overlayFlutterApi = nil
+        overlayEngine?.destroyContext()
+        overlayEngine = nil
+        overlayEntryKey = nil
     }
 
     // MARK: - Snap-to-Edge

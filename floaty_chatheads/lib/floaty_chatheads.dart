@@ -51,6 +51,7 @@ export 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
         ChatHeadTheme,
         ContentSizePreset,
         EntranceAnimation,
+        FloatyOverlayNotReadyException,
         IconSource,
         NetworkIconSource,
         NotificationConfig,

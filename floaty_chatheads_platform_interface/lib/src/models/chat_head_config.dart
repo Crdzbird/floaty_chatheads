@@ -45,6 +45,7 @@ class ChatHeadConfig {
     this.assets,
     this.notification,
     this.snap,
+    this.readyTimeout = const Duration(seconds: 10),
   });
 
   /// {@template chat_head_config.entry_point}
@@ -172,6 +173,13 @@ class ChatHeadConfig {
   /// {@endtemplate}
   final SnapConfig? snap;
 
+  /// {@template chat_head_config.ready_timeout}
+  /// How long `showChatHead` waits for the overlay isolate to start
+  /// listening before it closes the overlay and throws
+  /// `FloatyOverlayNotReadyException`. `Duration.zero` skips the check.
+  /// {@endtemplate}
+  final Duration readyTimeout;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -191,7 +199,8 @@ class ChatHeadConfig {
           other.persistOnAppClose == persistOnAppClose &&
           other.assets == assets &&
           other.notification == notification &&
-          other.snap == snap;
+          other.snap == snap &&
+          other.readyTimeout == readyTimeout;
 
   @override
   int get hashCode => Object.hashAll([
@@ -211,5 +220,6 @@ class ChatHeadConfig {
         assets,
         notification,
         snap,
+        readyTimeout,
       ]);
 }

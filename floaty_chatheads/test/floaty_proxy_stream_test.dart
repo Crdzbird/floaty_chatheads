@@ -38,7 +38,7 @@ void main() {
   });
 
   tearDown(() {
-    FloatyChannel.dispose();
+    FloatyChannel.reset();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMessageHandler(
       'ni.devotion.floaty_head/messenger',

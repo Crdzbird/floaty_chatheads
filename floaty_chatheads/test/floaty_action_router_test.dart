@@ -53,7 +53,7 @@ Future<void> _simulateMessage(Object? data) async {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(FloatyChannel.dispose);
+  setUp(FloatyChannel.reset);
 
   group('FloatyActionRouter', () {
     test('dispatch serializes and sends an action through the channel',

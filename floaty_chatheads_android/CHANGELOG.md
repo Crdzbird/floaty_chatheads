@@ -7,6 +7,17 @@
 
 - `entryPointLibrary` support (three-argument `DartEntrypoint`), persisted
   with the rest of the config.
+- `showChatHead` completes once the overlay isolate is listening and
+  throws `FloatyOverlayNotReadyException` (after closing the overlay) when
+  it never starts.
+- The overlay engine is reused when the chathead is shown again with the
+  same entry point, and replaced when the entry point changes.
+- Animated icon frames render into reused, triple-buffered bitmaps with a
+  precomputed shadow; frames that arrive during a render are coalesced
+  per bubble. Replaces `OverlayBitmapPool`.
+- Default bubble and close-target icons decode once at native size; the
+  touch tracker skips no-op WindowManager updates; debug mode stops its
+  frame callback on close.
 - `POST_NOTIFICATIONS` declared and requested on Android 13+.
 - `NotificationConfig.visibility` honored; channel name and running text
   moved to overridable string resources; explicit `specialUse` foreground

@@ -56,9 +56,9 @@ class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
   /// `config.notification.description` are intentionally not forwarded —
   /// see the class-level docs for why.
   @override
-  Future<void> showChatHead(ChatHeadConfig config) {
+  Future<void> showChatHead(ChatHeadConfig config) async {
     final size = ChatHeadConfigResolver.contentSize(config);
-    return _hostApi.showChatHead(
+    await _hostApi.showChatHead(
       pigeon.ChatHeadConfig(
         entryPoint: config.entryPoint,
         entryPointLibrary: config.entryPointLibrary,
@@ -84,6 +84,10 @@ class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
         autoLaunchOnBackground: config.autoLaunchOnBackground,
         persistOnAppClose: config.persistOnAppClose,
       ),
+    );
+    await OverlayReadiness.ensureReady(
+      config,
+      closeOverlay: _hostApi.closeChatHead,
     );
   }
 
@@ -158,12 +162,17 @@ class FloatyChatheadsIOS extends FloatyChatheadsPlatform {
   @override
   Future<void> collapseChatHead() => _hostApi.collapseChatHead();
 
+  /// {@macro floaty_chatheads_platform.supports_native_icons}
+  @override
+  bool get supportsNativeIcons => false;
+
+  /// No-op: the iOS bubble is part of the overlay's Flutter view, so raw
+  /// icon frames are never sent to native code.
   @override
   Future<void> updateChatHeadIcon(
     String id,
     Uint8List rgbaBytes,
     int width,
     int height,
-  ) =>
-      _hostApi.updateChatHeadIcon(id, rgbaBytes, width, height);
+  ) async {}
 }

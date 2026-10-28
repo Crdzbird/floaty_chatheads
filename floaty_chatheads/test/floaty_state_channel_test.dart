@@ -37,7 +37,7 @@ void main() {
   setUp(() {
     FloatyChatheads.dispose();
     FloatyOverlay.dispose();
-    FloatyChannel.dispose();
+    FloatyChannel.reset();
   });
 
   group('FloatyStateChannel', () {

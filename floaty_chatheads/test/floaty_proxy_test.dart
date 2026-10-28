@@ -21,7 +21,7 @@ void main() {
   setUp(() {
     FloatyChatheads.dispose();
     FloatyOverlay.dispose();
-    FloatyChannel.dispose();
+    FloatyChannel.reset();
   });
 
   group('FloatyProxyHost', () {
@@ -44,7 +44,7 @@ void main() {
       // We'll send a request and check the host processes it.
 
       // Reset and use the host directly.
-      FloatyChannel.dispose();
+      FloatyChannel.reset();
       final host2 = FloatyProxyHost()
         ..register('math', (method, params) async {
           if (method == 'add') {

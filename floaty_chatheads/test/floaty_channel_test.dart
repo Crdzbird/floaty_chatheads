@@ -24,7 +24,7 @@ void main() {
   setUp(() {
     FloatyChatheads.dispose();
     FloatyOverlay.dispose();
-    FloatyChannel.dispose();
+    FloatyChannel.reset();
   });
 
   group('FloatyChannel', () {
@@ -145,7 +145,7 @@ void main() {
       );
       FloatyChannel.ensureListening();
 
-      FloatyChannel.dispose();
+      FloatyChannel.reset();
 
       // After dispose, re-register and re-listen.
       final received = <Map<String, dynamic>>[];

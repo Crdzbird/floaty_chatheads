@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 
 /// Internal message router for the floaty_chatheads data channel.
@@ -49,7 +50,16 @@ final class FloatyChannel {
 
   /// Stream controller for messages that don't match any registered prefix.
   static final StreamController<Object?> _rawController =
-      StreamController<Object?>.broadcast();
+      StreamController<Object?>.broadcast(onListen: _flushRaw);
+
+  /// Raw messages that arrived before anyone listened to [rawMessages].
+  /// Covers the gap between `FloatyOverlay.setUp()` and the overlay widget
+  /// subscribing in `initState`.
+  static final List<Object?> _pendingRaw = [];
+
+  /// Whether [rawMessages] has had a listener; afterwards raw messages are
+  /// broadcast as they arrive, like any broadcast stream.
+  static bool _rawEverListened = false;
 
   static bool _isListening = false;
 
@@ -117,15 +127,18 @@ final class FloatyChannel {
         prefix: payload,
       });
 
-  /// Detaches the message handler and clears all prefix handlers.
-  ///
-  /// After calling, [ensureListening] will re-attach on next access.
-  static void dispose() {
+  /// Detaches the message handler and forgets every prefix handler and
+  /// buffered message. Only for tests: in an app, components remove their
+  /// own handlers so they never disconnect each other.
+  @visibleForTesting
+  static void reset() {
     _messenger.setMessageHandler(null);
     _isListening = false;
     _handlers.clear();
     _pending.clear();
     _everRegistered.clear();
+    _pendingRaw.clear();
+    _rawEverListened = false;
   }
 
   // ---------------------------------------------------------------------------
@@ -136,9 +149,12 @@ final class FloatyChannel {
   /// messages from arbitrary user data.  User payloads are forwarded to
   /// [rawMessages]; only messages containing this key are routed to
   /// prefix handlers.
-  static const _systemEnvelope = '__floaty__';
+  static const String _systemEnvelope = FloatyChannels.envelope;
 
   static Future<Object?> _onMessage(Object? message) async {
+    if (message is Map && message[_systemEnvelope] == FloatyChannels.ping) {
+      return FloatyChannels.pong;
+    }
     if (message is Map && message.containsKey(_systemEnvelope)) {
       final prefix = message[_systemEnvelope] as String?;
       final raw = prefix != null ? message[prefix] : null;
@@ -172,8 +188,22 @@ final class FloatyChannel {
       // through to the raw stream.
     }
 
-    // No system envelope — forward to the raw stream.
-    _rawController.add(message);
+    _emitRaw(message);
     return message;
+  }
+
+  static void _emitRaw(Object? message) {
+    if (_rawEverListened || _rawController.hasListener) {
+      _rawController.add(message);
+      return;
+    }
+    if (_pendingRaw.length < _maxPendingPerPrefix) _pendingRaw.add(message);
+  }
+
+  static void _flushRaw() {
+    _rawEverListened = true;
+    final buffered = List<Object?>.of(_pendingRaw);
+    _pendingRaw.clear();
+    buffered.forEach(_rawController.add);
   }
 }

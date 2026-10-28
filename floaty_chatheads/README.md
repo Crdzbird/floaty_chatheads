@@ -204,8 +204,16 @@ await Floaty.show(entryPointLibrary: 'package:my_app/overlay.dart');
 ```
 
 Without `entryPointLibrary` the engine only looks in your app's root
-library (the file with `main()`); the plugin reports an error if the
-function cannot be found.
+library (the file with `main()`).
+
+`Floaty.show()` returns once the overlay is listening, so anything you
+send right after it arrives. If the overlay does not start within
+`readyTimeout` (10 seconds by default), the plugin closes it and throws
+`FloatyOverlayNotReadyException`. The usual causes are a misspelled
+entry point, a function outside `main.dart` without `entryPointLibrary`,
+a missing `@pragma('vm:entry-point')` (release builds tree-shake the
+function), or an entry point that never calls `FloatyOverlay.setUp()`.
+`FloatyOverlayApp.run` calls it for you.
 
 ### 4. Show the chathead
 

@@ -19,10 +19,47 @@
   `autoLaunchOnBackground`, `persistOnAppClose` and `entryPointLibrary`.
 - **Entry point in any file.** New `entryPointLibrary` parameter
   (`'package:my_app/overlay.dart'`) lets the overlay entry point live
-  outside `main.dart`. Previously only root-library functions resolved,
-  and a wrong name failed silently on iOS; it is now a reported error.
+  outside `main.dart`. Previously only root-library functions resolved.
 - Passing `contentWidth` / `contentHeight` to `Floaty.show` now takes
   precedence over the `size` preset instead of being ignored.
+
+### Reliability
+
+- **`show()` returns once the overlay is listening.** The main app pings
+  the overlay after the native window is up, so data sent right after
+  `await Floaty.show()` is delivered. A broken entry point (wrong name,
+  wrong library, missing `@pragma('vm:entry-point')` in release, or no
+  `FloatyOverlay.setUp()` call) no longer shows a blank overlay and
+  reports success: the overlay is closed and
+  `FloatyOverlayNotReadyException` is thrown after `readyTimeout`
+  (10 seconds by default, `Duration.zero` disables the check).
+- Raw messages that reach either isolate before anything listens to
+  `onData` are kept and delivered to the first listener.
+- `FloatyChatheads.dispose` and `FloatyOverlay.dispose` remove only their
+  own handlers. They used to wipe every handler on the shared channel,
+  silently disconnecting a live `FloatyHostKit`, `FloatyProxyStream` or
+  connection tracking (for example when a `FloatyControllerWidget`
+  unmounted).
+- iOS: `Floaty.send()` and every Kit call no longer hang forever when no
+  overlay is showing, and showing the chathead no longer fires a false
+  `onClosed` event.
+
+### Performance
+
+- Showing the chathead again while it is visible reuses the overlay
+  engine when the entry point is unchanged instead of cold-starting a
+  new one (Android and iOS).
+- Animated icons: Android renders frames into reused buffers with a
+  shadow blurred once, drops frames that arrive while one is still
+  rendering, and no longer races two frames on one bitmap. iOS no longer
+  renders or transfers icon frames at all, since its bubble is a Flutter
+  view.
+- Android: the built-in bubble icon is decoded once at its native size
+  instead of on every redraw; close-target assets decode at native size.
+- Android: the touch tracker window is only moved when its position
+  changes, removing a WindowManager call on nearly every frame at the end
+  of each settle animation.
+- Android: debug mode no longer leaks the overlay view tree after close.
 
 ### Native fixes
 
@@ -59,6 +96,9 @@
    `entryPointLibrary: 'package:<your_app>/<file>.dart'`.
 4. Remove any `<uses-permission>` lines you added for this plugin: the
    plugin manifest declares them all.
+5. Overlay entry points must call `FloatyOverlay.setUp()`.
+   `FloatyOverlayApp.run` already does. If yours deliberately does not,
+   pass `readyTimeout: Duration.zero` to `Floaty.show`.
 
 ## 2.1.0
 

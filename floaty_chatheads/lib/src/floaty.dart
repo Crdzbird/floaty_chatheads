@@ -95,6 +95,7 @@ final class Floaty {
     double iconSize = 80,
     double iconPixelRatio = 3,
     Duration iconAnimationDuration = const Duration(seconds: 1),
+    Duration readyTimeout = const Duration(seconds: 10),
   }) async {
     if (!await ensurePermission()) return false;
 
@@ -126,6 +127,7 @@ final class Floaty {
       iconSize: iconSize,
       iconPixelRatio: iconPixelRatio,
       iconAnimationDuration: iconAnimationDuration,
+      readyTimeout: readyTimeout,
     );
     return true;
   }
@@ -164,6 +166,7 @@ final class Floaty {
     double iconSize = 80,
     double iconPixelRatio = 3,
     Duration iconAnimationDuration = const Duration(seconds: 1),
+    Duration readyTimeout = const Duration(seconds: 10),
   }) async {
     if (await FloatyChatheads.isActive()) {
       await FloatyChatheads.closeChatHead();
@@ -196,6 +199,7 @@ final class Floaty {
       iconSize: iconSize,
       iconPixelRatio: iconPixelRatio,
       iconAnimationDuration: iconAnimationDuration,
+      readyTimeout: readyTimeout,
     );
   }
 

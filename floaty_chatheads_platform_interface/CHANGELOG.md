@@ -7,6 +7,12 @@
 
 - `ChatHeadConfig.entryPointLibrary` (nullable) added and serialized over
   the method channel.
+- `ChatHeadConfig.readyTimeout`, `OverlayReadiness` and
+  `FloatyOverlayNotReadyException`: platform implementations confirm the
+  overlay isolate is listening before `showChatHead` completes.
+- `FloatyChatheadsPlatform.supportsNativeIcons` lets implementations
+  whose bubble is a Flutter view skip native icon frames.
+- `FloatyChannels.envelope`, `ping` and `pong` constants.
 - Minimum Flutter 3.44 / Dart 3.12.
 
 ## 2.1.0

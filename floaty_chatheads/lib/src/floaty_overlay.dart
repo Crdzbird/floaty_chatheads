@@ -195,7 +195,6 @@ final class FloatyOverlay implements FloatyOverlayFlutterApi {
   /// {@endtemplate}
   static void dispose() {
     FloatyChannel.unregisterHandler(_themePrefixKey);
-    FloatyChannel.dispose();
     _isSetUp = false;
   }
 

@@ -19,12 +19,12 @@ void main() {
 
   setUp(() {
     FloatyConnectionState.dispose();
-    FloatyChannel.dispose();
+    FloatyChannel.reset();
   });
 
   tearDown(() {
     FloatyConnectionState.dispose();
-    FloatyChannel.dispose();
+    FloatyChannel.reset();
   });
 
   group('FloatyConnectionState', () {

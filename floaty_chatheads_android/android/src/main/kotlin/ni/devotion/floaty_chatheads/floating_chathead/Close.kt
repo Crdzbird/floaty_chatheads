@@ -27,11 +27,12 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     var springScale = springSystem.createSpring()
     val paint = Paint()
     private val closePaint = Paint()
+    private val nativeSize = BitmapFactory.Options().apply { inScaled = false }
     val gradient = FrameLayout(context)
 
     /** Unscaled source bitmap for the close background (decoded once). */
     private val bgSourceBitmap: Bitmap = OverlayConfig.backgroundCloseIcon
-        ?: BitmapFactory.decodeResource(context.resources, R.drawable.close_bg)
+        ?: BitmapFactory.decodeResource(context.resources, R.drawable.close_bg, nativeSize)
 
     /**
      * Source rect over [bgSourceBitmap] — full bitmap, computed once.
@@ -86,7 +87,7 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
         bitmapClose = if (closeSource != null) {
             Bitmap.createScaledBitmap(closeSource, closeIconSize, closeIconSize, false)
         } else {
-            Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close), WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
+            Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close, nativeSize), WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
         }
 
         // Apply close tint color from theme

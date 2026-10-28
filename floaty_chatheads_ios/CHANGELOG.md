@@ -8,6 +8,15 @@
 - The overlay engine registers the host app's plugins
   (`GeneratedPluginRegistrant`), so other plugins work in the overlay.
 - `entryPointLibrary` support via `run(withEntrypoint:libraryURI:)`.
+- `showChatHead` completes once the overlay isolate is listening and
+  throws `FloatyOverlayNotReadyException` (after closing the overlay) when
+  it never starts.
+- The main-to-overlay and overlay-to-main relays always reply, so sends
+  no longer hang when the other side is gone.
+- Showing again reuses the overlay engine when the entry point is
+  unchanged; re-showing no longer fires a false close event.
+- `supportsNativeIcons` is `false`: icon widgets are not rendered and
+  animated icon frames are never sent to native code.
 - `showChatHead` reports an `overlay_engine` error when the entry point
   cannot be started instead of succeeding silently.
 - Deployment target 15.0; `Package.swift` declares the `FlutterFramework`

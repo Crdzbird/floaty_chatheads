@@ -179,12 +179,15 @@ final class FloatyChatheads {
     double iconSize = 80,
     double iconPixelRatio = 3.0,
     Duration iconAnimationDuration = const Duration(seconds: 1),
+    Duration readyTimeout = const Duration(seconds: 10),
   }) async {
     // Dispose any previous animation.
     _disposeIconAnimation();
 
     // Resolve widget-based icons into IconSource.bytes.
-    final effectiveAssets = await _resolveAssets(
+    final effectiveAssets = !_platform.supportsNativeIcons
+        ? assets
+        : await _resolveAssets(
       assets: assets,
       iconWidget: iconWidget,
       iconBuilder: iconBuilder,
@@ -214,6 +217,7 @@ final class FloatyChatheads {
         assets: effectiveAssets,
         notification: notification,
         snap: snap,
+        readyTimeout: readyTimeout,
       ),
     );
 
@@ -247,7 +251,9 @@ final class FloatyChatheads {
     double iconPixelRatio = 3.0,
   }) async {
     var effectiveSource = iconSource;
-    if (iconWidget != null && effectiveSource == null) {
+    if (iconWidget != null &&
+        effectiveSource == null &&
+        _platform.supportsNativeIcons) {
       effectiveSource = await widgetToIconSource(
         iconWidget,
         size: iconSize,
@@ -298,7 +304,6 @@ final class FloatyChatheads {
     _disposeIconAnimation();
     FloatyChannel.unregisterHandler(_closedPrefixKey);
     _closedHandlerRegistered = false;
-    FloatyChannel.dispose();
   }
 
   // ── Private helpers ─────────────────────────────────────────────

@@ -29,18 +29,17 @@ import ni.devotion.floaty_chatheads.generated.IconSourceTypeMessage
 import ni.devotion.floaty_chatheads.services.AutoLaunchLifecycleCallbacks
 import ni.devotion.floaty_chatheads.services.ConfigPersistence
 import ni.devotion.floaty_chatheads.services.FloatyContentJobService
-import ni.devotion.floaty_chatheads.services.OverlayBitmapPool
+import ni.devotion.floaty_chatheads.services.IconFrame
+import ni.devotion.floaty_chatheads.services.IconFrameRenderer
 import ni.devotion.floaty_chatheads.services.OverlayEngineManager
 import ni.devotion.floaty_chatheads.services.OverlayIconLoader
 import ni.devotion.floaty_chatheads.services.OverlayPermissionHandler
 import ni.devotion.floaty_chatheads.utils.Constants
 import ni.devotion.floaty_chatheads.utils.EntranceAnimation
-import ni.devotion.floaty_chatheads.utils.ImageHelper
 import ni.devotion.floaty_chatheads.utils.NotificationVisibility
 import ni.devotion.floaty_chatheads.utils.OverlayConfig
 import ni.devotion.floaty_chatheads.utils.PanelAnchor
 import ni.devotion.floaty_chatheads.utils.SnapEdge
-import java.nio.ByteBuffer
 
 class FloatyChatheadsPlugin :
     FlutterPlugin,
@@ -67,7 +66,9 @@ class FloatyChatheadsPlugin :
     private var lifecycleCallbacks: AutoLaunchLifecycleCallbacks? = null
 
     private val permissions = OverlayPermissionHandler()
-    private val iconPool = OverlayBitmapPool()
+    private val iconRenderers = mutableMapOf<String, IconFrameRenderer>()
+    private val pendingIconFrames = LinkedHashMap<String, IconFrame>()
+    private var iconFrameInFlight = false
 
     /**
      * True while [showChatHead] is setting up the overlay (between
@@ -233,9 +234,6 @@ class FloatyChatheadsPlugin :
         }
         isServiceRunning = false
 
-        // Destroy any existing engine before creating a new one.
-        FloatyContentJobService.instance?.destroyOverlayEngine()
-
         applyConfigToOverlayConfig(config)
 
         // Start the service BEFORE icon loading so that onCreate()
@@ -317,6 +315,7 @@ class FloatyChatheadsPlugin :
     }
 
     override fun closeChatHead() {
+        releaseIconRenderers()
         removeAutoLaunchCallbacks()
         FloatyContentJobService.instance?.closeWindow(true)
         isServiceRunning = false
@@ -355,6 +354,7 @@ class FloatyChatheadsPlugin :
     }
 
     override fun removeChatHead(id: String) {
+        releaseIconRenderers(id)
         FloatyContentJobService.instance?.removeChatHead(id)
     }
 
@@ -376,7 +376,7 @@ class FloatyChatheadsPlugin :
         width: Long,
         height: Long,
     ) {
-        if (!iconPool.validateOrReject(width, height, rgbaBytes.size)) {
+        if (!IconFrameRenderer.isValidFrame(width, height, rgbaBytes.size)) {
             android.util.Log.w(
                 "FloatyChatheads",
                 "updateChatHeadIcon: invalid dimensions " +
@@ -384,20 +384,40 @@ class FloatyChatheadsPlugin :
             )
             return
         }
-        val w = width.toInt()
-        val h = height.toInt()
+        pendingIconFrames[id] = IconFrame(rgbaBytes, width.toInt(), height.toInt())
+        drainIconFrames()
+    }
 
+    /**
+     * Renders at most one icon frame at a time. Frames that arrive while a
+     * render is running replace the pending frame for their bubble, so a
+     * slow device drops intermediate frames instead of queueing them.
+     */
+    private fun drainIconFrames() {
+        if (iconFrameInFlight) return
+        val id = pendingIconFrames.keys.firstOrNull() ?: return
+        val frame = pendingIconFrames.remove(id) ?: return
+        val renderer = iconRenderers.getOrPut(id) { IconFrameRenderer() }
+        iconFrameInFlight = true
         pluginScope.launch {
-            val processed = withContext(Dispatchers.Default) {
-                val bmp = iconPool.obtainOrCreate(w, h)
-                bmp.copyPixelsFromBuffer(ByteBuffer.wrap(rgbaBytes))
-                // Pre-process circular crop + shadow so onDraw() is a
-                // single drawBitmap.
-                ImageHelper.addShadow(ImageHelper.getCircularBitmap(bmp))
+            try {
+                val bitmap = withContext(Dispatchers.Default) { renderer.render(frame) }
+                FloatyContentJobService.instance?.chatHeads?.updateChatHeadIcon(id, bitmap)
+            } finally {
+                iconFrameInFlight = false
             }
-            FloatyContentJobService.instance?.chatHeads
-                ?.updateChatHeadIcon(id, processed)
+            drainIconFrames()
         }
+    }
+
+    private fun releaseIconRenderers(id: String? = null) {
+        if (id == null) {
+            iconRenderers.clear()
+            pendingIconFrames.clear()
+            return
+        }
+        iconRenderers.remove(id)
+        pendingIconFrames.remove(id)
     }
 
     // ── Private helpers ──────────────────────────────────────────────

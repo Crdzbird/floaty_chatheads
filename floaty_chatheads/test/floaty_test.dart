@@ -106,7 +106,6 @@ void main() {
 
     test('show passes entryPointLibrary through', () async {
       await Floaty.show(
-        entryPoint: 'overlayMain',
         entryPointLibrary: 'package:app/overlay.dart',
       );
       expect(

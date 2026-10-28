@@ -33,6 +33,19 @@ void main() {
         () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockDecodedMessageHandler<Object?>(channel, null),
       );
+      const overlay = BasicMessageChannel<Object?>(
+        FloatyChannels.messenger,
+        JSONMessageCodec(),
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockDecodedMessageHandler<Object?>(
+        overlay,
+        (_) async => FloatyChannels.pong,
+      );
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockDecodedMessageHandler<Object?>(overlay, null),
+      );
 
       await FloatyChatheadsAndroid().showChatHead(
         const ChatHeadConfig(panelAnchor: PanelAnchor.above),

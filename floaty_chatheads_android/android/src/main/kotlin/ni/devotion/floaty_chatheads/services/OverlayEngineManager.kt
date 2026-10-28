@@ -23,6 +23,10 @@ internal class OverlayEngineManager(private val context: Context) {
          *  on that engine synchronously; the main-app plugin uses this to skip
          *  claiming the overlay attachment as its own. */
         @Volatile var creatingOverlayEngine = false
+
+        /** Library and function the cached engine was started with. Lives
+         *  next to the process-wide engine cache, not the service instance. */
+        private var engineKey: String? = null
     }
 
     /** The overlay-side messenger for main <-> overlay communication. */
@@ -38,13 +42,15 @@ internal class OverlayEngineManager(private val context: Context) {
      * messenger relay.
      */
     fun ensureEngine(entryPoint: String) {
+        val key = "${OverlayConfig.entryPointLibrary.orEmpty()}#$entryPoint"
         val existing = FlutterEngineCache.getInstance()
             .get(Constants.OVERLAY_ENGINE_CACHE_TAG)
-        if (existing != null) {
-            OverlayConfig.logD("ensureEngine: engine already cached")
+        if (existing != null && engineKey == key) {
             setupMessenger(existing)
+            sendPalette()
             return
         }
+        if (existing != null) destroyEngine()
 
         OverlayConfig.logD("ensureEngine: creating engine for '$entryPoint'")
         val engineGroup = FlutterEngineGroup(context)
@@ -63,10 +69,12 @@ internal class OverlayEngineManager(private val context: Context) {
         }
         FlutterEngineCache.getInstance()
             .put(Constants.OVERLAY_ENGINE_CACHE_TAG, engine)
-
+        engineKey = key
         setupMessenger(engine)
+        sendPalette()
+    }
 
-        // Send theme palette to overlay isolate if configured.
+    private fun sendPalette() {
         OverlayConfig.overlayPalette?.let { palette ->
             overlayMessenger?.send(
                 mapOf(
@@ -108,6 +116,7 @@ internal class OverlayEngineManager(private val context: Context) {
                 .remove(Constants.OVERLAY_ENGINE_CACHE_TAG)
             engine.destroy()
         }
+        engineKey = null
     }
 
     /** Returns the cached engine, if any. */

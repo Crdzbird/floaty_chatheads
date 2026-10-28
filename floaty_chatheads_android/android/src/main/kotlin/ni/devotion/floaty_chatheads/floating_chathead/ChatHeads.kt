@@ -71,6 +71,10 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
     /** Anchor resolved once per expand — never re-evaluated per spring tick,
      *  so an AUTO anchor cannot flip-flop mid-animation. */
     private var effectiveAnchor = PanelAnchor.BELOW
+
+    /** Last position pushed to the touch tracker window; skips no-op IPC. */
+    private var appliedTrackerX = Int.MIN_VALUE
+    private var appliedTrackerY = Int.MIN_VALUE
     private var velocityTracker: VelocityTracker? = null
     private var motionTracker = LinearLayout(context)
     var topChatHead: ChatHead? = null
@@ -340,6 +344,8 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
 
     /** Remove the motionTracker and spring chains that live outside this view. */
     fun cleanup() {
+        debugOverlayView?.stop()
+        debugOverlayView = null
         destroySpringChains()
         try {
             FloatyContentJobService.instance?.windowManager?.removeView(motionTracker)
@@ -596,8 +602,12 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                 }
             }
 
-            if (abs(totalVelocity) % 10 == 0 && !moving) {
-                motionTrackerParams.y = top.springY.currentValue.toInt()
+            val trackerY = top.springY.currentValue.toInt()
+            val trackerMoved = trackerY != appliedTrackerY || motionTrackerParams.x != appliedTrackerX
+            if (abs(totalVelocity) % 10 == 0 && !moving && trackerMoved) {
+                motionTrackerParams.y = trackerY
+                appliedTrackerX = motionTrackerParams.x
+                appliedTrackerY = trackerY
                 FloatyContentJobService.instance?.windowManager?.updateViewLayout(motionTracker, motionTrackerParams)
             }
         }

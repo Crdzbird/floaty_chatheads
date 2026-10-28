@@ -54,7 +54,7 @@ Future<void> _simulateMessage(Object? data) async {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(FloatyChannel.dispose);
+  setUp(FloatyChannel.reset);
 
   group('FloatyHostKit', () {
     late FloatyHostKit<_TestState> kit;

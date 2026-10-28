@@ -23,6 +23,8 @@ export 'src/models/overlay_position.dart';
 export 'src/models/panel_anchor.dart';
 export 'src/models/snap_config.dart';
 export 'src/models/snap_edge.dart';
+export 'src/overlay_not_ready_exception.dart';
+export 'src/overlay_readiness.dart';
 
 /// {@template floaty_chatheads_platform}
 /// The interface that implementations of floaty_chatheads must implement.
@@ -46,6 +48,14 @@ abstract class FloatyChatheadsPlatform extends PlatformInterface {
     PlatformInterface.verify(instance, _token);
     _instance = instance;
   }
+
+  /// {@template floaty_chatheads_platform.supports_native_icons}
+  /// Whether the native bubble draws icons sent from Dart.
+  ///
+  /// `false` on iOS, where the bubble is part of the overlay's Flutter
+  /// view: icon widgets are not rendered and animated icons do not run.
+  /// {@endtemplate}
+  bool get supportsNativeIcons => true;
 
   /// {@template floaty_chatheads_platform.check_permission}
   /// Checks whether overlay permission is granted.

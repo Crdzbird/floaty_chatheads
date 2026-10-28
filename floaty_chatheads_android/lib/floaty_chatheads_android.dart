@@ -34,9 +34,9 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
 
   /// {@macro floaty_chatheads_platform.show_chat_head}
   @override
-  Future<void> showChatHead(ChatHeadConfig config) {
+  Future<void> showChatHead(ChatHeadConfig config) async {
     final size = ChatHeadConfigResolver.contentSize(config);
-    return _hostApi.showChatHead(
+    await _hostApi.showChatHead(
       pigeon.ChatHeadConfig(
         entryPoint: config.entryPoint,
         entryPointLibrary: config.entryPointLibrary,
@@ -67,6 +67,10 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
         closeBackgroundSource:
             _toIconSourceMessage(config.assets?.closeBackground),
       ),
+    );
+    await OverlayReadiness.ensureReady(
+      config,
+      closeOverlay: _hostApi.closeChatHead,
     );
   }
 

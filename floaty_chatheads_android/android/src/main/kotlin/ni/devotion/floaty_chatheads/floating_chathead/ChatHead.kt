@@ -65,6 +65,13 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
     private var processedIcon: Bitmap? = null
     /** The raw source bitmap that [processedIcon] was built from. */
     private var processedIconSource: Bitmap? = null
+    /** True when [processedIcon] was built here, so this view may recycle it. */
+    private var processedIconOwned = false
+
+    /** Built-in bubble icon, decoded once at its native size. */
+    private val defaultIcon: Bitmap by lazy {
+        decodeResource(context.resources, R.drawable.bot, Options().apply { inScaled = false })
+    }
 
     var params: WindowManager.LayoutParams = WindowManager.LayoutParams(
         WindowManager.LayoutParams.WRAP_CONTENT,
@@ -148,32 +155,31 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
         chatHeads.onSpringUpdate(this, spring, totalVelocity)
     }
 
-    /** Replaces the icon with a **pre-processed** circular+shadow bitmap.
-     *  Called on the main thread after off-thread processing in the plugin. */
-    fun updateIcon(processed: android.graphics.Bitmap) {
-        val oldProcessed = processedIcon
-        val oldSource = iconBitmap
+    /** Shows a circular, shadowed frame produced by the icon renderer.
+     *  The renderer owns and reuses [processed], so it is never recycled
+     *  here. Called on the main thread. */
+    fun updateIcon(processed: Bitmap) {
+        val previous = processedIcon
+        val previousOwned = processedIconOwned
         processedIcon = processed
-        processedIconSource = processed  // mark cache as fresh
+        processedIconSource = processed
+        processedIconOwned = false
         iconBitmap = processed
         invalidate()
-        // Recycle superseded bitmaps to reduce native memory pressure
-        // during high-fps animation (they are unique per-frame).
-        oldProcessed?.takeIf { !it.isRecycled && it !== processed }?.recycle()
-        oldSource?.takeIf { !it.isRecycled && it !== processed && it !== oldProcessed }?.recycle()
+        if (previousOwned && previous !== processed) previous?.takeIf { !it.isRecycled }?.recycle()
     }
 
     /** Returns a circular+shadow bitmap, cached to avoid allocations in onDraw. */
     private fun getProcessedIcon(): Bitmap {
-        val source = iconBitmap ?: OverlayConfig.floatingIcon
-            ?: decodeResource(context.resources, R.drawable.bot)
-        if (source !== processedIconSource || processedIcon == null) {
-            val old = processedIcon
-            processedIcon = ImageHelper.addShadow(ImageHelper.getCircularBitmap(source))
-            processedIconSource = source
-            old?.takeIf { !it.isRecycled && it !== processedIcon }?.recycle()
-        }
-        return processedIcon!!
+        val source = iconBitmap ?: OverlayConfig.floatingIcon ?: defaultIcon
+        val cached = processedIcon
+        if (cached != null && source === processedIconSource) return cached
+        val built = ImageHelper.addShadow(ImageHelper.getCircularBitmap(source))
+        if (processedIconOwned) cached?.takeIf { !it.isRecycled }?.recycle()
+        processedIcon = built
+        processedIconSource = source
+        processedIconOwned = true
+        return built
     }
 
     override fun onDraw(canvas: Canvas) {

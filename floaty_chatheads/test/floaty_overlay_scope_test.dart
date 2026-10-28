@@ -37,7 +37,7 @@ void main() {
     // Tear down everything first.
     FloatyConnectionState.dispose();
     FloatyOverlay.dispose();
-    FloatyChannel.dispose();
+    FloatyChannel.reset();
     // Then re-initialise in the correct order.
     FloatyChannel.ensureListening();
     FloatyOverlay.setUp(); // registers handlers on the fresh channel
