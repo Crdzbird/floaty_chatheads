@@ -12,21 +12,30 @@ import 'package:fluttium/fluttium.dart';
 /// - checkPlatformName:
 /// ```
 /// {@endtemplate}
-class CheckPlatformName extends Action {
+final class CheckPlatformName extends Action {
   /// {@macro check_platform_name}
-  const CheckPlatformName({
-    @visibleForTesting bool Function() isAndroid = _platformIsAndroid,
-    @visibleForTesting bool Function() isIOS = _platformIsIOS,
-    @visibleForTesting bool Function() isLinux = _platformIsLinux,
-    @visibleForTesting bool Function() isMacOS = _platformIsMacOS,
-    @visibleForTesting bool Function() isWindows = _platformIsWindows,
-    @visibleForTesting bool isWeb = kIsWeb,
-  }) : _isAndroid = isAndroid,
-       _isIOS = isIOS,
-       _isLinux = isLinux,
-       _isMacOS = isMacOS,
-       _isWindows = isWindows,
-       _isWeb = isWeb;
+  const factory CheckPlatformName({
+    @visibleForTesting bool Function() isAndroid,
+    @visibleForTesting bool Function() isIOS,
+    @visibleForTesting bool Function() isLinux,
+    @visibleForTesting bool Function() isMacOS,
+    @visibleForTesting bool Function() isWindows,
+    @visibleForTesting bool isWeb,
+  }) = CheckPlatformName._;
+
+  const CheckPlatformName._({
+    bool Function() isAndroid = _platformIsAndroid,
+    bool Function() isIOS = _platformIsIOS,
+    bool Function() isLinux = _platformIsLinux,
+    bool Function() isMacOS = _platformIsMacOS,
+    bool Function() isWindows = _platformIsWindows,
+    bool isWeb = kIsWeb,
+  })  : _isAndroid = isAndroid,
+        _isIOS = isIOS,
+        _isLinux = isLinux,
+        _isMacOS = isMacOS,
+        _isWindows = isWindows,
+        _isWeb = isWeb;
 
   final bool _isWeb;
 
@@ -61,10 +70,8 @@ class CheckPlatformName extends Action {
   String description() => 'Check platform name: "$_expectedPlatformName"';
 }
 
-// coverage:ignore-start these are just wrappers for overloading
 bool _platformIsAndroid() => Platform.isAndroid;
 bool _platformIsIOS() => Platform.isIOS;
 bool _platformIsLinux() => Platform.isLinux;
 bool _platformIsMacOS() => Platform.isMacOS;
 bool _platformIsWindows() => Platform.isWindows;
-// coverage:ignore-end

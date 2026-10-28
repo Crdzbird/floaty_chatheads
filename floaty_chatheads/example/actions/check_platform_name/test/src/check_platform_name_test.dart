@@ -4,14 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluttium/fluttium.dart';
 import 'package:mocktail/mocktail.dart';
 
-class _MockTester extends Mock implements Tester {}
-
-class _MockSemanticsNode extends Mock implements SemanticsNode {
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return super.toString();
-  }
-}
+import '../helpers/action_for_platform.dart';
+import '../helpers/mock_semantics_node.dart';
+import '../helpers/mock_tester.dart';
 
 void main() {
   group(CheckPlatformName, () {
@@ -19,8 +14,8 @@ void main() {
     late SemanticsNode node;
 
     setUp(() {
-      tester = _MockTester();
-      node = _MockSemanticsNode();
+      tester = MockTester();
+      node = MockSemanticsNode();
 
       when(() => tester.find(any())).thenAnswer((_) async => node);
     });
@@ -40,95 +35,18 @@ void main() {
     });
 
     test('show correct description for every platform', () {
-      bool isTrue() => true;
-      bool isFalse() => false;
+      const platforms = ['Android', 'iOS', 'Web', 'Linux', 'MacOS', 'Windows'];
 
-      final testCases = [
-        (
-          'Android',
-          CheckPlatformName(
-            isAndroid: isTrue,
-            isIOS: isFalse,
-            isWeb: isFalse(),
-            isWindows: isFalse,
-            isLinux: isFalse,
-            isMacOS: isFalse,
-          ),
-        ),
-        (
-          'iOS',
-          CheckPlatformName(
-            isAndroid: isFalse,
-            isIOS: isTrue,
-            isWeb: isFalse(),
-            isWindows: isFalse,
-            isLinux: isFalse,
-            isMacOS: isFalse,
-          ),
-        ),
-        (
-          'Web',
-          CheckPlatformName(
-            isAndroid: isFalse,
-            isIOS: isFalse,
-            isWeb: isTrue(),
-            isWindows: isFalse,
-            isLinux: isFalse,
-            isMacOS: isFalse,
-          ),
-        ),
-        (
-          'Linux',
-          CheckPlatformName(
-            isAndroid: isFalse,
-            isIOS: isFalse,
-            isWeb: isFalse(),
-            isWindows: isFalse,
-            isLinux: isTrue,
-            isMacOS: isFalse,
-          ),
-        ),
-        (
-          'MacOS',
-          CheckPlatformName(
-            isAndroid: isFalse,
-            isIOS: isFalse,
-            isWeb: isFalse(),
-            isWindows: isFalse,
-            isLinux: isFalse,
-            isMacOS: isTrue,
-          ),
-        ),
-        (
-          'Windows',
-          CheckPlatformName(
-            isAndroid: isFalse,
-            isIOS: isFalse,
-            isWeb: isFalse(),
-            isWindows: isTrue,
-            isLinux: isFalse,
-            isMacOS: isFalse,
-          ),
-        ),
-      ];
-
-      for (final testCase in testCases) {
+      for (final platform in platforms) {
         expect(
-          testCase.$2.description(),
-          equals('Check platform name: "${testCase.$1}"'),
+          actionForPlatform(platform).description(),
+          equals('Check platform name: "$platform"'),
         );
       }
     });
 
     test('throws UnsupportedError on unknown platform', () {
-      final action = CheckPlatformName(
-        isAndroid: () => false,
-        isIOS: () => false,
-        isWeb: false,
-        isWindows: () => false,
-        isLinux: () => false,
-        isMacOS: () => false,
-      );
+      final action = actionForPlatform('Fuchsia');
 
       expect(action.description, throwsUnsupportedError);
     });

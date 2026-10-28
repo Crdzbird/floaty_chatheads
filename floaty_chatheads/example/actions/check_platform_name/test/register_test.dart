@@ -1,13 +1,12 @@
 import 'package:check_platform_name/check_platform_name.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluttium/fluttium.dart';
 import 'package:mocktail/mocktail.dart';
 
-class _MockRegister extends Mock implements Registry {}
+import 'helpers/mock_registry.dart';
 
 void main() {
   test('can be registered', () {
-    final registry = _MockRegister();
+    final registry = MockRegistry();
     when(
       () => registry.registerAction(
         any(),
