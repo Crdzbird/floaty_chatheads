@@ -4,18 +4,18 @@ version: 0.1.0+1
 publish_to: none
 
 environment:
-  sdk: ^3.6.0
-  flutter: ">=3.27.0"
+  sdk: ^3.12.0
+  flutter: ">=3.44.0"
 
 dependencies:
   floaty_chatheads:
     path: ../
   flutter:
     sdk: flutter
-  flutter_map: ^8.2.2
-  geolocator: ^14.0.2
-  latlong2: ^0.9.1
-  shared_preferences: ^2.5.4
+  flutter_map: ^8.3.2
+  geolocator: ^14.1.2
+  latlong2: ^0.10.1
+  shared_preferences: ^2.5.6
 
 dev_dependencies:
   flutter_driver:
@@ -24,7 +24,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  very_good_analysis: ^10.2.0
+  very_good_analysis: ^11.0.0
 
 dependency_overrides:
   floaty_chatheads:

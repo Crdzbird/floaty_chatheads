@@ -104,9 +104,13 @@
 
 ### Toolchain
 
-- Flutter 3.44+ / Dart 3.12+; Pigeon 29; very_good_analysis 11.
-- Android: AGP 9.4, built-in Kotlin (no Kotlin Gradle Plugin applied),
-  Java 17, compileSdk 36, androidx.core 1.18, Material 1.14.
+- Flutter 3.44+ / Dart 3.12+; Pigeon 29.0.11; very_good_analysis 11.
+- Android: AGP 9.5, built-in Kotlin (no Kotlin Gradle Plugin applied),
+  Java 17, compileSdk 36, androidx.core 1.18, Material 1.14. androidx.core
+  stays on 1.18 because 1.19 forces apps onto compileSdk 37, above the
+  Flutter default of 36.
+- Example app: Gradle 9.8.2, Kotlin 2.4.21, and current releases of
+  flutter_map, geolocator, latlong2 and shared_preferences.
 - iOS: deployment target 15.0 (Flutter 3.47 minimum), SwiftPM package
   declares the `FlutterFramework` dependency per the current template.
 

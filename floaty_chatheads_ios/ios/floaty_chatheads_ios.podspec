@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'floaty_chatheads_ios'
-  s.version          = '2.1.0'
+  s.version          = '3.0.0'
   s.summary          = 'An iOS implementation of the floaty_chatheads plugin.'
   s.description      = <<-DESC
   An iOS implementation of the floaty_chatheads plugin.
