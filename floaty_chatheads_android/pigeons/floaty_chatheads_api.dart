@@ -6,16 +6,12 @@ import 'package:pigeon/pigeon.dart';
     dartPackageName: 'floaty_chatheads',
     kotlinOut:
         'android/src/main/kotlin/ni/devotion/floaty_chatheads/generated/FloatyChatheadsApi.g.kt',
-    kotlinOptions:
-        KotlinOptions(package: 'ni.devotion.floaty_chatheads.generated'),
+    kotlinOptions: KotlinOptions(
+      package: 'ni.devotion.floaty_chatheads.generated',
+    ),
   ),
 )
-enum OverlayFlagMessage {
-  defaultFlag,
-  clickThrough,
-  focusPointer,
-}
-
+enum OverlayFlagMessage { defaultFlag, clickThrough, focusPointer }
 
 enum NotificationVisibilityMessage {
   visibilityPublic,
@@ -34,7 +30,7 @@ enum SnapEdgeMessage {
   /// Always snap to the right edge.
   right,
 
-  /// No snapping — the bubble stays where the user releases it.
+  /// No snapping: the bubble stays where the user releases it.
   none,
 }
 
@@ -67,7 +63,7 @@ class IconSourceMessage {
 
 /// Animation style used when the chathead first appears on screen.
 enum EntranceAnimationMessage {
-  /// No entrance animation — bubble appears at its initial position.
+  /// No entrance animation: the bubble appears at its initial position.
   none,
 
   /// Bubble pops in with a scale spring (default).
@@ -205,7 +201,6 @@ class ChatHeadConfig {
   final String? notificationDescription;
 }
 
-
 class AddChatHeadConfig {
   AddChatHeadConfig({required this.id, this.iconAsset, this.iconSource});
 
@@ -270,7 +265,7 @@ abstract class FloatyOverlayHostApi {
   /// Returns the overlay position as `{'x': double, 'y': double}`.
   ///
   /// CONTRACT: overlay-channel methods must use only standard-codec
-  /// types — the overlay isolate decodes replies with the codec from
+  /// types, because the overlay isolate decodes replies with the codec from
   /// floaty_chatheads/pigeons/floaty_chatheads_overlay_api.dart, which
   /// assigns different tags to custom classes/enums.
   Map<String?, Object?> getOverlayPosition();

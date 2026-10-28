@@ -35,7 +35,6 @@ class DebugOverlayView(private val chatHeads: ChatHeads) : View(chatHeads.contex
         style = Paint.Style.FILL
     }
 
-    // ── FPS tracking ───────────────────────────────────────────────
     private var frameCount = 0
     private var lastFpsTime = System.nanoTime()
     private var currentFps = 0
@@ -44,7 +43,7 @@ class DebugOverlayView(private val chatHeads: ChatHeads) : View(chatHeads.contex
         override fun doFrame(frameTimeNanos: Long) {
             frameCount++
             val elapsed = frameTimeNanos - lastFpsTime
-            if (elapsed >= 1_000_000_000L) { // 1 second
+            if (elapsed >= 1_000_000_000L) {
                 currentFps = frameCount
                 frameCount = 0
                 lastFpsTime = frameTimeNanos
@@ -55,11 +54,9 @@ class DebugOverlayView(private val chatHeads: ChatHeads) : View(chatHeads.contex
     }
 
     init {
-        // High z-order so it's always on top
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             z = 200f
         }
-        // Don't intercept touches
         isClickable = false
         isFocusable = false
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -70,7 +67,6 @@ class DebugOverlayView(private val chatHeads: ChatHeads) : View(chatHeads.contex
         )
         chatHeads.addView(this, lp)
 
-        // Start frame callback for FPS measurement
         Choreographer.getInstance().postFrameCallback(frameCallback)
     }
 
@@ -83,13 +79,11 @@ class DebugOverlayView(private val chatHeads: ChatHeads) : View(chatHeads.contex
 
         var yOffset = 40f
 
-        // ── FPS counter ────────────────────────────────────────────
         val fpsText = "FPS: $currentFps"
         canvas.drawRect(8f, yOffset - 24f, 8f + labelPaint.measureText(fpsText) + 16f, yOffset + 8f, bgPaint)
         canvas.drawText(fpsText, 16f, yOffset, labelPaint)
         yOffset += 36f
 
-        // ── Spring HUD ─────────────────────────────────────────────
         chatHeads.topChatHead?.let { top ->
             val springInfo = "Spring X: vel=%.0f end=%.0f | Y: vel=%.0f end=%.0f".format(
                 top.springX.velocity,
@@ -107,8 +101,7 @@ class DebugOverlayView(private val chatHeads: ChatHeads) : View(chatHeads.contex
             yOffset += 36f
         }
 
-        // ── Bounds: ChatHeads ──────────────────────────────────────
-        boundsPaint.color = Color.argb(128, 0, 255, 0) // Green
+        boundsPaint.color = Color.argb(128, 0, 255, 0)
         for (chatHead in chatHeads.chatHeads) {
             if (chatHead.visibility == VISIBLE) {
                 canvas.drawRect(
@@ -123,10 +116,9 @@ class DebugOverlayView(private val chatHeads: ChatHeads) : View(chatHeads.contex
             }
         }
 
-        // ── Bounds: Content panel ──────────────────────────────────
         val content = chatHeads.content
         if (content.visibility == VISIBLE) {
-            boundsPaint.color = Color.argb(128, 0, 128, 255) // Blue
+            boundsPaint.color = Color.argb(128, 0, 128, 255)
             canvas.drawRect(
                 content.x, content.y,
                 content.x + content.width, content.y + content.height,

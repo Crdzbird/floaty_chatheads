@@ -2,7 +2,7 @@ import UIKit
 
 /// Applies the optional [ChatHeadThemeMessage] to a [UIWindow]'s
 /// `CALayer` border/shadow. Mirrors the Android `ChatHeadTheme`
-/// fields exactly — colors arrive as ARGB int from the Dart side and
+/// fields exactly: colors arrive as ARGB int from the Dart side and
 /// are decoded by `UIColor(argb:)`.
 @MainActor
 enum OverlayThemer {

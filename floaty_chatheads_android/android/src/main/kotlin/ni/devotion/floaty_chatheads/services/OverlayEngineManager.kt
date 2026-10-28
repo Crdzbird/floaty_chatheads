@@ -29,7 +29,7 @@ internal class OverlayEngineManager(private val context: Context) {
         private var engineKey: String? = null
     }
 
-    /** The overlay-side messenger for main <-> overlay communication. */
+    /** The overlay-side messenger for main and overlay communication. */
     var overlayMessenger: BasicMessageChannel<Any?>? = null
         private set
 
@@ -139,7 +139,7 @@ internal class OverlayEngineManager(private val context: Context) {
     }
 
     /**
-     * Sets up the relay (so main→overlay forwarding works) and marks the
+     * Sets up the relay (so main to overlay forwarding works) and marks the
      * main app as connected, but does NOT send the `connected:true`
      * signal to the overlay.  The overlay will keep queueing actions
      * until [onMainAppConnected] is called later (e.g. from
@@ -151,7 +151,6 @@ internal class OverlayEngineManager(private val context: Context) {
         if (engine != null) {
             setupMessenger(engine)
         }
-        // No `connected:true` send here — deferred.
     }
 
     /** Marks the main app as disconnected. */

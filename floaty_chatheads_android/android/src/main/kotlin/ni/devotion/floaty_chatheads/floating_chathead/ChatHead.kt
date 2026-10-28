@@ -18,7 +18,7 @@ import kotlin.math.pow
  * ## Gesture role vs [ChatHeads]
  *
  * Touch handling for the overlay is **split deliberately** between two
- * classes — they are complementary, not duplicates:
+ * classes; they are complementary, not duplicates:
  *
  * - [ChatHeads.onTouch] is wired through the `motionTracker` proxy and
  *   handles the **collapsed** state: dragging the single bubble around
@@ -37,7 +37,7 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
     var isTop: Boolean = false
     var isActive: Boolean = false
 
-    /** Badge count – 0 means hidden. */
+    /** Badge count; 0 means hidden. */
     var badgeCount: Int = 0
         set(value) {
             field = value
@@ -119,7 +119,6 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
         chatHeads.addView(this, params)
         this.setOnTouchListener(this)
 
-        // ── Accessibility ──────────────────────────────────────────────
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         updateAccessibilityDescription()
         ViewCompat.setAccessibilityDelegate(this, object : androidx.core.view.AccessibilityDelegateCompat() {
@@ -186,7 +185,6 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
         val processed = getProcessedIcon()
         canvas.drawBitmap(processed, 0f, 0f, paint)
 
-        // Draw optional border ring
         val borderColor = OverlayConfig.bubbleBorderColor
         val borderWidth = OverlayConfig.bubbleBorderWidth
         if (borderColor != null && borderWidth > 0f) {
@@ -198,18 +196,14 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
             canvas.drawCircle(cx, cy, radius, borderPaint)
         }
 
-        // Draw badge
         if (badgeCount > 0) {
-            // Update badge paint colors from theme
             badgePaint.color = OverlayConfig.badgeColor
             badgeTextPaint.color = OverlayConfig.badgeTextColor
 
             val badgeRadius = WindowManagerHelper.dpToPx(9f).toFloat()
             val badgeText = if (badgeCount > 99) "99+" else badgeCount.toString()
-            // Position at top-right of the circular icon
             val cx = width - badgeRadius - WindowManagerHelper.dpToPx(4f)
             val cy = badgeRadius + WindowManagerHelper.dpToPx(2f)
-            // Draw pill for 2+ digit numbers
             val textWidth = badgeTextPaint.measureText(badgeText)
             val pillHalfWidth = (textWidth / 2 + WindowManagerHelper.dpToPx(4f)).coerceAtLeast(badgeRadius)
             canvas.drawRoundRect(
@@ -217,7 +211,6 @@ class ChatHead(var chatHeads: ChatHeads, val id: String = "default", var iconBit
                 cx + pillHalfWidth, cy + badgeRadius,
                 badgeRadius, badgeRadius, badgePaint
             )
-            // Draw text centered vertically
             val textBaseline = cy - (badgeTextPaint.ascent() + badgeTextPaint.descent()) / 2
             canvas.drawText(badgeText, cx, textBaseline, badgeTextPaint)
         }

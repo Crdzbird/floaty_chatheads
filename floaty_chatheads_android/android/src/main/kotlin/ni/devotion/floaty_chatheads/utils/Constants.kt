@@ -6,7 +6,7 @@ object Constants {
     const val NOTIFICATION_CHANNEL_ID = "FloatyChatheadServiceChannel"
     const val NOTIFICATION_ID = 4580
 
-    // SharedPreferences keys for overlay survival after app death.
+    /** SharedPreferences file used to restore the overlay after app death. */
     const val PREFS_NAME = "floaty_chatheads_prefs"
     const val PREF_ENTRY_POINT = "entry_point"
     const val PREF_ENTRY_POINT_LIBRARY = "entry_point_library"
@@ -32,11 +32,10 @@ object Constants {
     const val PREF_PERSIST_ON_APP_CLOSE = "persist_on_app_close"
     const val PREF_HAS_SAVED_CONFIG = "has_saved_config"
 
-    // Connection state prefix for Dart channel.
+    /** Connection state prefix for the Dart channel. */
     const val CONNECTION_PREFIX = "_floaty_connection"
 
-    // System envelope key used by FloatyChannel to distinguish system
-    // messages from raw user data.
+    /** Envelope key FloatyChannel uses to tell system messages from user data. */
     const val SYSTEM_ENVELOPE = "__floaty__"
     const val THEME_PREFIX = "_floaty_theme"
     const val CLOSED_PREFIX = "_floaty_closed"

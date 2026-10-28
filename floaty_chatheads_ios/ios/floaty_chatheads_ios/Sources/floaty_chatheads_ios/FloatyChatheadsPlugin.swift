@@ -14,7 +14,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     private var isExpanded = false
     private var currentChatHeadId: String = "default"
 
-    // Config state
     private var currentSnapEdge: SnapEdgeMessage = .both
     private var currentSnapMargin: Double = 16.0
     private var currentPersistPosition: Bool = false
@@ -23,15 +22,14 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     private var currentDebugMode: Bool = false
     private var currentPanelAnchor: PanelAnchorMessage = .below
 
-    /// Anchor resolved once per expand — AUTO never flip-flops mid-animation.
+    /// Anchor resolved once per expand; AUTO never flip-flops mid-animation.
     private var effectiveAnchor: PanelAnchorMessage = .below
 
     /// Bubble origin captured when the panel expands so collapse restores
     /// the bubble to its pre-expand spot. Cleared when the user drags the
-    /// expanded panel — collapsing then keeps the new position.
+    /// expanded panel; collapsing then keeps the new position.
     private var collapsedOrigin: CGPoint?
 
-    // Badge label is managed by [BadgeView].
     private let badge = BadgeView()
 
     private var mainMessenger: FlutterBasicMessageChannel?
@@ -41,14 +39,13 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
     /// with the same key reuses the engine instead of cold-starting one.
     private var overlayEntryKey: String?
 
-    // MARK: - Constants
     private static let messengerChannelName = "ni.devotion.floaty_head/messenger"
     private static let positionXKey = "floaty_chatheads_x"
     private static let positionYKey = "floaty_chatheads_y"
     private static let panelGap: CGFloat = 8
 
-    // Using nonisolated to satisfy FlutterPlugin's static registration
-    // requirement. The instance methods are all @MainActor-isolated.
+    /// Registers the plugin. It is `nonisolated` to satisfy FlutterPlugin's
+    /// static registration requirement; instance methods are @MainActor-isolated.
     nonisolated public static func register(with registrar: FlutterPluginRegistrar) {
         MainActor.assumeIsolated {
             let instance = FloatyChatheadsPlugin()
@@ -70,8 +67,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
             }
         }
     }
-
-    // MARK: - FloatyHostApi
 
     func checkPermission() throws -> Bool {
         return true
@@ -104,15 +99,15 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         return isOverlayActive
     }
 
+    /// No-op: multi-chathead is not supported on iOS, the overlay shows a
+    /// single bubble managed by the UIWindow.
     func addChatHead(config: AddChatHeadConfig, completion: @escaping (Result<Void, any Error>) -> Void) {
-        // Multi-chathead is not supported on iOS.
-        // The overlay shows a single bubble managed by the UIWindow.
         completion(.success(()))
     }
 
+    /// No-op: multi-chathead is not supported on iOS. Use closeChatHead()
+    /// to remove the single overlay.
     func removeChatHead(id: String) throws {
-        // Multi-chathead is not supported on iOS.
-        // Use closeChatHead() to remove the single overlay.
     }
 
     func updateBadge(count: Int64) throws {
@@ -127,12 +122,10 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         performCollapse()
     }
 
+    /// No-op on iOS: the chathead bubble is a FlutterViewController, so
+    /// widget-based icons render directly via the overlay engine.
     func updateChatHeadIcon(id: String, rgbaBytes: FlutterStandardTypedData, width: Int64, height: Int64) throws {
-        // No-op on iOS — the chathead bubble is a FlutterViewController,
-        // so widget-based icons render directly via the overlay engine.
     }
-
-    // MARK: - FloatyOverlayHostApi
 
     func resizeContent(width: Int64, height: Int64) throws {
         guard let window = overlayWindow else { return }
@@ -141,7 +134,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         if isExpanded {
             var frame = window.frame
             if effectiveAnchor == .above {
-                // Keep the bottom edge glued to the bubble line.
                 frame.origin.y += oldHeight - contentSize.height
             }
             frame.size = contentSize
@@ -206,8 +198,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         return UIScreen.main.bounds
     }
 
-    // MARK: - Private — Window Lifecycle
-
     /// Returns `false` when the overlay engine could not start.
     private func createOverlayWindow(config: ChatHeadConfig) -> Bool {
         let entryKey = "\(config.entryPointLibrary ?? "")#\(config.entryPoint)"
@@ -229,8 +219,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         currentDebugMode = config.debugMode
         currentPanelAnchor = config.panelAnchor
 
-        // Reset to defaults before applying config so previous session
-        // dimensions don't leak when the new config omits width/height.
         contentSize = CGSize(width: 300, height: 400)
         if let w = config.contentWidth { contentSize.width = CGFloat(w) }
         if let h = config.contentHeight { contentSize.height = CGFloat(h) }
@@ -257,7 +245,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
             }
         }
 
-        // Deliver theme palette to overlay isolate
         if let palette = config.theme?.overlayPalette {
             let paletteDict: [String: Any] = ["__floaty__": "_floaty_theme", "_floaty_theme": palette]
             overlayMessenger?.sendMessage(paletteDict, reply: nil)
@@ -265,7 +252,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
 
         let screenBounds = self.screenBounds
 
-        // Determine initial position
         var x: CGFloat
         var y: CGFloat
 
@@ -294,7 +280,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         window.clipsToBounds = false
         window.layer.cornerRadius = 16
 
-        // Apply theming
         OverlayThemer.apply(to: window, theme: config.theme)
 
         if config.enableDrag {
@@ -302,7 +287,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
             window.addGestureRecognizer(pan)
         }
 
-        // VoiceOver accessibility
         window.isAccessibilityElement = true
         window.accessibilityLabel = "Chat bubble"
         window.accessibilityTraits = .button
@@ -310,7 +294,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         overlayWindow = window
         isOverlayActive = true
 
-        // Set badge theme colors before install so the label picks them up.
         if let theme = config.theme {
             if let bg = theme.badgeColor { badge.backgroundColor = UIColor(argb: bg) }
             if let tc = theme.badgeTextColor { badge.textColor = UIColor(argb: tc) }
@@ -380,14 +363,11 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         overlayEntryKey = nil
     }
 
-    // MARK: - Snap-to-Edge
-
     private func snapToEdge(window: UIWindow) {
         let screen = screenBounds
         let margin = CGFloat(currentSnapMargin)
         var origin = window.frame.origin
 
-        // Bounds clamping
         origin.y = max(0, min(origin.y, screen.height - window.frame.height))
 
         switch currentSnapEdge {
@@ -421,14 +401,10 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         )
     }
 
-    // MARK: - Position Persistence
-
     private func savePosition(_ origin: CGPoint) {
         UserDefaults.standard.set(origin.x, forKey: FloatyChatheadsPlugin.positionXKey)
         UserDefaults.standard.set(origin.y, forKey: FloatyChatheadsPlugin.positionYKey)
     }
-
-    // MARK: - Animation Helper
 
     /// Shared spring animation for expand, collapse, and edge snapping.
     private func springAnimate(
@@ -447,14 +423,10 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         )
     }
 
-    // MARK: - Expand / Collapse
-
     private func performExpand() {
         guard let window = overlayWindow, !isExpanded else { return }
         isExpanded = true
 
-        // The bubble occupies the window's top-left at bubbleSize —
-        // deterministic even in the initial content-sized window state.
         let bubbleFrame = CGRect(origin: window.frame.origin, size: bubbleSize)
         collapsedOrigin = window.frame.origin
         effectiveAnchor = resolveAnchor(forBubble: bubbleFrame)
@@ -507,18 +479,14 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
         case .below, .auto:
             rawY = bubbleFrame.maxY + Self.panelGap
         }
-        // Panel right edge follows the bubble's right edge (matches the
-        // Android implementation), clamped on-screen.
         let x = min(max(bubbleFrame.maxX - contentSize.width, 0), max(screen.width - contentSize.width, 0))
         let y = min(max(rawY, 0), max(screen.height - contentSize.height, 0))
         return CGRect(x: x, y: y, width: contentSize.width, height: contentSize.height)
     }
 
-    // MARK: - Pan Gesture (Drag)
-
-    // `nonisolated` so the ObjC gesture-action dispatch calls this
-    // synchronously — avoids a MainActor executor hop that would
-    // cause visible lag / freezing during drag.
+    /// Handles the drag gesture. It is `nonisolated` so the ObjC gesture
+    /// dispatch calls it synchronously, avoiding a MainActor executor hop
+    /// that would cause visible lag during drag.
     @objc nonisolated private func handlePan(_ gesture: UIPanGestureRecognizer) {
         MainActor.assumeIsolated {
             self.handlePanOnMain(gesture)
@@ -538,8 +506,6 @@ public final class FloatyChatheadsPlugin: NSObject, FlutterPlugin, @preconcurren
             let newX = panOrigin.x + translation.x
             let newY = panOrigin.y + translation.y
             window.frame.origin = CGPoint(x: newX, y: newY)
-            // The user moved the expanded panel deliberately — collapsing
-            // should keep the new spot, not restore the pre-expand one.
             if isExpanded { collapsedOrigin = nil }
         case .ended, .cancelled:
             snapToEdge(window: window)

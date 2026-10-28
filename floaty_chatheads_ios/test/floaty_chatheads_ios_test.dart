@@ -11,10 +11,7 @@ void main() {
   group('FloatyChatheadsIOS', () {
     test('can be registered', () {
       FloatyChatheadsIOS.registerWith();
-      expect(
-        FloatyChatheadsPlatform.instance,
-        isA<FloatyChatheadsIOS>(),
-      );
+      expect(FloatyChatheadsPlatform.instance, isA<FloatyChatheadsIOS>());
     });
 
     test('showChatHead maps panelAnchor into the Pigeon message', () async {
@@ -25,10 +22,10 @@ void main() {
       pigeon.ChatHeadConfig? received;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockDecodedMessageHandler<Object?>(channel, (message) async {
-        final args = message! as List<Object?>;
-        received = args[0]! as pigeon.ChatHeadConfig;
-        return <Object?>[];
-      });
+            final args = message! as List<Object?>;
+            received = args[0]! as pigeon.ChatHeadConfig;
+            return <Object?>[];
+          });
       addTearDown(
         () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockDecodedMessageHandler<Object?>(channel, null),
@@ -39,9 +36,9 @@ void main() {
       );
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockDecodedMessageHandler<Object?>(
-        overlay,
-        (_) async => FloatyChannels.pong,
-      );
+            overlay,
+            (_) async => FloatyChannels.pong,
+          );
       addTearDown(
         () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockDecodedMessageHandler<Object?>(overlay, null),

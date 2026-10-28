@@ -227,7 +227,7 @@ enum class SnapEdgeMessage(val raw: Int) {
   LEFT(1),
   /** Always snap to the right edge. */
   RIGHT(2),
-  /** No snapping — the bubble stays where the user releases it. */
+  /** No snapping: the bubble stays where the user releases it. */
   NONE(3);
 
   companion object {
@@ -255,7 +255,7 @@ enum class IconSourceTypeMessage(val raw: Int) {
 
 /** Animation style used when the chathead first appears on screen. */
 enum class EntranceAnimationMessage(val raw: Int) {
-  /** No entrance animation — bubble appears at its initial position. */
+  /** No entrance animation: the bubble appears at its initial position. */
   NONE(0),
   /** Bubble pops in with a scale spring (default). */
   POP(1),
@@ -961,7 +961,7 @@ interface FloatyOverlayHostApi {
    * Returns the overlay position as `{'x': double, 'y': double}`.
    *
    * CONTRACT: overlay-channel methods must use only standard-codec
-   * types — the overlay isolate decodes replies with the codec from
+   * types, because the overlay isolate decodes replies with the codec from
    * floaty_chatheads/pigeons/floaty_chatheads_overlay_api.dart, which
    * assigns different tags to custom classes/enums.
    */

@@ -68,7 +68,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
     private var verticalSpringChain: SpringChain? = null
     private var isOnRight = false
 
-    /** Anchor resolved once per expand — never re-evaluated per spring tick,
+    /** Anchor resolved once per expand; never re-evaluated per spring tick,
      *  so an AUTO anchor cannot flip-flop mid-animation. */
     private var effectiveAnchor = PanelAnchor.BELOW
 
@@ -82,7 +82,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
     private var close = Close(this)
     var chatHeads = ArrayList<ChatHead>()
 
-    // ── Persistent position ───────────────────────────────────────────
     private val positionStore = ChatHeadPositionStore(context)
 
     private var motionTrackerParams = WindowManager.LayoutParams(
@@ -101,7 +100,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         PixelFormat.TRANSLUCENT
     )
 
-    // ── Debug overlay ──────────────────────────────────────────────
     private var debugOverlayView: DebugOverlayView? = null
 
     init {
@@ -109,13 +107,11 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         params.gravity = Gravity.START or Gravity.TOP
         params.dimAmount = 0.7f
         motionTrackerParams.gravity = Gravity.START or Gravity.TOP
-        // ── Accessibility: hide touch proxy from TalkBack ──────────
         motionTracker.importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
         FloatyContentJobService.instance?.windowManager?.addView(motionTracker, motionTrackerParams)
         FloatyContentJobService.instance?.windowManager?.addView(this, params)
         this.addView(content)
 
-        // ── Debug overlay ────────────────────────────────────────────
         if (OverlayConfig.debugMode) {
             debugOverlayView = DebugOverlayView(this)
         }
@@ -221,12 +217,10 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         val chatHead = ChatHead(this, id = id, iconBitmap = icon)
         chatHeads.add(chatHead)
 
-        // Determine initial position (restore or default).
         var lx: Double
         var ly: Double
         val saved = positionStore.load()
         if (saved != null && topChatHead == null) {
-            // First chathead with a saved position — restore it.
             lx = saved.x.toDouble()
             ly = saved.y.toDouble()
             isOnRight = saved.onRight
@@ -250,7 +244,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             element.springY.currentValue = ly
         }
 
-        // ── Entrance animation ────────────────────────────────────────
         when (OverlayConfig.entranceAnimation) {
             EntranceAnimation.POP -> {
                 chatHead.scaleX = 0f
@@ -302,11 +295,9 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         content.hideContent()
         setExpandedTouchRouting(expanded = false)
 
-        // Accessibility: announce state + move focus back to bubble
         announceForAccessibility("Chat collapsed")
         topChatHead?.requestFocus()
 
-        // Notify lifecycle: collapsed
         FloatyContentJobService.instance?.notifyChatHeadCollapsed(activeId)
     }
 
@@ -350,7 +341,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         try {
             FloatyContentJobService.instance?.windowManager?.removeView(motionTracker)
         } catch (_: Exception) {
-            // Already removed or never attached — safe to ignore.
         }
     }
 
@@ -397,11 +387,9 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
         Handler(Looper.getMainLooper()).postDelayed(
             {
                 content.showContent()
-                // Accessibility: announce state + move focus to content panel
                 announceForAccessibility("Chat expanded")
                 content.sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED)
 
-                // Notify lifecycle: expanded
                 FloatyContentJobService.instance?.notifyChatHeadExpanded(topChatHead?.id ?: "default")
             }, EXPAND_CONTENT_DELAY_MS
         )
@@ -415,8 +403,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
     /** Y position of the expanded bubble row for the resolved anchor. */
     internal fun expandedRowY(): Double = when (effectiveAnchor) {
         PanelAnchor.ABOVE ->
-            // Same 25dp bottom inset used when a dragged bubble settles at
-            // the bottom edge — keeps the row clear of the gesture-nav bar.
             overlayHeightPx() - CHAT_HEAD_SIZE -
                 WindowManagerHelper.dpToPx(25f).toDouble()
         else -> CHAT_HEAD_EXPANDED_MARGIN_TOP.toDouble()
@@ -464,7 +450,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
 
     /** Usable overlay height in px. The overlay window is offset from the
      *  physical screen top (status bar), so raw display metrics overshoot
-     *  the bottom by that offset — the view's own height is the truth. */
+     *  the bottom by that offset; the view's own height is the truth. */
     private fun overlayHeightPx(): Int =
         if (height > 0) height else WindowManagerHelper.getScreenSize().heightPixels
 
@@ -521,12 +507,8 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             val panelHeight = contentHeightPx()
             val bubbleX = tmpChatHead.springX.currentValue.toFloat()
             val bubbleY = tmpChatHead.springY.currentValue.toFloat()
-            // Panel right edge follows the active bubble's right edge (a
-            // full-width panel resolves to x=0), clamped on-screen.
             val rawX = bubbleX + tmpChatHead.width - panelWidth
             val maxX = (overlayWidthPx() - panelWidth).toFloat().coerceAtLeast(0f)
-            // Panel top edge: glued under the bubble for BELOW, above it for
-            // ABOVE — then clamped so the panel never leaves the screen.
             val rawY = when (effectiveAnchor) {
                 PanelAnchor.ABOVE ->
                     bubbleY - CHAT_HEAD_EXPANDED_MARGIN_TOP - panelHeight
@@ -536,9 +518,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             val maxY = (overlayHeightPx() - panelHeight).toFloat().coerceAtLeast(0f)
             content.x = rawX.coerceIn(0f, maxX)
             content.y = rawY.coerceIn(0f, maxY)
-            // Scale animation originates from the bubble: pivot at the
-            // bubble's center X (in the panel's own coordinate space) and
-            // the bubble-facing edge.
             content.pivotX = (bubbleX + tmpChatHead.width / 2f - content.x)
                 .coerceIn(0f, panelWidth.toFloat())
             content.pivotY = if (effectiveAnchor == PanelAnchor.ABOVE) panelHeight.toFloat() else 0f
@@ -655,7 +634,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                         OverlayConfig.logD("EXPAND: toggled=false, entering expand flow. topChatHead=${topChatHead?.id}, chatHeads.size=${chatHeads.size}")
                         performExpand()
                     } else {
-                        OverlayConfig.logD("EXPAND: toggled=true, already expanded — skipping")
+                        OverlayConfig.logD("EXPAND: toggled=true, already expanded, skipping")
                     }
                 } else if (!toggled) {
                     moving = false
@@ -666,7 +645,6 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
                     vt.recycle()
                     velocityTracker = null
 
-                    // Notify lifecycle: drag end
                     FloatyContentJobService.instance?.notifyChatHeadDragEnd(
                         topChatHead?.id ?: "default",
                         topChatHead?.springX?.currentValue ?: 0.0,
@@ -719,9 +697,7 @@ class ChatHeads(context: Context) : View.OnTouchListener, FrameLayout(context) {
             MotionEvent.ACTION_MOVE -> {
                 if (distance(initialTouchX, event.rawX, initialTouchY, event.rawY) > CHAT_HEAD_DRAG_TOLERANCE.pow(2)) {
                     if (!moving) {
-                        // Accessibility announcement
                         announceForAccessibility("Dragging chat bubble")
-                        // Notify lifecycle: drag start (only once per gesture)
                         FloatyContentJobService.instance?.notifyChatHeadDragStart(
                             topChatHead?.id ?: "default",
                             topChatHead?.springX?.currentValue ?: 0.0,

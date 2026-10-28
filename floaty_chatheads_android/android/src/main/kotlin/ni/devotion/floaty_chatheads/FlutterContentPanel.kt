@@ -20,13 +20,10 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
     private val scaleSpring = springSystem.createSpring()
     private var flutterView: FlutterView? = null
 
-    // Target dimensions in pixels.  Stored here so they survive the
-    // GONE→VISIBLE transition and can be re-applied in showContent().
     private var targetWidthPx: Int? = null
     private var targetHeightPx: Int? = null
 
     init {
-        // Start completely hidden — not measured, not laid out, not rendered.
         visibility = View.GONE
         scaleSpring.springConfig = SpringConfigs.CONTENT_SCALE
         scaleSpring.currentValue = 0.0
@@ -38,15 +35,12 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
             }
 
             override fun onSpringAtRest(spring: Spring) {
-                // When the hide animation finishes (scale reaches 0), go GONE
-                // so the FlutterView stops participating in layout/rendering.
                 if (spring.currentValue < 0.01) {
                     visibility = View.GONE
                 }
             }
         })
 
-        // ── Accessibility ──────────────────────────────────────────────
         contentDescription = "Chat content panel"
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
     }
@@ -54,7 +48,7 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
     /**
      * Store and immediately apply target dimensions (in px).
      * The values are re-applied in [showContent] to guarantee they
-     * survive the GONE→VISIBLE layout transition.
+     * survive the GONE to VISIBLE layout transition.
      */
     fun setContentSize(widthPx: Int, heightPx: Int) {
         OverlayConfig.logD("setContentSize() widthPx=$widthPx, heightPx=$heightPx")
@@ -76,7 +70,6 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
         val tw = targetWidthPx
         val th = targetHeightPx
         if (tw != null && tw > 0 && th != null && th > 0) {
-            // Force exact target dimensions regardless of what the parent suggests.
             val wSpec = MeasureSpec.makeMeasureSpec(tw, MeasureSpec.EXACTLY)
             val hSpec = MeasureSpec.makeMeasureSpec(th, MeasureSpec.EXACTLY)
             OverlayConfig.logD("onMeasure() FORCING tw=$tw, th=$th (incoming: ${MeasureSpec.getSize(widthMeasureSpec)}x${MeasureSpec.getSize(heightMeasureSpec)})")
@@ -115,19 +108,13 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
     }
 
     fun showContent() {
-        // Re-apply target dimensions before becoming visible so they
-        // survive the GONE → VISIBLE layout transition.
         applyTargetSize()
         OverlayConfig.logD("showContent() lp.w=${layoutParams?.width}, lp.h=${layoutParams?.height}, targetW=$targetWidthPx, targetH=$targetHeightPx")
-        // Make the panel visible and start the scale-up animation.
         visibility = View.VISIBLE
-        // Force the parent to re-measure this view with the correct params.
         forceLayout()
         requestLayout()
         scaleSpring.endValue = 1.0
-        // Accessibility: announce focus
         sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
-        // Post a verification check after the layout pass completes.
         post {
             OverlayConfig.logD("showContent() POST-LAYOUT: measuredW=$measuredWidth, measuredH=$measuredHeight, w=$width, h=$height, lp.w=${layoutParams?.width}, lp.h=${layoutParams?.height}")
             val tw = targetWidthPx
@@ -135,7 +122,6 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
             if (tw != null && tw > 0 && th != null && th > 0) {
                 if (measuredWidth != tw || measuredHeight != th) {
                     OverlayConfig.logW("DIMENSION MISMATCH! Forcing re-measure: target=${tw}x${th}, actual=${measuredWidth}x${measuredHeight}")
-                    // Emergency: force exact dimensions directly.
                     val wSpec = MeasureSpec.makeMeasureSpec(tw, MeasureSpec.EXACTLY)
                     val hSpec = MeasureSpec.makeMeasureSpec(th, MeasureSpec.EXACTLY)
                     measure(wSpec, hSpec)
@@ -146,9 +132,7 @@ class FlutterContentPanel(context: Context) : FrameLayout(context) {
     }
 
     fun hideContent() {
-        // Start scale-down animation; onSpringAtRest will set GONE.
         scaleSpring.endValue = 0.0
-        // Accessibility: announce hidden
         announceForAccessibility("Content panel hidden")
     }
 }

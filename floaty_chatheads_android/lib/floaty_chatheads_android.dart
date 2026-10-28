@@ -1,7 +1,10 @@
 import 'dart:typed_data';
 
+import 'package:floaty_chatheads_android/src/add_chat_head_config_mapper.dart';
+import 'package:floaty_chatheads_android/src/chat_head_config_mapper.dart';
 import 'package:floaty_chatheads_android/src/generated/floaty_chatheads_api.g.dart'
     as pigeon;
+import 'package:floaty_chatheads_android/src/overlay_position_mapper.dart';
 import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_interface.dart';
 
 /// {@template floaty_chatheads_android}
@@ -10,11 +13,13 @@ import 'package:floaty_chatheads_platform_interface/floaty_chatheads_platform_in
 /// Uses Pigeon-generated APIs for type-safe communication with Kotlin.
 /// The overlay runs as a foreground service with `SYSTEM_ALERT_WINDOW`.
 /// {@endtemplate}
-class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
-  /// Pigeon host API for main-app operations.
-  final pigeon.FloatyHostApi _hostApi = pigeon.FloatyHostApi();
+final class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
+  /// {@macro floaty_chatheads_android}
+  factory FloatyChatheadsAndroid() = FloatyChatheadsAndroid._;
 
-  /// Pigeon host API for overlay-side operations.
+  FloatyChatheadsAndroid._();
+
+  final pigeon.FloatyHostApi _hostApi = pigeon.FloatyHostApi();
   final pigeon.FloatyOverlayHostApi _overlayHostApi =
       pigeon.FloatyOverlayHostApi();
 
@@ -24,132 +29,55 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
     FloatyChatheadsPlatform.instance = FloatyChatheadsAndroid();
   }
 
-  /// {@macro floaty_chatheads_platform.check_permission}
   @override
   Future<bool> checkPermission() => _hostApi.checkPermission();
 
-  /// {@macro floaty_chatheads_platform.request_permission}
   @override
   Future<bool> requestPermission() => _hostApi.requestPermission();
 
-  /// {@macro floaty_chatheads_platform.show_chat_head}
   @override
   Future<void> showChatHead(ChatHeadConfig config) async {
-    final size = ChatHeadConfigResolver.contentSize(config);
-    await _hostApi.showChatHead(
-      pigeon.ChatHeadConfig(
-        entryPoint: config.entryPoint,
-        entryPointLibrary: config.entryPointLibrary,
-        contentWidth: size.width,
-        contentHeight: size.height,
-        notificationTitle: config.notification?.title,
-        notificationDescription: config.notification?.description,
-        notificationIconAsset: config.notification?.iconAsset,
-        flag: pigeon.OverlayFlagMessage.values[config.flag.index],
-        enableDrag: config.enableDrag,
-        notificationVisibility: pigeon.NotificationVisibilityMessage.values[
-            ChatHeadConfigResolver.notificationVisibility(config.notification)
-                .index],
-        snapEdge: pigeon.SnapEdgeMessage
-            .values[ChatHeadConfigResolver.snapEdge(config.snap).index],
-        snapMargin: ChatHeadConfigResolver.snapMargin(config.snap),
-        persistPosition: ChatHeadConfigResolver.persistPosition(config.snap),
-        entranceAnimation: pigeon
-            .EntranceAnimationMessage.values[config.entranceAnimation.index],
-        panelAnchor:
-            pigeon.PanelAnchorMessage.values[config.panelAnchor.index],
-        theme: _toThemeMessage(config.theme),
-        debugMode: config.debugMode,
-        autoLaunchOnBackground: config.autoLaunchOnBackground,
-        persistOnAppClose: config.persistOnAppClose,
-        chatheadIconSource: _toIconSourceMessage(config.assets?.icon),
-        closeIconSource: _toIconSourceMessage(config.assets?.closeIcon),
-        closeBackgroundSource:
-            _toIconSourceMessage(config.assets?.closeBackground),
-      ),
-    );
+    await _hostApi.showChatHead(config.toPigeonConfig());
     await OverlayReadiness.ensureReady(
       config,
       closeOverlay: _hostApi.closeChatHead,
     );
   }
 
-  static pigeon.ChatHeadThemeMessage? _toThemeMessage(ChatHeadTheme? t) {
-    if (t == null) return null;
-    return pigeon.ChatHeadThemeMessage(
-      badgeColor: t.badgeColor,
-      badgeTextColor: t.badgeTextColor,
-      bubbleBorderColor: t.bubbleBorderColor,
-      bubbleBorderWidth: t.bubbleBorderWidth,
-      bubbleShadowColor: t.bubbleShadowColor,
-      closeTintColor: t.closeTintColor,
-      overlayPalette: t.overlayPalette != null
-          ? Map<String?, int?>.from(t.overlayPalette!)
-          : null,
-    );
-  }
-
-  /// {@macro floaty_chatheads_platform.close_chat_head}
   @override
   Future<void> closeChatHead() => _hostApi.closeChatHead();
 
-  /// {@macro floaty_chatheads_platform.is_active}
   @override
   Future<bool> isActive() => _hostApi.isChatHeadActive();
 
-  /// {@macro floaty_chatheads_platform.add_chat_head}
   @override
-  Future<void> addChatHead(AddChatHeadConfig config) {
-    return _hostApi.addChatHead(
-      pigeon.AddChatHeadConfig(
-        id: config.id,
-        iconAsset: config.iconAsset,
-        iconSource: config.iconSource != null
-            ? _toIconSourceMessage(config.iconSource)
-            : (config.iconAsset != null
-                ? _toIconSourceMessage(IconSource.asset(config.iconAsset!))
-                : null),
-      ),
-    );
-  }
+  Future<void> addChatHead(AddChatHeadConfig config) =>
+      _hostApi.addChatHead(config.toPigeonAddConfig());
 
-  /// {@macro floaty_chatheads_platform.remove_chat_head}
   @override
   Future<void> removeChatHead(String id) => _hostApi.removeChatHead(id);
 
-  /// {@macro floaty_chatheads_platform.resize_content}
   @override
   Future<void> resizeContent(int width, int height) =>
       _overlayHostApi.resizeContent(width, height);
 
-  /// {@macro floaty_chatheads_platform.update_flag}
   @override
   Future<void> updateFlag(OverlayFlag flag) =>
       _overlayHostApi.updateFlag(flag.index);
 
-  /// {@macro floaty_chatheads_platform.close_overlay}
   @override
   Future<void> closeOverlay() => _overlayHostApi.closeOverlay();
 
-  /// {@macro floaty_chatheads_platform.get_overlay_position}
   @override
-  Future<OverlayPosition> getOverlayPosition() async {
-    final pos = await _overlayHostApi.getOverlayPosition();
-    return OverlayPosition(
-      x: (pos['x']! as num).toDouble(),
-      y: (pos['y']! as num).toDouble(),
-    );
-  }
+  Future<OverlayPosition> getOverlayPosition() async =>
+      (await _overlayHostApi.getOverlayPosition()).toOverlayPosition();
 
-  /// {@macro floaty_chatheads_platform.update_badge}
   @override
   Future<void> updateBadge(int count) => _hostApi.updateBadge(count);
 
-  /// {@macro floaty_chatheads_platform.expand_chat_head}
   @override
   Future<void> expandChatHead() => _hostApi.expandChatHead();
 
-  /// {@macro floaty_chatheads_platform.collapse_chat_head}
   @override
   Future<void> collapseChatHead() => _hostApi.collapseChatHead();
 
@@ -159,26 +87,5 @@ class FloatyChatheadsAndroid extends FloatyChatheadsPlatform {
     Uint8List rgbaBytes,
     int width,
     int height,
-  ) =>
-      _hostApi.updateChatHeadIcon(id, rgbaBytes, width, height);
-
-  /// Converts a platform-interface [IconSource] to a Pigeon
-  /// [pigeon.IconSourceMessage].
-  static pigeon.IconSourceMessage? _toIconSourceMessage(IconSource? source) {
-    if (source == null) return null;
-    return switch (source) {
-      AssetIconSource(:final path) => pigeon.IconSourceMessage(
-          type: pigeon.IconSourceTypeMessage.asset,
-          path: path,
-        ),
-      NetworkIconSource(:final url) => pigeon.IconSourceMessage(
-          type: pigeon.IconSourceTypeMessage.network,
-          path: url,
-        ),
-      BytesIconSource(:final data) => pigeon.IconSourceMessage(
-          type: pigeon.IconSourceTypeMessage.bytes,
-          bytes: data,
-        ),
-    };
-  }
+  ) => _hostApi.updateChatHeadIcon(id, rgbaBytes, width, height);
 }

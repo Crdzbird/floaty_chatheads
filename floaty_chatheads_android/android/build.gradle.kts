@@ -12,9 +12,6 @@ allprojects {
     }
 }
 
-// Configured through the public DSL interface (AGP 7+) instead of the
-// legacy `android {}` accessor, which is an error-level deprecation on
-// the AGP 9 script classpath.
 configure<com.android.build.api.dsl.LibraryExtension> {
     namespace = "ni.devotion.floaty_chatheads"
 
@@ -51,10 +48,6 @@ configure<com.android.build.api.dsl.LibraryExtension> {
     }
 }
 
-// Built-in Kotlin (Flutter 3.44+ / AGP 9+): Kotlin support comes from
-// AGP itself, so no Kotlin Gradle Plugin is applied here. The
-// `kotlin {}` extension is provided by Flutter's tooling on every
-// supported version.
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17

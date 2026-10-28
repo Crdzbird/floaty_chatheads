@@ -73,7 +73,7 @@ internal object OverlayIconLoader {
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
 
     /**
-     * Loads a bitmap from a network URL. Blocks on the calling thread —
+     * Loads a bitmap from a network URL. Blocks on the calling thread;
      * the caller is responsible for dispatching this off the UI thread.
      */
     private fun loadNetwork(url: String): Bitmap? {

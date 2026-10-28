@@ -74,7 +74,7 @@ class FloatyChatheadsPlugin :
      * True while [showChatHead] is setting up the overlay (between
      * `startForegroundService` and the coroutine completing).
      * When set, [FloatyContentJobService.onStartCommand] must NOT
-     * call `createWindow()` — the coroutine will do it after icons
+     * call `createWindow()`; the coroutine will do it after icons
      * are loaded and OverlayConfig is fully populated.
      */
     internal var pluginSetupInProgress = false
@@ -97,18 +97,20 @@ class FloatyChatheadsPlugin :
      * When [io.flutter.embedding.engine.FlutterEngineGroup.createAndRunEngine]
      * creates the overlay engine it auto-registers all plugins, including
      * this one.  The overlay instance must NOT overwrite [activeInstance]
-     * or [mainMessenger] — doing so would cause overlay→main messages to
+     * or [mainMessenger], since doing so would cause overlay to main messages to
      * loop back to the overlay instead of reaching the main Dart side.
      */
     private var isMainEnginePlugin = false
 
+    /**
+     * Sets up the host API and the main to overlay messenger relay. Only
+     * the first attachment (the main engine) does this; attachments from
+     * the overlay engine, including restore after death, are ignored.
+     * When the service is already running, the relay is wired but the
+     * `connected:true` signal is deferred until [isChatHeadActive].
+     */
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        // Guard: FlutterEngineGroup auto-registers plugins on the
-        // overlay engine.  Only the first attachment (the main engine)
-        // should set up the messenger relay.
         if (activeInstance != null || OverlayEngineManager.creatingOverlayEngine) {
-            // This is the overlay engine — skip setup entirely. The flag
-            // covers restore-after-death, where no main instance exists yet.
             return
         }
 
@@ -124,8 +126,6 @@ class FloatyChatheadsPlugin :
             Constants.MESSENGER_TAG,
             JSONMessageCodec.INSTANCE,
         )
-        // Main → Overlay relay: forward messages from the main Dart
-        // to the overlay Dart via the service's overlay messenger.
         mainMessenger?.setMessageHandler { message, reply ->
             val service = FloatyContentJobService.instance
             if (service?.overlayMessenger != null) {
@@ -135,14 +135,6 @@ class FloatyChatheadsPlugin :
             }
         }
 
-        // If the service is already running (app restart / hot-restart),
-        // note that we need to reconnect but DON'T send `connected:true`
-        // to the overlay yet.  The overlay would flush its action queue
-        // immediately, but the main Dart side hasn't registered its
-        // channel handlers yet (widgets haven't built).  Instead, set up
-        // the relay now and defer the connection signal until
-        // `isChatHeadActive()` is called — that Pigeon call acts as an
-        // implicit "ready" signal from the Dart side.
         val service = FloatyContentJobService.instance
         if (service != null) {
             isServiceRunning = true
@@ -152,7 +144,6 @@ class FloatyChatheadsPlugin :
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        // Only the main engine plugin should clean up shared state.
         if (!isMainEnginePlugin) return
 
         FloatyHostApi.setUp(binding.binaryMessenger, null)
@@ -165,8 +156,6 @@ class FloatyChatheadsPlugin :
         removeAutoLaunchCallbacks()
         pluginScope.cancel()
 
-        // Notify the service that the main app is disconnected, but
-        // keep the overlay engine alive.
         FloatyContentJobService.instance?.onMainAppDisconnected()
     }
 
@@ -190,8 +179,6 @@ class FloatyChatheadsPlugin :
         activity = null
     }
 
-    // ── Permissions (delegated) ──────────────────────────────────────
-
     override fun checkPermission(): Boolean = permissions.check(context)
 
     override fun requestPermission(callback: (Result<Boolean>) -> Unit) =
@@ -202,8 +189,6 @@ class FloatyChatheadsPlugin :
         resultCode: Int,
         data: Intent?,
     ): Boolean = permissions.handleActivityResult(requestCode, context)
-
-    // ── Show / hide ──────────────────────────────────────────────────
 
     override fun showChatHead(
         config: ChatHeadConfig,
@@ -221,14 +206,8 @@ class FloatyChatheadsPlugin :
             )
             return
         }
-        // Android 13+: the foreground-service notification needs this to
-        // show. No Activity (headless start) means it is simply skipped.
         permissions.requestNotificationPermission(activity)
 
-        // Tear down any existing overlay so the new entry point takes
-        // effect. Use closeWindow(false) to avoid stopping the service
-        // — we are about to restart it immediately and stopSelf() is
-        // asynchronous.
         if (isServiceRunning) {
             FloatyContentJobService.instance?.closeWindow(false)
         }
@@ -236,19 +215,9 @@ class FloatyChatheadsPlugin :
 
         applyConfigToOverlayConfig(config)
 
-        // Start the service BEFORE icon loading so that onCreate()
-        // runs on the main thread while the coroutine suspends for
-        // I/O. This guarantees FloatyContentJobService.instance is
-        // non-null by the time icons are loaded. The service's
-        // onStartCommand() is guarded (pluginSetupInProgress) to
-        // avoid creating the window prematurely.
         pluginSetupInProgress = true
         startOverlayService(appContext)
 
-        // Load icons in parallel on Dispatchers.IO. While the
-        // coroutine suspends here, the main thread processes the
-        // service start (onCreate sets instance). The Pigeon callback
-        // is invoked only after the window is fully created.
         pluginScope.launch {
             val chatheadIcon = async(Dispatchers.IO) {
                 withTimeoutOrNull(OverlayIconLoader.ICON_LOAD_TIMEOUT_MS) {
@@ -272,25 +241,19 @@ class FloatyChatheadsPlugin :
                 }
             }
 
-            // Await all three in parallel — worst case is 1 × timeout.
             chatheadIcon.await()?.let { OverlayConfig.floatingIcon = it }
             closeIcon.await()?.let { OverlayConfig.closeIcon = it }
             closeBg.await()?.let { OverlayConfig.backgroundCloseIcon = it }
 
-            // Mark widget-sourced close icons so Close.kt scales them
-            // to the full close-target size instead of the tiny 28dp default.
             OverlayConfig.closeIconIsWidget =
                 config.closeIconSource?.type == IconSourceTypeMessage.BYTES
 
-            // Notification icon is always an asset — fast, no network.
             withContext(Dispatchers.IO) {
                 config.notificationIconAsset
                     ?.let { OverlayIconLoader.loadAsset(appContext, it) }
                     ?.let { OverlayConfig.notificationIcon = it }
             }
 
-            // Back on Main — service.instance is guaranteed non-null
-            // because onCreate() ran while we were loading icons.
             val service = FloatyContentJobService.instance
             if (service != null) {
                 service.closeWindow(false)
@@ -300,7 +263,6 @@ class FloatyChatheadsPlugin :
                 service.onMainAppConnected()
                 service.createWindow()
             } else {
-                // Fallback: service not ready (should not happen).
                 ConfigPersistence(appContext).persist(config.entryPoint)
             }
 
@@ -309,7 +271,6 @@ class FloatyChatheadsPlugin :
 
             updateAutoLaunchCallbacks(appContext)
 
-            // Signal the Dart side that the chathead is fully ready.
             callback(Result.success(Unit))
         }
     }
@@ -321,20 +282,18 @@ class FloatyChatheadsPlugin :
         isServiceRunning = false
     }
 
+    /**
+     * Returns whether the overlay service is running. The first call after
+     * a deferred reconnect also sends the pending `connected:true` signal,
+     * since it confirms the main Dart side has registered its handlers.
+     */
     override fun isChatHeadActive(): Boolean {
-        // This Pigeon call from the Dart side confirms that the main
-        // app's widget tree is built and channel handlers are registered.
-        // If the overlay relay was set up during onAttachedToEngine
-        // (deferred connection), now is the time to send `connected:true`
-        // so the overlay flushes its action queue.
         if (isServiceRunning && pendingConnectionSignal) {
             pendingConnectionSignal = false
             FloatyContentJobService.instance?.onMainAppConnected()
         }
         return isServiceRunning
     }
-
-    // ── Multi-chathead ───────────────────────────────────────────────
 
     override fun addChatHead(
         config: AddChatHeadConfig,
@@ -420,8 +379,6 @@ class FloatyChatheadsPlugin :
         pendingIconFrames.remove(id)
     }
 
-    // ── Private helpers ──────────────────────────────────────────────
-
     private fun startOverlayService(appContext: Context) {
         val serviceIntent = Intent(appContext, FloatyContentJobService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -434,7 +391,7 @@ class FloatyChatheadsPlugin :
     /**
      * Copies the Pigeon-side [config] into the shared [OverlayConfig]
      * singleton so it is observable from native views when the service
-     * starts. Synchronous on purpose — the service reads these values
+     * starts. Synchronous on purpose: the service reads these values
      * from `onCreate` and the chatHeads view from `onDraw`.
      */
     private fun applyConfigToOverlayConfig(config: ChatHeadConfig) {
@@ -494,8 +451,6 @@ class FloatyChatheadsPlugin :
             }
         }
     }
-
-    // ── Auto-launch lifecycle management ─────────────────────────────
 
     private fun updateAutoLaunchCallbacks(appContext: Context) {
         val app = appContext as? Application ?: return

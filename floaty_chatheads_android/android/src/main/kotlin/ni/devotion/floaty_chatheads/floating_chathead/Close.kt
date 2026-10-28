@@ -35,7 +35,7 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
         ?: BitmapFactory.decodeResource(context.resources, R.drawable.close_bg, nativeSize)
 
     /**
-     * Source rect over [bgSourceBitmap] — full bitmap, computed once.
+     * Source rect over [bgSourceBitmap]: the full bitmap, computed once.
      * Used with [bgDstRect] in [onDraw] so the close-bg scale animation
      * does not allocate a new bitmap per spring tick.
      */
@@ -47,7 +47,7 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     /** Current animated size in px (driven by [springScale]). */
     private var bgCurrentSize: Float = ChatHeads.CLOSE_SIZE.toFloat()
 
-    /** Paint dedicated to the scaled bg — bilinear filter keeps the
+    /** Paint dedicated to the scaled bg; a bilinear filter keeps the
      *  upscaled gradient smooth. Kept separate from [paint] so the
      *  close-icon rendering is unaffected. */
     private val bgPaint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
@@ -64,7 +64,6 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     fun show() {
         visibility = View.VISIBLE
         springAlpha.endValue = 1.0
-        // Accessibility announcement
         announceForAccessibility("Close target visible")
     }
 
@@ -76,8 +75,6 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     }
 
     init {
-        // Widget-rendered close icons fill the close target; asset icons
-        // stay at the small 28 dp default so they sit on top of the bg.
         val closeIconSize = if (OverlayConfig.closeIconIsWidget) {
             ChatHeads.CLOSE_SIZE
         } else {
@@ -90,7 +87,6 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
             Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.close, nativeSize), WindowManagerHelper.dpToPx(28f), WindowManagerHelper.dpToPx(28f), false)
         }
 
-        // Apply close tint color from theme
         OverlayConfig.closeTintColor?.let { tint ->
             closePaint.colorFilter = PorterDuffColorFilter(tint, PorterDuff.Mode.SRC_IN)
         }
@@ -132,7 +128,6 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
         springAlpha.currentValue = 0.0
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) z = 100f
 
-        // ── Accessibility ──────────────────────────────────────────────
         contentDescription = "Close target. Drop here to dismiss."
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -144,8 +139,6 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
     }
 
     override fun onDraw(canvas: Canvas) {
-        // Draw the scale-animated background from a single source bitmap
-        // via dest-rect scaling — zero allocations per spring tick.
         val cx = width / 2f
         val cy = height / 2f
         val half = bgCurrentSize / 2f
@@ -153,7 +146,6 @@ class Close(var chatHeads: ChatHeads): View(chatHeads.context) {
         canvas.drawBitmap(bgSourceBitmap, bgSrcRect, bgDstRect, bgPaint)
 
         bitmapClose?.let {
-            // Use closePaint if a tint is set, otherwise default paint
             val drawPaint = if (OverlayConfig.closeTintColor != null) closePaint else paint
             canvas.drawBitmap(it, cx - it.width.toFloat() / 2, cy - it.height.toFloat() / 2, drawPaint)
         }

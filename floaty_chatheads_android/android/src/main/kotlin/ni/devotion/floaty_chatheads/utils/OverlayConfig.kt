@@ -25,8 +25,6 @@ enum class NotificationVisibility { PUBLIC, SECRET, PRIVATE }
  * app-death via SharedPreferences.
  */
 object OverlayConfig {
-    // ── Icons ────────────────────────────────────────────────────────
-    // Written from coroutines (Dispatchers.IO/Default), read from main thread.
     @Volatile var floatingIcon: Bitmap? = null
     @Volatile var closeIcon: Bitmap? = null
     @Volatile var backgroundCloseIcon: Bitmap? = null
@@ -35,38 +33,30 @@ object OverlayConfig {
      *  and should be scaled to [CLOSE_SIZE] instead of the small 28dp default. */
     @Volatile var closeIconIsWidget: Boolean = false
 
-    // ── Notification ─────────────────────────────────────────────────
     var notificationTitle: String = "Floaty Chathead"
     var notificationDescription: String? = null
     var notificationVisibility: NotificationVisibility = NotificationVisibility.PUBLIC
     @Volatile var notificationIcon: Bitmap? = null
 
-    // ── Content panel ────────────────────────────────────────────────
     /** Width in dp: null = WRAP_CONTENT, >0 = explicit dp, <=0 = MATCH_PARENT. */
     var contentWidth: Int? = null
     /** Height in dp: null = WRAP_CONTENT, >0 = explicit dp, <=0 = MATCH_PARENT. */
     var contentHeight: Int? = null
 
-    // ── Snap behavior ────────────────────────────────────────────────
     var snapEdge: SnapEdge = SnapEdge.BOTH
     /** Snap margin in dp. Negative = partially hidden off-screen. */
     var snapMargin: Float = -10f
 
-    // ── Persistent position ──────────────────────────────────────────
     var persistPosition: Boolean = false
 
-    // ── Entrance animation ───────────────────────────────────────────
     var entranceAnimation: EntranceAnimation = EntranceAnimation.NONE
 
-    // ── Overlay entry point ──────────────────────────────────────────
     /** Library URI of the entry point; null = the app's root library. */
     var entryPointLibrary: String? = null
 
-    // ── Panel anchor ─────────────────────────────────────────────────
     /** Where the expanded content panel opens relative to the bubble. */
     var panelAnchor: PanelAnchor = PanelAnchor.BELOW
 
-    // ── Theming ──────────────────────────────────────────────────────
     var badgeColor: Int = Color.RED
     var badgeTextColor: Int = Color.WHITE
     var bubbleBorderColor: Int? = null
@@ -75,16 +65,12 @@ object OverlayConfig {
     var closeTintColor: Int? = null
     var overlayPalette: Map<String, Int>? = null
 
-    // ── Lifecycle ─────────────────────────────────────────────────────
     /** Whether the chathead auto-shows when the app goes to background. */
     var autoLaunchOnBackground: Boolean = false
     /** Whether the overlay survives after the main app process is killed. */
     var persistOnAppClose: Boolean = false
 
-    // ── Debug ────────────────────────────────────────────────────────
     var debugMode: Boolean = false
-
-    // ── Logging ──────────────────────────────────────────────────────
 
     private const val TAG = "FloatyDebug"
 

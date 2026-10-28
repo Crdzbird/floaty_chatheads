@@ -208,13 +208,13 @@ enum SnapEdgeMessage: Int, CaseIterable {
   case left = 1
   /// Always snap to the right edge.
   case right = 2
-  /// No snapping — the bubble stays where the user releases it.
+  /// No snapping: the bubble stays where the user releases it.
   case none = 3
 }
 
 /// Animation style used when the chathead first appears on screen.
 enum EntranceAnimationMessage: Int, CaseIterable {
-  /// No entrance animation — bubble appears at its initial position.
+  /// No entrance animation: the bubble appears at its initial position.
   case none = 0
   /// Bubble pops in with a scale spring (default).
   case pop = 1
@@ -797,7 +797,7 @@ protocol FloatyOverlayHostApi {
   /// Returns the overlay position as `{'x': double, 'y': double}`.
   ///
   /// CONTRACT: overlay-channel methods must use only standard-codec
-  /// types — the overlay isolate decodes replies with the codec from
+  /// types, because the overlay isolate decodes replies with the codec from
   /// floaty_chatheads/pigeons/floaty_chatheads_overlay_api.dart, which
   /// assigns different tags to custom classes/enums.
   func getOverlayPosition() throws -> [String?: Any?]
@@ -861,7 +861,7 @@ class FloatyOverlayHostApiSetup {
     /// Returns the overlay position as `{'x': double, 'y': double}`.
     ///
     /// CONTRACT: overlay-channel methods must use only standard-codec
-    /// types — the overlay isolate decodes replies with the codec from
+    /// types, because the overlay isolate decodes replies with the codec from
     /// floaty_chatheads/pigeons/floaty_chatheads_overlay_api.dart, which
     /// assigns different tags to custom classes/enums.
     let getOverlayPositionChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.floaty_chatheads.FloatyOverlayHostApi.getOverlayPosition\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
